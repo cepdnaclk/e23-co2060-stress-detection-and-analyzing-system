@@ -24,10 +24,10 @@ A HTML template integrated with the given GitHub repository templates, based on 
 ---
 
 ## Team
--  E/23/108, W.G.R.P. Gamage, [email](mailto:e23108@eng.pdn.ac.lk)
--  E/23/117, W.R.A.D.N. Gunathilake, [email](mailto:e23117@eng.pdn.ac.lk)
--  E/23/127, H.M.K.I. Herath, [email](mailto:e23127@eng.pdn.ac.lk)
--  E/23/188,  K.M.M.Y. Kumarasinghe, [email](mailto:e23188@eng.pdn.ac.lk)
+-  E/23/108, W.G.R.P. Gamage, [e23108@eng.pdn.ac.lk](mailto:e23108@eng.pdn.ac.lk)
+-  E/23/117, W.R.A.D.N. Gunathilake, [e23117@eng.pdn.ac.lk](mailto:e23117@eng.pdn.ac.lk)
+-  E/23/127, H.M.K.I. Herath, [e23127@eng.pdn.ac.lk](mailto:e23127@eng.pdn.ac.lk)
+-  E/23/188,  K.M.M.Y. Kumarasinghe, [e23188@eng.pdn.ac.lk](mailto:e23188@eng.pdn.ac.lk)
 
 <!-- Image (photo/drawing of the final hardware) should be here -->
 
