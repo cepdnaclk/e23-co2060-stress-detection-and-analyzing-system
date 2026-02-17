@@ -25,7 +25,7 @@
         type:String,
         default:""
     }
- });
+ }, {timestamps:true});
 
  // hash the password before saving the user to DB
  userSchema.pre("save", async function(next) {
