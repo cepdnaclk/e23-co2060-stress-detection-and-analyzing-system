@@ -1,0 +1,41 @@
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.*
+backend/.env
+Mobile/.env
+
+# =========================
+# Dependencies
+# =========================
+node_modules/
+**/node_modules/
+
+# =========================
+# Logs
+# =========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Build Outputs
+# =========================
+dist/
+build/
+.expo/
+Mobile/.expo/
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+*.suo
