@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flex: 1,
     justifyContent: "space-between",
-    gap: 8,
+    gap: 5,
   },
   optionPill: {
     flex: 1,
