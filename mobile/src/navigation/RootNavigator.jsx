@@ -7,12 +7,7 @@ import AuthStack from "./AuthStack";
 const RootStack = createNativeStackNavigator();
 
 export default function RootNavigator() {
-  const { user, token, isCheckingAuth } = useAuthStore();
-
-  if (isCheckingAuth) {
-    // Splash/loading is already handled in RootLayout via expo-splash-screen
-    return null;
-  }
+  const { user, token } = useAuthStore();
 
   const isSignedIn = !!user && !!token;
 

@@ -1,12 +1,10 @@
 import { create } from "zustand";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../constants/api";
 
 export const useAuthStore = create((set) => ({
   user: null,
   token: null,
   isLoading: false,
-  isCheckingAuth: true,
 
   register: async (username, age, gender, password) => {
     set({ isLoading: true });
@@ -28,9 +26,7 @@ export const useAuthStore = create((set) => ({
 
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 
-      await AsyncStorage.setItem("user", JSON.stringify(data.user));
-      await AsyncStorage.setItem("token", data.token);
-
+      // Do not persist auth; keep it in memory only
       set({ token: data.token, user: data.user, isLoading: false });
 
       return { success: true };
@@ -59,9 +55,7 @@ export const useAuthStore = create((set) => ({
 
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 
-      await AsyncStorage.setItem("user", JSON.stringify(data.user));
-      await AsyncStorage.setItem("token", data.token);
-
+      // Do not persist auth; keep it in memory only
       set({ token: data.token, user: data.user, isLoading: false });
 
       return { success: true };
@@ -72,22 +66,12 @@ export const useAuthStore = create((set) => ({
   },
 
   checkAuth: async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const userJson = await AsyncStorage.getItem("user");
-      const user = userJson ? JSON.parse(userJson) : null;
-
-      set({ token, user });
-    } catch (error) {
-      console.log("Auth check failed", error);
-    } finally {
-      set({ isCheckingAuth: false });
-    }
+    // No persisted auth; always start logged out
+    set({ user: null, token: null });
   },
 
   logout: async () => {
-    await AsyncStorage.removeItem("token");
-    await AsyncStorage.removeItem("user");
+    // Clear in-memory auth state only
     set({ token: null, user: null });
   },
 }));
