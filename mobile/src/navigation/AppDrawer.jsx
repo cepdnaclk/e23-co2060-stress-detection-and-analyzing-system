@@ -5,6 +5,8 @@ import { createDrawerNavigator, DrawerToggleButton } from "@react-navigation/dra
 import HomeScreen from "../screens/HomeScreen";
 import QuestionnaireScreen from "../screens/QuestionnaireScreen";
 import LogoutScreen from "../screens/LogoutScreen";
+import ClinicalLocatorScreen from "../screens/ClinicalLocatorScreen";
+import RoutineGeneratorScreen from "../screens/RoutineGeneratorScreen";
 
 const Drawer = createDrawerNavigator();
 
@@ -40,6 +42,8 @@ export default function AppDrawer() {
     >
       <Drawer.Screen name="Home" component={HomeScreen} />
       <Drawer.Screen name="Questionnaire" component={QuestionnaireScreen} />
+      <Drawer.Screen name="Clinical Locator" component={ClinicalLocatorScreen} />
+      <Drawer.Screen name="Routine Generator" component={RoutineGeneratorScreen} />
       <Drawer.Screen name="Logout" component={LogoutScreen} />
     </Drawer.Navigator>
   );
