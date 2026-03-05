@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { View, Text, Pressable, Image } from "react-native";
 import SafeScreen from "../../components/SafeScreen";
 import styles from "../../assets/styles/question.styles";
+import questionnaireBanner from "../../assets/images/questionnaire-banner.png";
 
 export default function QuestionnaireScreen() {
   const questions = useMemo(
@@ -45,6 +46,12 @@ export default function QuestionnaireScreen() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [showIntro, setShowIntro] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowIntro(false), 3500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
@@ -71,80 +78,94 @@ export default function QuestionnaireScreen() {
   return (
     <SafeScreen>
       <View style={styles.container}>
-        <Text style={styles.title}>DASS-21</Text>
-        <Text style={styles.subtitle}>
-          Over the past week, how much has each statement applied to you?
-        </Text>
+        {showIntro ? (
+          <View style={styles.introContainer}>
+            <Image
+              source={questionnaireBanner}
+              style={styles.introImage}
+              resizeMode="contain"
+            />
+          </View>
+        ) : (
+          <>
+            <Text style={styles.title}>DASS-21</Text>
+            <Text style={styles.subtitle}>
+              Over the past week, how much has each statement applied to you?
+            </Text>
 
-        <View style={styles.progressRow}>
-          <Text style={styles.progressText}>
-            Question {currentIndex + 1} of {questions.length}
-          </Text>
-        </View>
+            <View style={styles.progressRow}>
+              <Text style={styles.progressText}>
+                Question {currentIndex + 1} of {questions.length}
+              </Text>
+            </View>
 
-        <View style={styles.card}>
-          <Text style={styles.questionText}>{currentQuestion.text}</Text>
-        </View>
+            <View style={styles.card}>
+              <Text style={styles.questionText}>{currentQuestion.text}</Text>
+            </View>
 
-        <View style={styles.optionsContainer}>
-          {[0, 1, 2, 3].map((value) => (
-            <Pressable
-              key={value}
-              style={[
-                styles.optionButton,
-                selectedValue === value && styles.optionButtonSelected,
-              ]}
-              onPress={() => handleSelect(value)}
-            >
-              <Text
+            <View style={styles.optionsContainer}>
+              {[0, 1, 2, 3].map((value) => (
+                <Pressable
+                  key={value}
+                  style={[
+                    styles.optionButton,
+                    selectedValue === value && styles.optionButtonSelected,
+                  ]}
+                  onPress={() => handleSelect(value)}
+                >
+                  <Text
+                    style={[
+                      styles.optionLabel,
+                      selectedValue === value && styles.optionLabelSelected,
+                    ]}
+                  >
+                    {value}
+                  </Text>
+                  <Text style={styles.optionDescription}>
+                    {value === 0 && "Did not apply to me at all"}
+                    {value === 1 &&
+                      "Applied to me to some degree, or some of the time"}
+                    {value === 2 &&
+                      "Applied to me to a considerable degree or a good part of the time"}
+                    {value === 3 &&
+                      "Applied to me very much or most of the time"}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View style={styles.navigationRow}>
+              <Pressable
+                onPress={handlePrevious}
+                disabled={currentIndex === 0}
                 style={[
-                  styles.optionLabel,
-                  selectedValue === value && styles.optionLabelSelected,
+                  styles.navButton,
+                  styles.navButtonSecondary,
+                  currentIndex === 0 && styles.navButtonDisabled,
                 ]}
               >
-                {value}
-              </Text>
-              <Text style={styles.optionDescription}>
-                {value === 0 && "Did not apply to me at all"}
-                {value === 1 &&
-                  "Applied to me to some degree, or some of the time"}
-                {value === 2 &&
-                  "Applied to me to a considerable degree or a good part of the time"}
-                {value === 3 &&
-                  "Applied to me very much or most of the time"}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+                <Text
+                  style={[styles.navButtonText, styles.navButtonTextSecondary]}
+                >
+                  Previous
+                </Text>
+              </Pressable>
 
-        <View style={styles.navigationRow}>
-          <Pressable
-            onPress={handlePrevious}
-            disabled={currentIndex === 0}
-            style={[
-              styles.navButton,
-              styles.navButtonSecondary,
-              currentIndex === 0 && styles.navButtonDisabled,
-            ]}
-          >
-            <Text style={[styles.navButtonText, styles.navButtonTextSecondary]}>
-              Previous
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={handleNext}
-            disabled={selectedValue === undefined || isLastQuestion}
-            style={[
-              styles.navButton,
-              selectedValue === undefined && styles.navButtonDisabled,
-            ]}
-          >
-            <Text style={styles.navButtonText}>
-              {isLastQuestion ? "Done" : "Next"}
-            </Text>
-          </Pressable>
-        </View>
+              <Pressable
+                onPress={handleNext}
+                disabled={selectedValue === undefined || isLastQuestion}
+                style={[
+                  styles.navButton,
+                  selectedValue === undefined && styles.navButtonDisabled,
+                ]}
+              >
+                <Text style={styles.navButtonText}>
+                  {isLastQuestion ? "Done" : "Next"}
+                </Text>
+              </Pressable>
+            </View>
+          </>
+        )}
       </View>
     </SafeScreen>
   );

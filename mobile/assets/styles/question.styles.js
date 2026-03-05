@@ -22,6 +22,15 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginBottom: 16,
   },
+  introContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  introImage: {
+    width: "100%",
+    height: 200,
+  },
   progressRow: {
     marginBottom: 12,
   },
