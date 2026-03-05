@@ -96,6 +96,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: COLORS.white,
   },
+  navButtonTextSecondary: {
+    color: COLORS.textPrimary,
+  },
 });
 
 export default styles;

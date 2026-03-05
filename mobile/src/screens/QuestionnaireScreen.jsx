@@ -127,7 +127,9 @@ export default function QuestionnaireScreen() {
               currentIndex === 0 && styles.navButtonDisabled,
             ]}
           >
-            <Text style={styles.navButtonText}>Previous</Text>
+            <Text style={[styles.navButtonText, styles.navButtonTextSecondary]}>
+              Previous
+            </Text>
           </Pressable>
 
           <Pressable
