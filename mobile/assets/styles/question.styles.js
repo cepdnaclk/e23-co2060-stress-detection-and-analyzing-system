@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   navButtonSecondary: {
     backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.black,
   },
   navButtonDisabled: {
     opacity: 0.5,
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   navButtonTextSecondary: {
-    color: COLORS.textPrimary,
+    color: COLORS.black,
   },
 });
 

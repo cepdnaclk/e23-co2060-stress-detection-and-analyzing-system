@@ -92,8 +92,7 @@ export default function QuestionnaireScreen() {
           </View>
         ) : showInstructions ? (
           <View style={styles.instructionsContainer}>
-            <Text style={styles.title}>DASS-21</Text>
-            <Text style={styles.instructionsHeading}>Before you start</Text>
+            <Text style={styles.instructionsHeading}>INSTRUCTIONS!!</Text>
             <Text style={styles.instructionsText}>
               You will see 21 short statements. For each one, select how
               much it applied to you over the past week.
@@ -112,8 +111,6 @@ export default function QuestionnaireScreen() {
           </View>
         ) : (
           <>
-            <Text style={styles.title}>DASS-21</Text>
-
             <View style={styles.progressRow}>
               <Text style={styles.progressText}>
                 Question {currentIndex + 1} of {questions.length}
