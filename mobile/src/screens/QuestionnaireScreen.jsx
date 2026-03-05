@@ -47,9 +47,13 @@ export default function QuestionnaireScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showIntro, setShowIntro] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowIntro(false), 3500);
+    const timer = setTimeout(() => {
+      setShowIntro(false);
+      setShowInstructions(true);
+    }, 3500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -86,12 +90,29 @@ export default function QuestionnaireScreen() {
               resizeMode="contain"
             />
           </View>
+        ) : showInstructions ? (
+          <View style={styles.instructionsContainer}>
+            <Text style={styles.title}>DASS-21</Text>
+            <Text style={styles.instructionsHeading}>Before you start</Text>
+            <Text style={styles.instructionsText}>
+              You will see 21 short statements. For each one, select how
+              much it applied to you over the past week.
+            </Text>
+            <Text style={styles.instructionsText}>
+              There are no right or wrong answers. Answer as honestly and
+              quickly as you can.
+            </Text>
+
+            <Pressable
+              style={styles.startButton}
+              onPress={() => setShowInstructions(false)}
+            >
+              <Text style={styles.startButtonText}>Start Questionnaire</Text>
+            </Pressable>
+          </View>
         ) : (
           <>
             <Text style={styles.title}>DASS-21</Text>
-            <Text style={styles.subtitle}>
-              Over the past week, how much has each statement applied to you?
-            </Text>
 
             <View style={styles.progressRow}>
               <Text style={styles.progressText}>
