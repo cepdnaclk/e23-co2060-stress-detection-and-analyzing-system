@@ -19,7 +19,7 @@
       "predictiveBackGestureEnabled": false,
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDajROw7-2DEjMXxcwplWplSTVwNBrSKOk"
+          "apiKey": "...removed for security reasons"
         }
       },
       "permissions": [
