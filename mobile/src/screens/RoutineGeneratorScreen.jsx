@@ -3,11 +3,18 @@ import {
   Alert,
   ImageBackground,
   Pressable,
+<<<<<<< HEAD
   StyleSheet,
+=======
+>>>>>>> main
   Text,
   TextInput,
   View,
 } from "react-native";
+<<<<<<< HEAD
+=======
+import styles from "../../assets/styles/routine.styles";
+>>>>>>> main
 
 export default function RoutineGeneratorScreen() {
   const [tasks, setTasks] = useState("");
@@ -77,6 +84,7 @@ export default function RoutineGeneratorScreen() {
   );
 }
 
+<<<<<<< HEAD
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -144,3 +152,5 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
 });
+=======
+>>>>>>> main
