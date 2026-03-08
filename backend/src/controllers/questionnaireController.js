@@ -24,7 +24,17 @@ export const calculateQuestionnaireScore = (req, res) => {
       totalScore += num;
     }
 
-    return res.status(200).json({ totalScore });
+    let severity = "normal";
+
+    if (totalScore >= 15 && totalScore <= 18) {
+      severity = "mild";
+    } else if (totalScore >= 19 && totalScore <= 25) {
+      severity = "moderate";
+    } else if (totalScore > 26) {
+      severity = "severe";
+    }
+
+    return res.status(200).json({ totalScore, severity });
   } catch (error) {
     console.error("Error calculating questionnaire score:", error);
     return res.status(500).json({ message: "Internal Server error" });

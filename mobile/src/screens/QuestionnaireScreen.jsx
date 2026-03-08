@@ -51,6 +51,7 @@ export default function QuestionnaireScreen() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [totalScore, setTotalScore] = useState(null);
+  const [severity, setSeverity] = useState(null);
   const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
@@ -109,6 +110,7 @@ export default function QuestionnaireScreen() {
       }
 
       setTotalScore(data.totalScore);
+      setSeverity(data.severity || null);
       setShowResults(true);
     } catch (error) {
       Alert.alert("Error", error.message || "Something went wrong");
@@ -157,6 +159,12 @@ export default function QuestionnaireScreen() {
               {totalScore}
             </Text>
 
+            {severity && (
+              <Text style={[styles.instructionsText, { marginTop: 8 }]}> 
+                Stress level: {severity.charAt(0).toUpperCase() + severity.slice(1)}
+              </Text>
+            )}
+
             <Pressable
               style={[styles.startButton, { marginTop: 32 }]}
               onPress={() => {
@@ -164,6 +172,7 @@ export default function QuestionnaireScreen() {
                 setAnswers({});
                 setCurrentIndex(0);
                 setTotalScore(null);
+                setSeverity(null);
                 setShowResults(false);
                 // Skip the timed intro on retake; go straight to instructions
                 setShowIntro(false);
