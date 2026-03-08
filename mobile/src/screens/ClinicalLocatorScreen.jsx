@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, ActivityIndicator, Linking } from "react-native";
 import MapView, { Marker, Callout } from "react-native-maps";
 import * as Location from "expo-location";
 import { API_URL } from "../../constants/api";
+import styles from "../../assets/styles/clinical_locator.styles";
 
 export default function ClinicalLocatorScreen() {
   const [userLocation, setUserLocation] = useState(null);
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const openInGoogleMaps = (clinic) => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.name)}&query_place_id=${clinic.place_id}`;
+    Linking.openURL(url);
+  };
 
   useEffect(() => {
     (async () => {
@@ -74,15 +80,9 @@ export default function ClinicalLocatorScreen() {
             latitudeDelta: 0.08,
             longitudeDelta: 0.08,
           }}
-          showsUserLocation={false}
+          showsUserLocation={true}
+          showsMyLocationButton={true}
         >
-          {/* User marker (blue) */}
-          <Marker
-            coordinate={userLocation}
-            pinColor="blue"
-            title="You are here"
-          />
-
           {/* Psychiatrist markers (red) */}
           {clinics.map((clinic, index) => (
             <Marker
@@ -93,12 +93,13 @@ export default function ClinicalLocatorScreen() {
               }}
               pinColor="red"
             >
-              <Callout tooltip={false}>
+                <Callout tooltip={false} onPress={() => openInGoogleMaps(clinic)}>
                 <View style={styles.callout}>
                   <Text style={styles.calloutName}>{clinic.name}</Text>
                   <Text style={styles.calloutAddress}>
                     {clinic.vicinity || "Address unavailable"}
                   </Text>
+                  <Text style={styles.calloutLink}>Tap to open in Google Maps ↗</Text>
                 </View>
               </Callout>
             </Marker>
@@ -108,42 +109,3 @@ export default function ClinicalLocatorScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 15,
-    color: "#555",
-  },
-  errorText: {
-    fontSize: 15,
-    color: "#D32F2F",
-    textAlign: "center",
-  },
-  callout: {
-    width: 200,
-    padding: 8,
-  },
-  calloutName: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1976D2",
-    marginBottom: 4,
-  },
-  calloutAddress: {
-    fontSize: 12,
-    color: "#555",
-  },
-});

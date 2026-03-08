@@ -25,9 +25,13 @@ export const getNearbyClinics = async (req, res) => {
             }
         );
 
+        console.log("Google Places status:", response.data.status);
+        console.log("Google Places error_message:", response.data.error_message);
+        console.log("Results count:", response.data.results?.length);
+
         const clinics = response.data.results.slice(0, 10);
 
-        res.status(200).json({ clinics });
+        res.status(200).json({ clinics, status: response.data.status });
 
     } catch (error) {
         console.log("Error in getNearbyClinics controller:", error);
