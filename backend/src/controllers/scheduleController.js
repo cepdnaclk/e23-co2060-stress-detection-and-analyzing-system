@@ -3,16 +3,21 @@ import generateTimetable from "../utils/timetableGenerator.js";
 
 export const parseSchedule = async (req, res) => {
   try {
-    const { text } = req.body;
+    const text =
+      typeof req.body === "string"
+        ? req.body
+        : req.body?.text;
 
     if (!text) {
-      return res.status(400).json({ error: "Text is required" });
+      return res.status(400).json({
+        error: 'Text is required. Send JSON { "text": "..." } or a text/plain body.'
+      });
     }
 
-    // Step 1: parse user text
+    // Step 1: Parse user text
     const schedule = extractSchedule(text);
 
-    // Step 2: send to LLM
+    // Step 2: Generate timetable using LLM
     const timetable = await generateTimetable(schedule);
 
     res.json({
