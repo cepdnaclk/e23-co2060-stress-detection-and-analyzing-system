@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -13,11 +14,9 @@ import {
 import styles from "../../assets/styles/signup.styles";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "../../constants/colors";
-import { useState } from "react";
-import { useRouter } from "expo-router";
 import { useAuthStore } from "../../store/authStore";
 
-export default function Signup() {
+export default function SignupScreen({ navigation }) {
   const [username, setUsername] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("Prefer not to say");
@@ -26,11 +25,12 @@ export default function Signup() {
 
   const { isLoading, register } = useAuthStore();
 
-  const router = useRouter();
-
   const handleSignUp = async () => {
     if (!username.trim() || !age.trim() || !gender || !password) {
-      Alert.alert("Missing info", "Please fill in username, age, gender, and password");
+      Alert.alert(
+        "Missing info",
+        "Please fill in username, age, gender, and password"
+      );
       return;
     }
 
@@ -45,10 +45,23 @@ export default function Signup() {
       return;
     }
 
-    const result = await register(username.trim(), numericAge, gender.trim(), password);
+    const result = await register(
+      username.trim(),
+      numericAge,
+      gender.trim(),
+      password
+    );
 
-    if (!result.success) Alert.alert("Error", result.error);
-    else router.replace("/(tabs)");
+    if (!result.success) {
+      Alert.alert("Error", result.error);
+      return;
+    }
+
+    // On success, reset navigation to the App (drawer) stack -> Home
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "App" }],
+    });
   };
 
   return (
@@ -61,7 +74,7 @@ export default function Signup() {
           <View style={styles.header}>
             <View style={styles.brandRow}>
               <Image
-                source={require("../../assets/images/i.png")}
+                source={require("../../assets/images/icon.png")}
                 style={styles.brandLogo}
                 resizeMode="contain"
               />
@@ -82,7 +95,7 @@ export default function Signup() {
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="johndoe"
+                  placeholder="Enter your username"
                   placeholderTextColor={COLORS.placeholderText}
                   value={username}
                   onChangeText={setUsername}
@@ -103,7 +116,7 @@ export default function Signup() {
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="18"
+                  placeholder="Enter your age"
                   placeholderTextColor={COLORS.placeholderText}
                   value={age}
                   onChangeText={setAge}
@@ -128,10 +141,16 @@ export default function Signup() {
                       <TouchableOpacity
                         key={option}
                         onPress={() => setGender(option)}
-                        style={[styles.optionPill, selected && styles.optionPillSelected]}
+                        style={[
+                          styles.optionPill,
+                          selected && styles.optionPillSelected,
+                        ]}
                       >
                         <Text
-                          style={[styles.optionPillText, selected && styles.optionPillTextSelected]}
+                          style={[
+                            styles.optionPillText,
+                            selected && styles.optionPillTextSelected,
+                          ]}
                         >
                           {option}
                         </Text>
@@ -172,7 +191,11 @@ export default function Signup() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={isLoading}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleSignUp}
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
@@ -182,7 +205,7 @@ export default function Signup() {
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>Already have an account?</Text>
-              <TouchableOpacity onPress={() => router.back()}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Text style={styles.link}>Login</Text>
               </TouchableOpacity>
             </View>

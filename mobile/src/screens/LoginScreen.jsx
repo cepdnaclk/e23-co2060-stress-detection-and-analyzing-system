@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,15 +10,12 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { Link } from "expo-router";
 import styles from "../../assets/styles/login.styles";
-import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "../../constants/colors";
-
 import { useAuthStore } from "../../store/authStore";
 
-export default function Login() {
+export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +29,16 @@ export default function Login() {
 
     const result = await login(username.trim(), password);
 
-    if (!result.success) Alert.alert("Error", result.error);
+    if (!result.success) {
+      Alert.alert("Error", result.error);
+      return;
+    }
+
+    // On success, reset navigation to the App (drawer) stack -> Home
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "App" }],
+    });
   };
 
   if (isCheckingAuth) return null;
@@ -42,10 +49,9 @@ export default function Login() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.container}>
-        {/* ILLUSTRATION */}
         <View style={styles.topIllustration}>
           <Image
-            source={require("../../assets/images/i.png")}
+            source={require("../../assets/images/icon.png")}
             style={styles.illustrationImage}
             resizeMode="contain"
           />
@@ -53,7 +59,6 @@ export default function Login() {
 
         <View style={styles.card}>
           <View style={styles.formContainer}>
-            {/* USERNAME */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Username</Text>
               <View style={styles.inputContainer}>
@@ -75,18 +80,15 @@ export default function Login() {
               </View>
             </View>
 
-            {/* PASSWORD */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
               <View style={styles.inputContainer}>
-                {/* LEFT ICON */}
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
                   color={COLORS.primary}
                   style={styles.inputIcon}
                 />
-                {/* INPUT */}
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your password"
@@ -109,7 +111,11 @@ export default function Login() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={isLoading}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
@@ -117,14 +123,11 @@ export default function Login() {
               )}
             </TouchableOpacity>
 
-            {/* FOOTER */}
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account?</Text>
-              <Link href="/(auth)/signup" asChild>
-                <TouchableOpacity>
-                  <Text style={styles.link}>Sign Up</Text>
-                </TouchableOpacity>
-              </Link>
+              <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+                <Text style={styles.link}>Sign Up</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
