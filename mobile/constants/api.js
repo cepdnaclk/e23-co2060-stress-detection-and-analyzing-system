@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 // mobile/constants/api.js
-export const API_URL = "http://192.168.8.106:3000/api"; // Update with your backend server URL and port
-=======
-// mobile/constants/api.js
-export const API_URL = "http://192.168.0.2:3000/api"; // Update with your backend server URL and port
+// Current Expo LAN host is 192.168.8.106; backend runs on port 3000.
+// If you switch networks, update this IP to match your machine's current LAN IP.
+export const API_URL = "http://192.168.8.106:3000/api";

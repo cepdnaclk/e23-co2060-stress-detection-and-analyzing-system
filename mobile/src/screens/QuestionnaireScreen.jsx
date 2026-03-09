@@ -1,16 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-<<<<<<< HEAD
-import { View, Text, Pressable, Image } from "react-native";
-import SafeScreen from "../../components/SafeScreen";
-import styles from "../../assets/styles/question.styles";
-import questionnaireBanner from "../../assets/images/questionnaire-banner.png";
-=======
 import { View, Text, Pressable, Image, Alert } from "react-native";
 import SafeScreen from "../../components/SafeScreen";
 import styles from "../../assets/styles/question.styles";
 import questionnaireBanner from "../../assets/images/questionnaire-banner.png";
 import { API_URL } from "../../constants/api";
->>>>>>> main
 
 export default function QuestionnaireScreen() {
   const questions = useMemo(
@@ -56,13 +49,10 @@ export default function QuestionnaireScreen() {
   const [answers, setAnswers] = useState({});
   const [showIntro, setShowIntro] = useState(true);
   const [showInstructions, setShowInstructions] = useState(false);
-<<<<<<< HEAD
-=======
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [totalScore, setTotalScore] = useState(null);
   const [severity, setSeverity] = useState(null);
   const [showResults, setShowResults] = useState(false);
->>>>>>> main
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,26 +64,18 @@ export default function QuestionnaireScreen() {
 
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
-<<<<<<< HEAD
-=======
   const selectedValue = answers[currentQuestion?.id];
->>>>>>> main
 
   const handleSelect = (value) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
   };
 
   const handleNext = () => {
-<<<<<<< HEAD
-    if (isLastQuestion) return;
-    if (currentIndex < questions.length - 1) {
-=======
     if (selectedValue === undefined) return;
 
     if (isLastQuestion) {
       handleSubmit();
     } else if (currentIndex < questions.length - 1) {
->>>>>>> main
       setCurrentIndex((prev) => prev + 1);
     }
   };
@@ -104,9 +86,6 @@ export default function QuestionnaireScreen() {
     }
   };
 
-<<<<<<< HEAD
-  const selectedValue = answers[currentQuestion?.id];
-=======
   const handleSubmit = async () => {
     if (Object.keys(answers).length !== questions.length) {
       Alert.alert("Incomplete", "Please answer all questions before finishing.");
@@ -139,7 +118,6 @@ export default function QuestionnaireScreen() {
       setIsSubmitting(false);
     }
   };
->>>>>>> main
 
   return (
     <SafeScreen>
@@ -171,8 +149,6 @@ export default function QuestionnaireScreen() {
               <Text style={styles.startButtonText}>Start Questionnaire</Text>
             </Pressable>
           </View>
-<<<<<<< HEAD
-=======
         ) : showResults ? (
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsHeading}>Your Results</Text>
@@ -206,7 +182,6 @@ export default function QuestionnaireScreen() {
               <Text style={styles.startButtonText}>Retake Questionnaire</Text>
             </Pressable>
           </View>
->>>>>>> main
         ) : (
           <>
             <View style={styles.progressRow}>
@@ -269,18 +244,11 @@ export default function QuestionnaireScreen() {
 
               <Pressable
                 onPress={handleNext}
-<<<<<<< HEAD
-                disabled={selectedValue === undefined || isLastQuestion}
-                style={[
-                  styles.navButton,
-                  selectedValue === undefined && styles.navButtonDisabled,
-=======
                 disabled={selectedValue === undefined || isSubmitting}
                 style={[
                   styles.navButton,
                   (selectedValue === undefined || isSubmitting) &&
                     styles.navButtonDisabled,
->>>>>>> main
                 ]}
               >
                 <Text style={styles.navButtonText}>

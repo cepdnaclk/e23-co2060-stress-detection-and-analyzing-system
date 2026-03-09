@@ -34,4 +34,5 @@ export default function RootLayout() {
       <StatusBar style="dark" />
     </SafeAreaProvider>
   );
+}
 
