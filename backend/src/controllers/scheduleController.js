@@ -27,7 +27,16 @@ export const parseSchedule = async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("Schedule parse failed:", {
+      message: err?.message,
+      status: err?.status,
+      code: err?.code,
+      type: err?.type,
+    });
+
+    if (err?.message?.includes("looks like a Google API key")) {
+      return res.status(400).json({ error: err.message });
+    }
 
     if (err?.status === 429 || err?.code === "insufficient_quota") {
       return res.status(429).json({

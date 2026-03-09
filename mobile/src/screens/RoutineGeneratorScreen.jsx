@@ -9,21 +9,35 @@ import {
 } from "react-native";
 import styles from "../../assets/styles/routine.styles";
 
+const API_URL = "http://192.168.0.2:3000/api";
+
 export default function RoutineGeneratorScreen() {
   const [tasks, setTasks] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const buildRoutineFromTasks = (taskText) => {
-    const chunks = taskText
-      .split(/[\n,.;]+/)
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .slice(0, 6);
+  const formatTimetableForAlert = (timetable) => {
+    if (!timetable) return "No timetable was returned by the server.";
 
-    return chunks.map((item, index) => `${index + 1}. ${item}`).join("\n");
+    if (Array.isArray(timetable.blocks) && timetable.blocks.length > 0) {
+      const lines = timetable.blocks.map(
+        (block) => `${block.start} - ${block.end}: ${block.activity}`
+      );
+
+      if (timetable.summary) {
+        lines.push(`\nSummary: ${timetable.summary}`);
+      }
+
+      return lines.join("\n");
+    }
+
+    if (timetable.raw_text) {
+      return timetable.raw_text;
+    }
+
+    return JSON.stringify(timetable, null, 2);
   };
 
-  const handleGenerateRoutine = () => {
+  const handleGenerateRoutine = async () => {
     if (!tasks.trim()) {
       Alert.alert("Missing tasks", "Please enter your daily tasks first.");
       return;
@@ -31,16 +45,32 @@ export default function RoutineGeneratorScreen() {
 
     setIsGenerating(true);
 
-    // Small delay keeps the interaction responsive and gives visual feedback.
-    setTimeout(() => {
-      const routine = buildRoutineFromTasks(tasks);
-      setIsGenerating(false);
+    try {
+      const response = await fetch(`${API_URL}/schedule/parse`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: tasks.trim() }),
+      });
 
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate routine");
+      }
+
+      const routineText = formatTimetableForAlert(data.timetable);
+
+      Alert.alert("Routine Generated", routineText || "No routine generated.");
+    } catch (error) {
       Alert.alert(
-        "Routine Generated",
-        routine || "Please add clearer tasks (separated by commas or new lines)."
+        "Generation Failed",
+        error.message || "Could not connect to the timetable generator server."
       );
-    }, 300);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
