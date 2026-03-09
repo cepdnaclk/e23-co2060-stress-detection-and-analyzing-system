@@ -2,8 +2,14 @@ import OpenAI from "openai";
 
 function buildClientConfig() {
   const provider = (process.env.LLM_PROVIDER || "").toLowerCase();
-  const openaiKey = process.env.OPENAI_API_KEY;
-  const groqKey = process.env.GROQ_API_KEY;
+  const openaiKey = (process.env.OPENAI_API_KEY || "").trim();
+  const groqKey = (process.env.GROQ_API_KEY || "").trim();
+
+  if (openaiKey && openaiKey.startsWith("AIza")) {
+    throw new Error(
+      "OPENAI_API_KEY looks like a Google API key (AIza...). Use an OpenAI key (sk-...) or set LLM_PROVIDER=groq with GROQ_API_KEY (gsk_...)."
+    );
+  }
 
   const useGroq =
     provider === "groq" ||
