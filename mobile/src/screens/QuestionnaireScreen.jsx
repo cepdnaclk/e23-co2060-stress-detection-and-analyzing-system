@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, Pressable, Image } from "react-native";
+import { View, Text, Pressable, Image, Alert } from "react-native";
 import SafeScreen from "../../components/SafeScreen";
 import styles from "../../assets/styles/question.styles";
 import questionnaireBanner from "../../assets/images/questionnaire-banner.png";
+import { API_URL } from "../../constants/api";
 
 export default function QuestionnaireScreen() {
   const questions = useMemo(
@@ -48,6 +49,10 @@ export default function QuestionnaireScreen() {
   const [answers, setAnswers] = useState({});
   const [showIntro, setShowIntro] = useState(true);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [totalScore, setTotalScore] = useState(null);
+  const [severity, setSeverity] = useState(null);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -59,14 +64,18 @@ export default function QuestionnaireScreen() {
 
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
+  const selectedValue = answers[currentQuestion?.id];
 
   const handleSelect = (value) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
   };
 
   const handleNext = () => {
-    if (isLastQuestion) return;
-    if (currentIndex < questions.length - 1) {
+    if (selectedValue === undefined) return;
+
+    if (isLastQuestion) {
+      handleSubmit();
+    } else if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     }
   };
@@ -77,7 +86,38 @@ export default function QuestionnaireScreen() {
     }
   };
 
-  const selectedValue = answers[currentQuestion?.id];
+  const handleSubmit = async () => {
+    if (Object.keys(answers).length !== questions.length) {
+      Alert.alert("Incomplete", "Please answer all questions before finishing.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch(`${API_URL}/questionnaire/score`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ answers }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to calculate score");
+      }
+
+      setTotalScore(data.totalScore);
+      setSeverity(data.severity || null);
+      setShowResults(true);
+    } catch (error) {
+      Alert.alert("Error", error.message || "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <SafeScreen>
@@ -107,6 +147,39 @@ export default function QuestionnaireScreen() {
               onPress={() => setShowInstructions(false)}
             >
               <Text style={styles.startButtonText}>Start Questionnaire</Text>
+            </Pressable>
+          </View>
+        ) : showResults ? (
+          <View style={styles.instructionsContainer}>
+            <Text style={styles.instructionsHeading}>Your Results</Text>
+            <Text style={styles.instructionsText}>
+              Your total score is:
+            </Text>
+            <Text style={[styles.instructionsHeading, { fontSize: 32 }]}>
+              {totalScore}
+            </Text>
+
+            {severity && (
+              <Text style={[styles.instructionsText, { marginTop: 8 }]}> 
+                Stress level: {severity.charAt(0).toUpperCase() + severity.slice(1)}
+              </Text>
+            )}
+
+            <Pressable
+              style={[styles.startButton, { marginTop: 32 }]}
+              onPress={() => {
+                // Reset to allow taking the questionnaire again
+                setAnswers({});
+                setCurrentIndex(0);
+                setTotalScore(null);
+                setSeverity(null);
+                setShowResults(false);
+                // Skip the timed intro on retake; go straight to instructions
+                setShowIntro(false);
+                setShowInstructions(true);
+              }}
+            >
+              <Text style={styles.startButtonText}>Retake Questionnaire</Text>
             </Pressable>
           </View>
         ) : (
@@ -171,10 +244,11 @@ export default function QuestionnaireScreen() {
 
               <Pressable
                 onPress={handleNext}
-                disabled={selectedValue === undefined || isLastQuestion}
+                disabled={selectedValue === undefined || isSubmitting}
                 style={[
                   styles.navButton,
-                  selectedValue === undefined && styles.navButtonDisabled,
+                  (selectedValue === undefined || isSubmitting) &&
+                    styles.navButtonDisabled,
                 ]}
               >
                 <Text style={styles.navButtonText}>
