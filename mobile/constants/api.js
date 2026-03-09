@@ -3,5 +3,4 @@
 export const API_URL = "http://192.168.8.106:3000/api"; // Update with your backend server URL and port
 =======
 // mobile/constants/api.js
-export const API_URL = "http://192.168.1.5:3000/api"; // Update with your backend server URL and port
->>>>>>> main
+export const API_URL = "http://192.168.0.2:3000/api"; // Update with your backend server URL and port

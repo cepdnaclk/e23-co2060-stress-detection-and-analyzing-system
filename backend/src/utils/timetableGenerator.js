@@ -2,8 +2,14 @@ import OpenAI from "openai";
 
 function buildClientConfig() {
   const provider = (process.env.LLM_PROVIDER || "").toLowerCase();
-  const openaiKey = process.env.OPENAI_API_KEY;
-  const groqKey = process.env.GROQ_API_KEY;
+  const openaiKey = (process.env.OPENAI_API_KEY || "").trim();
+  const groqKey = (process.env.GROQ_API_KEY || "").trim();
+
+  if (openaiKey && openaiKey.startsWith("AIza")) {
+    throw new Error(
+      "OPENAI_API_KEY looks like a Google API key (AIza...). Use an OpenAI key (sk-...) or set LLM_PROVIDER=groq with GROQ_API_KEY (gsk_...)."
+    );
+  }
 
   const useGroq =
     provider === "groq" ||
@@ -39,18 +45,42 @@ function buildClientConfig() {
 async function generateTimetable(schedule) {
   const { client, model } = buildClientConfig();
 
+  const wakeTime = schedule.wake_time || "07:00";
+  const sleepTime = schedule.sleep_time || "23:00";
+  const relaxPreference = schedule.relaxation_preference || "medium";
+
+  const relaxTargetMinutes =
+    relaxPreference === "high" ? 120 : relaxPreference === "low" ? 60 : 90;
+
+  const fixedActivitiesText = (schedule.activities || []).length
+    ? schedule.activities.map((a) => `${a.name} from ${a.start} to ${a.end}`).join("\n")
+    : "None";
+
+  const tasksText = (schedule.tasks || []).length
+    ? schedule.tasks
+      .map((t) => {
+        const fixed = t.fixed_time ? `fixed ${t.fixed_time.start}-${t.fixed_time.end}` : "flexible";
+        const duration = t.duration_minutes ? `${t.duration_minutes} minutes` : "duration not specified";
+        return `- ${t.name} | ${fixed} | ${duration} | priority: ${t.priority || "medium"}`;
+      })
+      .join("\n")
+    : "None";
+
   const prompt = `
 You are a productivity assistant.
 
 Using the following schedule data, generate a clear daily timetable as JSON.
 
-Wake time: ${schedule.wake_time}
-Sleep time: ${schedule.sleep_time}
+Wake time: ${wakeTime}
+Sleep time: ${sleepTime}
+Relaxation preference: ${relaxPreference}
+Target relaxing time (break + free + recovery): at least ${relaxTargetMinutes} minutes
 
-Activities:
-${schedule.activities.map(a =>
-  `${a.name} from ${a.start} to ${a.end}`
-).join("\n")}
+Fixed-time activities:
+${fixedActivitiesText}
+
+User tasks (from free-text input):
+${tasksText}
 
 Return ONLY valid JSON (no markdown, no backticks) with this exact structure:
 {
@@ -68,7 +98,14 @@ Return ONLY valid JSON (no markdown, no backticks) with this exact structure:
 }
 
 Fill the entire day from wake to sleep with time blocks.
-Include break and meal suggestions between activities.
+Rules:
+1) Respect all fixed-time tasks exactly.
+2) Allocate flexible tasks into realistic focus blocks (usually 45-90 minutes each).
+3) Insert short relaxing breaks after each focus block and at least one longer recovery/free block.
+4) Include meal blocks at sensible times.
+5) Keep transitions realistic and avoid overlapping blocks.
+6) Make sure total relaxing time reaches or exceeds the target above.
+7) If tasks are too many, reduce low-priority task time first and mention it in summary.
 `;
 
   const response = await client.chat.completions.create({
