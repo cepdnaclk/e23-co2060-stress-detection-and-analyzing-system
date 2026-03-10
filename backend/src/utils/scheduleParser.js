@@ -46,6 +46,11 @@ function detectRelaxPreference(text) {
   return "medium";
 }
 
+function detectBreakAfterFreePreference(text) {
+  return /\b(short\s+break|quick\s+break|small\s+break)\b/i.test(text)
+    && /\b(after\s+free\s*time|after\s+free\s*slot|after\s+free\b)\b/i.test(text);
+}
+
 function extractSchedule(text) {
   const data = {
     wake_time: null,
@@ -53,11 +58,13 @@ function extractSchedule(text) {
     activities: [],
     tasks: [],
     relaxation_preference: "medium",
+    break_after_free_preference: false,
     raw_text: text
   };
 
   const lower = text.toLowerCase();
   data.relaxation_preference = detectRelaxPreference(lower);
+  data.break_after_free_preference = detectBreakAfterFreePreference(lower);
 
   /* =============================
       Wake & Sleep

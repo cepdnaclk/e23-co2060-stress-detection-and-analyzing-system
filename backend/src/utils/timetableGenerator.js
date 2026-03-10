@@ -48,6 +48,7 @@ async function generateTimetable(schedule) {
   const wakeTime = schedule.wake_time || "07:00";
   const sleepTime = schedule.sleep_time || "23:00";
   const relaxPreference = schedule.relaxation_preference || "medium";
+  const breakAfterFreePreference = Boolean(schedule.break_after_free_preference);
 
   const relaxTargetMinutes =
     relaxPreference === "high" ? 120 : relaxPreference === "low" ? 60 : 90;
@@ -106,6 +107,9 @@ Rules:
 5) Keep transitions realistic and avoid overlapping blocks.
 6) Make sure total relaxing time reaches or exceeds the target above.
 7) If tasks are too many, reduce low-priority task time first and mention it in summary.
+${breakAfterFreePreference
+  ? '8) User requested this explicitly: after every "free" block, add a short 5-10 minute "break" block next, unless it is immediately followed by sleep.'
+  : ""}
 `;
 
   const response = await client.chat.completions.create({
