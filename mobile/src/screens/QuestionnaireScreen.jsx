@@ -68,77 +68,6 @@ function getSeverityTheme(rawSeverity) {
   };
 }
 
-function WatermarkFlower({ style }) {
-  return (
-    <View pointerEvents="none" style={[styles.flowerWrap, style]}>
-      <View style={[styles.flowerPetal, styles.flowerPetalTop]} />
-      <View style={[styles.flowerPetal, styles.flowerPetalBottom]} />
-      <View style={[styles.flowerPetal, styles.flowerPetalLeft]} />
-      <View style={[styles.flowerPetal, styles.flowerPetalRight]} />
-      <View style={styles.flowerCenter} />
-    </View>
-  );
-}
-
-function WatermarkStar({ style }) {
-  return (
-    <Ionicons
-      pointerEvents="none"
-      name="star"
-      size={10}
-      color="#7fb6e8"
-      style={[styles.watermarkStar, style]}
-    />
-  );
-}
-
-function DecorativeBackground({ variant }) {
-  const settings = {
-    intro: { flowers: 0, stars: 0, seed: 3 },
-    instructions: { flowers: 36, stars: 64, seed: 11 },
-    questions: { flowers: 42, stars: 72, seed: 19 },
-    results: { flowers: 38, stars: 68, seed: 27 },
-  }[variant] || { flowers: 0, stars: 0, seed: 1 };
-
-  const flowerLayout = Array.from({ length: settings.flowers }, (_, index) => {
-    const top = (index * 23 + settings.seed * 17) % 100;
-    const left = (index * 31 + settings.seed * 13) % 100;
-    const scale = 0.42 + ((index * 7) % 38) / 100;
-    const rotate = `${(index * 29 + settings.seed) % 360}deg`;
-
-    return {
-      top: `${top}%`,
-      left: `${left}%`,
-      transform: [{ scale }, { rotate }],
-      opacity: 0.11,
-    };
-  });
-
-  const starLayout = Array.from({ length: settings.stars }, (_, index) => {
-    const top = (index * 17 + settings.seed * 19) % 100;
-    const left = (index * 37 + settings.seed * 7) % 100;
-    const scale = 0.55 + ((index * 11) % 42) / 100;
-
-    return {
-      top: `${top}%`,
-      left: `${left}%`,
-      transform: [{ scale }],
-      opacity: 0.18,
-    };
-  });
-
-  return (
-    <>
-      {(flowerLayout[variant] || []).map((style, index) => (
-        <WatermarkFlower key={`flower-${variant}-${index}`} style={style} />
-      ))}
-      {(starLayout[variant] || []).map((style, index) => (
-        <WatermarkStar key={`star-${variant}-${index}`} style={style} />
-      ))}
-    </>
-  );
-}
-
 export default function QuestionnaireScreen() {
   const questions = useMemo(
     () => [
@@ -187,6 +116,7 @@ export default function QuestionnaireScreen() {
   const [totalScore, setTotalScore] = useState(null);
   const [severity, setSeverity] = useState(null);
   const [showResults, setShowResults] = useState(false);
+
   const instructionsOpacity = useRef(new Animated.Value(0)).current;
   const instructionsLift = useRef(new Animated.Value(26)).current;
   const alertPulse = useRef(new Animated.Value(1)).current;
@@ -210,12 +140,11 @@ export default function QuestionnaireScreen() {
   }, []);
 
   useEffect(() => {
-    if (!showInstructions) {
-      return;
-    }
+    if (!showInstructions) return;
 
     instructionsOpacity.setValue(0);
     instructionsLift.setValue(26);
+
     Animated.parallel([
       Animated.timing(instructionsOpacity, {
         toValue: 1,
@@ -247,6 +176,7 @@ export default function QuestionnaireScreen() {
         }),
       ])
     );
+
     pulseLoopRef.current.start();
 
     return () => {
@@ -255,12 +185,11 @@ export default function QuestionnaireScreen() {
   }, [showInstructions, instructionsLift, instructionsOpacity, alertPulse]);
 
   useEffect(() => {
-    if (showIntro || showInstructions || showResults) {
-      return;
-    }
+    if (showIntro || showInstructions || showResults) return;
 
     questionOpacity.setValue(0);
     questionLift.setValue(18);
+
     Animated.parallel([
       Animated.timing(questionOpacity, {
         toValue: 1,
@@ -275,19 +204,10 @@ export default function QuestionnaireScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [
-    currentIndex,
-    showIntro,
-    showInstructions,
-    showResults,
-    questionOpacity,
-    questionLift,
-  ]);
+  }, [currentIndex, showIntro, showInstructions, showResults, questionOpacity, questionLift]);
 
   useEffect(() => {
-    if (!showResults) {
-      return;
-    }
+    if (!showResults) return;
 
     resultsOpacity.setValue(0);
     resultsLift.setValue(24);
@@ -361,6 +281,7 @@ export default function QuestionnaireScreen() {
         ]),
       ])
     );
+
     scoreLoopRef.current.start();
 
     return () => {
@@ -390,7 +311,7 @@ export default function QuestionnaireScreen() {
 
     if (isLastQuestion) {
       handleSubmit();
-    } else if (currentIndex < questions.length - 1) {
+    } else {
       setCurrentIndex((prev) => prev + 1);
     }
   };
@@ -440,21 +361,11 @@ export default function QuestionnaireScreen() {
         {showIntro ? (
           <View style={styles.introContainer}>
             <View style={styles.introForeground}>
-              <Image
-                source={questionnaireBanner}
-                style={styles.introImage}
-                resizeMode="contain"
-              />
+              <Image source={questionnaireBanner} style={styles.introImage} resizeMode="contain" />
             </View>
           </View>
         ) : showInstructions ? (
           <View style={styles.instructionsContainer}>
-            <DecorativeBackground variant="instructions" />
-            <WatermarkFlower style={styles.flowerOne} />
-            <WatermarkFlower style={styles.flowerTwo} />
-            <WatermarkFlower style={styles.flowerThree} />
-            <WatermarkFlower style={styles.flowerFour} />
-
             <Animated.View
               style={[
                 styles.instructionsCard,
@@ -484,8 +395,7 @@ export default function QuestionnaireScreen() {
               </View>
 
               <Text style={styles.instructionsText}>
-                For each statement, choose how much it applied to you over the
-                past week.
+                For each statement, choose how much it applied to you over the past week.
               </Text>
               <Text style={styles.instructionsText}>
                 No right or wrong answers. Just answer quickly and honestly.
@@ -498,10 +408,7 @@ export default function QuestionnaireScreen() {
                 transform: [{ translateY: instructionsLift }],
               }}
             >
-              <Pressable
-                style={styles.startButton}
-                onPress={() => setShowInstructions(false)}
-              >
+              <Pressable style={styles.startButton} onPress={() => setShowInstructions(false)}>
                 <Ionicons name="play" size={16} color="#ffffff" />
                 <Text style={styles.startButtonText}>Start Questionnaire</Text>
               </Pressable>
@@ -509,10 +416,6 @@ export default function QuestionnaireScreen() {
           </View>
         ) : showResults ? (
           <View style={styles.instructionsContainer}>
-            <DecorativeBackground variant="results" />
-            <WatermarkFlower style={styles.flowerResultOne} />
-            <WatermarkFlower style={styles.flowerResultTwo} />
-
             <Animated.View
               style={[
                 styles.resultsCard,
@@ -590,13 +493,11 @@ export default function QuestionnaireScreen() {
               <Pressable
                 style={[styles.startButton, { marginTop: 30 }]}
                 onPress={() => {
-                  // Reset to allow taking the questionnaire again
                   setAnswers({});
                   setCurrentIndex(0);
                   setTotalScore(null);
                   setSeverity(null);
                   setShowResults(false);
-                  // Skip the timed intro on retake; go straight to instructions
                   setShowIntro(false);
                   setShowInstructions(true);
                 }}
@@ -608,10 +509,6 @@ export default function QuestionnaireScreen() {
           </View>
         ) : (
           <>
-            <DecorativeBackground variant="questions" />
-            <WatermarkFlower style={styles.flowerQuestionOne} />
-            <WatermarkFlower style={styles.flowerQuestionTwo} />
-
             <Animated.View
               style={[
                 styles.questionContentWrap,
@@ -635,39 +532,37 @@ export default function QuestionnaireScreen() {
               </View>
 
               <View style={styles.optionsContainer}>
-              {[0, 1, 2, 3].map((value) => (
-                <Pressable
-                  key={value}
-                  style={[
-                    styles.optionButton,
-                    selectedValue === value && styles.optionButtonSelected,
-                  ]}
-                  onPress={() => handleSelect(value)}
-                >
-                  <View style={styles.optionTopRow}>
-                    <Text
-                      style={[
-                        styles.optionLabel,
-                        selectedValue === value && styles.optionLabelSelected,
-                      ]}
-                    >
-                      {value}
+                {[0, 1, 2, 3].map((value) => (
+                  <Pressable
+                    key={value}
+                    style={[
+                      styles.optionButton,
+                      selectedValue === value && styles.optionButtonSelected,
+                    ]}
+                    onPress={() => handleSelect(value)}
+                  >
+                    <View style={styles.optionTopRow}>
+                      <Text
+                        style={[
+                          styles.optionLabel,
+                          selectedValue === value && styles.optionLabelSelected,
+                        ]}
+                      >
+                        {value}
+                      </Text>
+                      {selectedValue === value && (
+                        <Ionicons name="checkmark-circle" size={18} color="#1976D2" />
+                      )}
+                    </View>
+                    <Text style={styles.optionDescription}>
+                      {value === 0 && "Did not apply to me at all"}
+                      {value === 1 && "Applied to me to some degree, or some of the time"}
+                      {value === 2 &&
+                        "Applied to me to a considerable degree or a good part of the time"}
+                      {value === 3 && "Applied to me very much or most of the time"}
                     </Text>
-                    {selectedValue === value && (
-                      <Ionicons name="checkmark-circle" size={18} color="#1976D2" />
-                    )}
-                  </View>
-                  <Text style={styles.optionDescription}>
-                    {value === 0 && "Did not apply to me at all"}
-                    {value === 1 &&
-                      "Applied to me to some degree, or some of the time"}
-                    {value === 2 &&
-                      "Applied to me to a considerable degree or a good part of the time"}
-                    {value === 3 &&
-                      "Applied to me very much or most of the time"}
-                  </Text>
-                </Pressable>
-              ))}
+                  </Pressable>
+                ))}
               </View>
             </Animated.View>
 
@@ -681,11 +576,7 @@ export default function QuestionnaireScreen() {
                   currentIndex === 0 && styles.navButtonDisabled,
                 ]}
               >
-                <Text
-                  style={[styles.navButtonText, styles.navButtonTextSecondary]}
-                >
-                  Previous
-                </Text>
+                <Text style={[styles.navButtonText, styles.navButtonTextSecondary]}>Previous</Text>
               </Pressable>
 
               <Pressable
@@ -693,13 +584,10 @@ export default function QuestionnaireScreen() {
                 disabled={selectedValue === undefined || isSubmitting}
                 style={[
                   styles.navButton,
-                  (selectedValue === undefined || isSubmitting) &&
-                    styles.navButtonDisabled,
+                  (selectedValue === undefined || isSubmitting) && styles.navButtonDisabled,
                 ]}
               >
-                <Text style={styles.navButtonText}>
-                  {isLastQuestion ? "Done" : "Next"}
-                </Text>
+                <Text style={styles.navButtonText}>{isLastQuestion ? "Done" : "Next"}</Text>
               </Pressable>
             </View>
           </>
@@ -708,5 +596,3 @@ export default function QuestionnaireScreen() {
     </SafeScreen>
   );
 }
-
-
