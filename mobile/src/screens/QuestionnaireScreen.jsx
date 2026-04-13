@@ -132,14 +132,6 @@ export default function QuestionnaireScreen() {
   const scoreLoopRef = useRef(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowIntro(false);
-      setShowInstructions(true);
-    }, 3500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
     if (!showInstructions) return;
 
     instructionsOpacity.setValue(0);
@@ -358,12 +350,66 @@ export default function QuestionnaireScreen() {
   return (
     <SafeScreen>
       <View style={styles.container}>
+        <View pointerEvents="none" style={styles.questionBackdrop}>
+          <View style={styles.backdropLayerA} />
+          <View style={styles.backdropLayerB} />
+          <View style={[styles.backdropColorBlob, styles.backdropColorBlobPink]} />
+          <View style={[styles.backdropColorBlob, styles.backdropColorBlobTeal]} />
+          <View style={[styles.backdropColorBlob, styles.backdropColorBlobGold]} />
+          <View style={[styles.backdropSpark, styles.backdropSparkOne]} />
+          <View style={[styles.backdropSpark, styles.backdropSparkTwo]} />
+          <View style={[styles.backdropSpark, styles.backdropSparkThree]} />
+          <View style={[styles.backdropBubble, styles.backdropBubbleTopRight]} />
+          <View style={[styles.backdropBubble, styles.backdropBubbleTopLeft]} />
+          <View style={[styles.backdropBubble, styles.backdropBubbleUpperMid]} />
+          <View style={[styles.backdropBubble, styles.backdropBubbleBottomLeft]} />
+          <View style={[styles.backdropBubble, styles.backdropBubbleBottomRight]} />
+          <View style={[styles.backdropBubble, styles.backdropBubbleCenter]} />
+          <View style={[styles.backdropBubble, styles.backdropBubbleLowerMid]} />
+          <View style={[styles.backdropBubble, styles.backdropBubbleTinyTop]} />
+          <View style={[styles.backdropBubble, styles.backdropBubbleTinyBottom]} />
+        </View>
+
         {showIntro ? (
-          <View style={styles.introContainer}>
-            <View style={styles.introForeground}>
-              <Image source={questionnaireBanner} style={styles.introImage} resizeMode="contain" />
+          <Pressable
+            style={styles.introContainer}
+            onPress={() => {
+              setShowIntro(false);
+              setShowInstructions(true);
+            }}
+          >
+            <View style={styles.introCard}>
+              <View style={styles.introBadge}>
+                <Ionicons name="sparkles" size={14} color="#0f538f" />
+                <Text style={styles.introBadgeText}>Mental wellness check-in</Text>
+              </View>
+
+              <Text style={styles.introSubtitle}>
+                A quick, private self-check to understand how you've been feeling lately.
+              </Text>
+
+              <View style={styles.introStatsRow}>
+                <View style={styles.introStatPill}>
+                  <Ionicons name="document-text-outline" size={14} color="#0f538f" />
+                  <Text style={styles.introStatText}>21 items</Text>
+                </View>
+                <View style={styles.introStatPill}>
+                  <Ionicons name="time-outline" size={14} color="#0f538f" />
+                  <Text style={styles.introStatText}>About 5 min</Text>
+                </View>
+                <View style={styles.introStatPill}>
+                  <Ionicons name="shield-checkmark-outline" size={14} color="#0f538f" />
+                  <Text style={styles.introStatText}>Private</Text>
+                </View>
+              </View>
+
+              <View style={styles.introBannerShell}>
+                <Image source={questionnaireBanner} style={styles.introImage} resizeMode="contain" />
+              </View>
+
+              <Text style={styles.introFooterText}>Tap through when you're ready to begin.</Text>
             </View>
-          </View>
+          </Pressable>
         ) : showInstructions ? (
           <View style={styles.instructionsContainer}>
             <Animated.View
