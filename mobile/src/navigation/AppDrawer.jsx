@@ -77,43 +77,12 @@ export default function AppDrawer() {
           </View>
         ),
       }}
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
-      <Drawer.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("home-outline", focused),
-        }}
-      />
-      <Drawer.Screen
-        name="Questionnaire"
-        component={QuestionnaireScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("reader-outline", focused),
-        }}
-      />
-      <Drawer.Screen
-        name="Clinical Locator"
-        component={ClinicalLocatorScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("location-outline", focused),
-        }}
-      />
-      <Drawer.Screen
-        name="Routine Generator"
-        component={RoutineGeneratorScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("calendar-clear-outline", focused),
-        }}
-      />
-      <Drawer.Screen
-        name="Logout"
-        component={LogoutScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("log-out-outline", focused),
-        }}
-      />
+      <Drawer.Screen name="Home" component={HomeScreen} />
+      <Drawer.Screen name="Questionnaire" component={QuestionnaireScreen} />
+      <Drawer.Screen name="Clinical Locator" component={ClinicalLocatorScreen} />
+      <Drawer.Screen name="Routine Generator" component={RoutineGeneratorScreen} />
+      <Drawer.Screen name="Logout" component={LogoutScreen} />
     </Drawer.Navigator>
   );
 }
