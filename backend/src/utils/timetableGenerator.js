@@ -1,5 +1,97 @@
 import OpenAI from "openai";
 
+function minutesFromHHMM(hhmm) {
+  if (!hhmm || !/^\d{2}:\d{2}$/.test(hhmm)) return null;
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function hhmmFromMinutes(totalMinutes) {
+  const normalized = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const h = String(Math.floor(normalized / 60)).padStart(2, "0");
+  const m = String(normalized % 60).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
+function durationMinutes(startHHMM, endHHMM) {
+  const start = minutesFromHHMM(startHHMM);
+  const end = minutesFromHHMM(endHHMM);
+
+  if (start === null || end === null) return null;
+  if (end >= start) return end - start;
+  return (24 * 60 - start) + end;
+}
+
+function enforceBreakAfterFree(timetable, sleepTime) {
+  if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
+    return timetable;
+  }
+
+  const blocks = timetable.blocks.map((b) => ({ ...b, type: String(b.type || "").toLowerCase() }));
+
+  // If the model returns "break -> free", rewrite it as "free -> short break".
+  for (let i = 1; i < blocks.length; i += 1) {
+    const prev = blocks[i - 1];
+    const curr = blocks[i];
+
+    if (prev.type !== "break" || curr.type !== "free") continue;
+    if (prev.end !== curr.start) continue;
+
+    const prevDuration = durationMinutes(prev.start, prev.end);
+    const currDuration = durationMinutes(curr.start, curr.end);
+    if (prevDuration === null || currDuration === null) continue;
+    if (currDuration < 10) continue;
+
+    const newBreakMinutes = 5;
+    const freeEnd = hhmmFromMinutes(minutesFromHHMM(curr.end) - newBreakMinutes);
+
+    blocks.splice(i - 1, 2,
+      {
+        start: prev.start,
+        end: freeEnd,
+        activity: "Free time",
+        type: "free"
+      },
+      {
+        start: freeEnd,
+        end: curr.end,
+        activity: "Break",
+        type: "break"
+      }
+    );
+
+    i -= 1;
+  }
+
+  // Ensure each free block is followed by a short break unless the day ends at sleep time.
+  for (let i = 0; i < blocks.length; i += 1) {
+    const curr = blocks[i];
+    if (curr.type !== "free") continue;
+    if (curr.end === sleepTime) continue;
+
+    const next = blocks[i + 1];
+    if (next && next.type === "break") continue;
+
+    const freeDuration = durationMinutes(curr.start, curr.end);
+    if (freeDuration === null || freeDuration < 10) continue;
+
+    const newBreakMinutes = 5;
+    const breakStart = hhmmFromMinutes(minutesFromHHMM(curr.end) - newBreakMinutes);
+    const breakEnd = curr.end;
+
+    curr.end = breakStart;
+    blocks.splice(i + 1, 0, {
+      start: breakStart,
+      end: breakEnd,
+      activity: "Break",
+      type: "break"
+    });
+    i += 1;
+  }
+
+  return { ...timetable, blocks };
+}
+
 function buildClientConfig() {
   const provider = (process.env.LLM_PROVIDER || "").toLowerCase();
   const openaiKey = (process.env.OPENAI_API_KEY || "").trim();
@@ -108,7 +200,7 @@ Rules:
 6) Make sure total relaxing time reaches or exceeds the target above.
 7) If tasks are too many, reduce low-priority task time first and mention it in summary.
 ${breakAfterFreePreference
-  ? '8) User requested this explicitly: after every "free" block, add a short 5-10 minute "break" block next, unless it is immediately followed by sleep.'
+  ? '8) User requested this explicitly: after every "free" block, add a short 5-10 minute "break" block next, unless it is immediately followed by sleep. Never place a break immediately before a free block.'
   : ""}
 `;
 
@@ -127,7 +219,11 @@ ${breakAfterFreePreference
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
 
   try {
-    return JSON.parse(cleaned);
+    const parsed = JSON.parse(cleaned);
+    if (breakAfterFreePreference) {
+      return enforceBreakAfterFree(parsed, sleepTime);
+    }
+    return parsed;
   } catch {
     // Fallback: return raw text so the frontend can still display something
     return { raw_text: raw, blocks: [] };
