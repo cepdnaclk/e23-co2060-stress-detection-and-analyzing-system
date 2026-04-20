@@ -13,6 +13,8 @@ import QuestionnaireScreen from "../screens/QuestionnaireScreen";
 import LogoutScreen from "../screens/LogoutScreen";
 import ClinicalLocatorScreen from "../screens/ClinicalLocatorScreen";
 import RoutineGeneratorScreen from "../screens/RoutineGeneratorScreen";
+import AdminDashboardScreen from "../screens/AdminDashboardScreen";
+import { useAuthStore } from "../../store/authStore";
 
 const Drawer = createDrawerNavigator();
 
@@ -47,6 +49,7 @@ function CustomDrawerContent(props) {
 }
 
 export default function AppDrawer() {
+  const { user } = useAuthStore();
   const insets = useSafeAreaInsets();
 
   return (
@@ -82,6 +85,9 @@ export default function AppDrawer() {
       <Drawer.Screen name="Questionnaire" component={QuestionnaireScreen} />
       <Drawer.Screen name="Clinical Locator" component={ClinicalLocatorScreen} />
       <Drawer.Screen name="Routine Generator" component={RoutineGeneratorScreen} />
+      {user?.role === "admin" ? (
+        <Drawer.Screen name="Admin" component={AdminDashboardScreen} />
+      ) : null}
       <Drawer.Screen name="Logout" component={LogoutScreen} />
     </Drawer.Navigator>
   );

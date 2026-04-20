@@ -21,6 +21,11 @@
         required:true,
         minlength:6
     },
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user",
+    },
     profileImage:{
         type:String,
         default:""
