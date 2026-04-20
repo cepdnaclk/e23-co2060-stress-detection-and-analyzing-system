@@ -35,8 +35,16 @@ export const registerUser = async (req, res) => {
             });
         }
 
+        if (username.trim().toLowerCase() === "admin") {
+            return res.status(400).json({
+                message: "Username is reserved",
+            });
+        }
+
         // Check if user exists
-        const existingUsername = await User.findOne({ username });
+        const existingUsername = await User.findOne({
+            username: { $regex: `^${username}$`, $options: "i" },
+        });
 
         if (existingUsername) {
             return res.status(400).json({
@@ -67,6 +75,7 @@ export const registerUser = async (req, res) => {
                 gender: user.gender,
                 username: user.username,
                 profileImage: user.profileImage,
+                role: user.role,
             },
         });
 
@@ -122,6 +131,7 @@ export const loginUser = async (req, res) => {
                 gender: user.gender,
                 username: user.username,
                 profileImage: user.profileImage,
+                role: user.role,
             },
         });
 
