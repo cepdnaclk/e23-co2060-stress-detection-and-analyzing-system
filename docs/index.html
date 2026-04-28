@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stress Management Application</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --card: #ffffff;
+      --text: #2f3640;
+      --muted: #616b76;
+      --border: #e5e7eb;
+      --shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+      --link: #2563eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    .page {
+      width: min(820px, calc(100% - 24px));
+      margin: 0 auto;
+      padding: 18px 0 40px;
+    }
+
+    .showcase {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 20px 18px 24px;
+    }
+
+    .title {
+      margin: 0 0 8px;
+      font-size: 1.7rem;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+    }
+
+    .last-edit {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .translate {
+      display: inline-block;
+      margin: 0 0 16px;
+      color: var(--link);
+      font-size: 0.95rem;
+      margin-left: auto;
+      float: right;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .section h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .section h2::before {
+      content: "🌿 ";
+    }
+
+    .section p,
+    .section li {
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .section p {
+      margin: 0;
+      padding-left: 22px;
+      max-width: 56ch;
+    }
+
+    .contrib-list {
+      margin: 0;
+      padding-left: 46px;
+    }
+
+    .link-block {
+      margin-top: 4px;
+      padding-left: 22px;
+      word-break: break-word;
+      font-weight: 700;
+    }
+
+    .label {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(100% - 16px, 820px);
+      }
+
+      .showcase {
+        padding: 18px 14px 20px;
+      }
+
+      .title {
+        font-size: 1.5rem;
+      }
+
+      .section p {
+        padding-left: 18px;
+      }
+
+      .contrib-list {
+        padding-left: 38px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="showcase">
+      <h1 class="title">Stress Management Application</h1>
+      <p class="last-edit">Last Edit: <span id="last-edit-date"></span></p>
+      <a class="translate" href="#">Translate</a>
+
+      <section class="section">
+        <h2>Contributors:</h2>
+        <ul class="contrib-list">
+          <li>W.G.R.P. Gamage</li>
+          <li>W.R.A.D.N. Gunathilake</li>
+          <li>H.M.K.I. Herath</li>
+          <li>K.M.M.Y. Kumarasinghe</li>
+        </ul>
+      </section>
+
+      <section class="section">
+        <h2>Introduction</h2>
+        <p>
+          The Stress Management Application is a web and mobile friendly platform designed to help users understand and track stress related indicators in one place. It turns a simple questionnaire into a guided experience that helps users reflect on their current state, receive relaxation methods based on their stress level and move through the app with clarity.
+        </p>
+        <p>
+          Our goal is to make stress awareness easier to access and easier to present. The project combines a practical user flow, a clean interface, and a clear project story so it can support both real users and reviewers who want to understand the problem and the solution quickly.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>Solution</h2>
+        <p>
+          The solution brings together questionnaire based stress screening, relaxation recommendations matched to different stress levels and daily mood tracking in a single application. Users can sign in, complete assessments, record their mood each day, and view clear trend displays that help them understand how stress changes over time.
+        </p>
+        <p>
+          By connecting the frontend, backend, and mobile experience, the project creates a simple workflow that is easy to use and easy to expand. The ML based final stress trend display adds a smarter summary of the user’s overall pattern, making the application suitable for demonstrating a real stress monitoring concept while still remaining straightforward for end users.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>GitHub Repository:</h2>
+        <div class="link-block">
+          <a href="https://github.com/cepdnaclk/e23-co2060-stress-detection-and-analyzing-system" target="_blank" rel="noreferrer">
+            https://github.com/cepdnaclk/e23-co2060-stress-detection-and-analyzing-system
+          </a>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Github Page:</h2>
+        <div class="link-block">
+          <a href="https://cepdnaclk.github.io/e23-co2060-stress-detection-and-analyzing-system/" target="_blank" rel="noreferrer">
+            https://cepdnaclk.github.io/e23-co2060-stress-detection-and-analyzing-system/
+          </a>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Update Log</h2>
+      </section>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var lastEdited = new Date(document.lastModified);
+      var output = document.getElementById('last-edit-date');
+
+      if (!output) {
+        return;
+      }
+
+      if (isNaN(lastEdited.getTime())) {
+        output.textContent = 'Unknown';
+        return;
+      }
+
+      output.textContent = lastEdited.toLocaleString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+    }());
+  </script>
+</body>
+</html>
