@@ -1,23 +1,37 @@
-import extractSchedule from "../utils/scheduleParser.js";
 import generateTimetable from "../utils/timetableGenerator.js";
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function mergeStructuredSchedule(structuredSchedule, backupText) {
+  if (!isPlainObject(structuredSchedule)) {
+    return { raw_text: backupText || "" };
+  }
+
+  return {
+    ...structuredSchedule,
+    raw_text: backupText || structuredSchedule.raw_text || ""
+  };
+}
 
 export const parseSchedule = async (req, res) => {
   try {
-    const text =
-      typeof req.body === "string"
-        ? req.body
-        : req.body?.text;
+    const body = typeof req.body === "string"
+      ? { text: req.body }
+      : req.body || {};
 
-    if (!text) {
+    const text = body.text || body.backup_text || body.fallback_text || "";
+    const structuredSchedule = body.schedule || body.structured || body.data || null;
+
+    if (!text && !structuredSchedule) {
       return res.status(400).json({
-        error: 'Text is required. Send JSON { "text": "..." } or a text/plain body.'
+        error: 'Text or structured schedule data is required. Send JSON { "text": "..." } or { "structured": {...}, "backup_text": "..." }.'
       });
     }
 
-    // Step 1: Parse user text
-    const schedule = extractSchedule(text);
+    const schedule = mergeStructuredSchedule(structuredSchedule, text);
 
-    // Step 2: Generate timetable using LLM
     const timetable = await generateTimetable(schedule);
 
     res.json({

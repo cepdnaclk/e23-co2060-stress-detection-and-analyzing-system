@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 
 function minutesFromHHMM(hhmm) {
-  if (!/^\d{2}:\d{2}$/.test(hhmm || "")) return null;
+  if (!hhmm || !/^\d{2}:\d{2}$/.test(hhmm)) return null;
   const [h, m] = hhmm.split(":").map(Number);
   return h * 60 + m;
 }
@@ -213,11 +213,14 @@ You are a productivity assistant.
 
 Using the following schedule data, generate a clear daily timetable as JSON.
 
+Primary goal or intent:
+${goalText}
+
+Raw user message:
+${rawText}
+
 Wake time: ${wakeTime}
 Sleep time: ${sleepTime}
-Relaxation preference: ${relaxPreference}
-Target relaxing time (break + free + recovery): at least ${relaxTargetMinutes} minutes
-
 Fixed-time activities:
 ${fixedActivitiesText}
 
@@ -254,7 +257,7 @@ Rules:
   const response = await client.chat.completions.create({
     model,
     messages: [
-      { role: "system", content: "You generate optimized student timetables. Always respond with valid JSON only, no markdown." },
+      { role: "system", content: "You generate optimized student timetables. Infer the schedule from the user's raw message and always respond with valid JSON only, no markdown." },
       { role: "user", content: prompt }
     ],
     temperature: 0.7
