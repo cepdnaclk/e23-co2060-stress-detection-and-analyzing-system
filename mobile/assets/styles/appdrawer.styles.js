@@ -98,8 +98,18 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "center",
   },
-  spacer: {
+  headerTitleContainer: {
     flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    fontFamily: "JetBrainsMono-Medium",
+    color: "#0b5ea8",
+    letterSpacing: 0.2,
   },
 });
 

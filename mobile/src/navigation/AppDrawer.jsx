@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   createDrawerNavigator,
@@ -64,7 +64,10 @@ export default function AppDrawer() {
         drawerActiveBackgroundColor: "#d9ecff",
         drawerLabelStyle: styles.drawerLabel,
         drawerItemStyle: styles.drawerItem,
-        header: () => (
+        header: ({ route, options }) => {
+          const title = options.title ?? route?.name ?? "";
+
+          return (
           <View
             style={[
               styles.headerContainer,
@@ -77,9 +80,15 @@ export default function AppDrawer() {
                 pressColor="rgba(0,0,0,0.1)"
               />
             </View>
-            <View style={styles.spacer} />
+            <View style={styles.headerTitleContainer}>
+              <Text numberOfLines={1} style={styles.headerTitle}>
+                {title}
+              </Text>
+            </View>
+            <View style={styles.sideContainer} />
           </View>
-        ),
+          );
+        },
       }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
