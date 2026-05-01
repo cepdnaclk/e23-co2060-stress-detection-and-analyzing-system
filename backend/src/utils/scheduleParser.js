@@ -136,6 +136,15 @@ function extractTaskName(sentence) {
     .replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, "");
 }
 
+function extractDurationTaskName(sentence) {
+  const cleaned = extractTaskName(sentence)
+    .replace(/\bfor\b.*$/i, "")
+    .replace(/\b(?:duration|time)\b.*$/i, "")
+    .trim();
+
+  return cleaned;
+}
+
 function extractSchedule(text) {
   const data = {
     goal: null,
@@ -202,17 +211,20 @@ function extractSchedule(text) {
       }
     }
 
-    if (durationMatch && isOpenTaskSentence(sentenceLower)) {
+    if (durationMatch) {
       const value = Number(durationMatch[1]);
       const unit = durationMatch[2];
       if (!Number.isNaN(value) && value > 0) {
         const duration = /h|hour|hr/i.test(unit) ? Math.round(value * 60) : Math.round(value);
-        const name = extractTaskName(sentence.replace(durationMatch[0], " "));
+        const name = extractDurationTaskName(sentence.replace(durationMatch[0], " "));
 
         if (name) {
           addTaskIfMissing(data, name, sentence, { duration_minutes: duration });
           continue;
         }
+
+        addTaskIfMissing(data, `Task ${duration} minutes`, sentence, { duration_minutes: duration });
+        continue;
       }
     }
 

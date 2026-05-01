@@ -47,6 +47,70 @@ function sameHHMM(a, b) {
   return String(a || "").slice(0, 5) === String(b || "").slice(0, 5);
 }
 
+function isWakeActivity(activity) {
+  return /\b(wake\s*up|wake|get\s*up)\b/i.test(String(activity || ""));
+}
+
+function isSleepActivity(activity) {
+  return /\b(sleep|go\s*to\s*bed|bedtime)\b/i.test(String(activity || ""));
+}
+
+function placeSessionInFreeBlock(blocks, activityName, sessionMinutes, breakMinutes = 0) {
+  for (let i = 0; i < blocks.length; i += 1) {
+    const block = blocks[i];
+    if (String(block.type || "").toLowerCase() !== "free") continue;
+
+    const freeMinutes = durationMinutes(block.start, block.end);
+    if (freeMinutes === null || freeMinutes < sessionMinutes + breakMinutes) continue;
+
+    const startMinutes = minutesFromHHMM(block.start);
+    const sessionEnd = hhmmFromMinutes(startMinutes + sessionMinutes);
+
+    if (breakMinutes > 0) {
+      const breakEnd = hhmmFromMinutes(minutesFromHHMM(sessionEnd) + breakMinutes);
+      blocks.splice(i, 1,
+        {
+          start: block.start,
+          end: sessionEnd,
+          activity: activityName,
+          type: "activity"
+        },
+        {
+          start: sessionEnd,
+          end: breakEnd,
+          activity: "Break",
+          type: "break"
+        },
+        {
+          start: breakEnd,
+          end: block.end,
+          activity: "Free",
+          type: "free"
+        }
+      );
+    } else {
+      blocks.splice(i, 1,
+        {
+          start: block.start,
+          end: sessionEnd,
+          activity: activityName,
+          type: "activity"
+        },
+        {
+          start: sessionEnd,
+          end: block.end,
+          activity: "Free",
+          type: "free"
+        }
+      );
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
 function normalizeBlocks(timetable) {
   if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
     return timetable;
@@ -91,6 +155,550 @@ function normalizeBlocks(timetable) {
   }
 
   return { ...timetable, blocks: merged };
+}
+
+function fillGapsBetweenBlocks(timetable, wakeTime, sleepTime) {
+  if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
+    return timetable;
+  }
+
+  const blocks = timetable.blocks
+    .map((block) => ({ ...block }))
+    .filter((block) => block.start && block.end)
+    .sort(
+      (a, b) =>
+        minutesFromHHMM(a.start) - minutesFromHHMM(b.start) ||
+        minutesFromHHMM(a.end) - minutesFromHHMM(b.end)
+    );
+
+  const filled = [];
+  const normalizedWake = String(wakeTime || blocks[0]?.start || "07:00").slice(0, 5);
+  const normalizedSleep = String(sleepTime || blocks[blocks.length - 1]?.end || "23:00").slice(0, 5);
+
+  let cursor = normalizedWake;
+
+  for (const block of blocks) {
+    const blockStart = String(block.start).slice(0, 5);
+    const blockEnd = String(block.end).slice(0, 5);
+
+    if (minutesFromHHMM(blockStart) > minutesFromHHMM(cursor)) {
+      filled.push({
+        start: cursor,
+        end: blockStart,
+        activity: "Free",
+        type: "free"
+      });
+    }
+
+    filled.push({
+      ...block,
+      start: blockStart,
+      end: blockEnd
+    });
+
+    cursor = blockEnd;
+  }
+
+  if (minutesFromHHMM(cursor) < minutesFromHHMM(normalizedSleep)) {
+    filled.push({
+      start: cursor,
+      end: normalizedSleep,
+      activity: "Free",
+      type: "free"
+    });
+  }
+
+  return { ...timetable, blocks: filled };
+}
+
+function normalizeWakeAndSleepBlocks(timetable, sleepTime) {
+  if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
+    return timetable;
+  }
+
+  const blocks = timetable.blocks.map((block) => ({ ...block }));
+
+  for (let i = 0; i < blocks.length; i += 1) {
+    const block = blocks[i];
+    const activity = String(block.activity || "");
+
+    if (isWakeActivity(activity)) {
+      const start = String(block.start || "").slice(0, 5);
+      const end = hhmmFromMinutes(minutesFromHHMM(start) + 10);
+      block.start = start;
+      block.end = end;
+      block.type = "activity";
+      block.activity = "Wake up";
+      continue;
+    }
+
+    if (isSleepActivity(activity)) {
+      const end = String(block.end || sleepTime || "23:00").slice(0, 5);
+      const start = hhmmFromMinutes(minutesFromHHMM(end) - 10);
+      block.start = start;
+      block.end = end;
+      block.type = "activity";
+      block.activity = "Sleep";
+    }
+  }
+
+  const lastBlock = blocks[blocks.length - 1];
+  if (lastBlock && !isSleepActivity(lastBlock.activity) && sleepTime) {
+    const end = String(sleepTime).slice(0, 5);
+    const start = hhmmFromMinutes(minutesFromHHMM(end) - 20);
+
+    if (minutesFromHHMM(lastBlock.end) > minutesFromHHMM(start)) {
+      lastBlock.end = start;
+      blocks.push({
+        start,
+        end,
+        activity: "Sleep",
+        type: "activity"
+      });
+    } else if (lastBlock.end === end) {
+      lastBlock.activity = isLowIntensityBlock(lastBlock) ? "Sleep" : lastBlock.activity;
+    }
+  }
+
+  return { ...timetable, blocks };
+}
+
+function ensureMorningRoutine(timetable) {
+  if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
+    return timetable;
+  }
+
+  const blocks = timetable.blocks.map((block) => ({ ...block }));
+  const wakeIndex = blocks.findIndex((block) => String(block.activity || "").toLowerCase().includes("wake up"));
+
+  if (wakeIndex === -1) {
+    return timetable;
+  }
+
+  const wakeBlock = blocks[wakeIndex];
+  const routineStart = wakeBlock.end;
+  const routineEnd = hhmmFromMinutes(minutesFromHHMM(routineStart) + 20);
+
+  const nextBlock = blocks[wakeIndex + 1];
+  if (nextBlock && minutesFromHHMM(nextBlock.start) <= minutesFromHHMM(routineEnd)) {
+    if (String(nextBlock.type || "").toLowerCase() === "free") {
+      nextBlock.start = routineEnd;
+    }
+  } else {
+    blocks.splice(wakeIndex + 1, 0, {
+      start: routineStart,
+      end: routineEnd,
+      activity: "Morning routine",
+      type: "activity"
+    });
+  }
+
+  return { ...timetable, blocks };
+}
+
+function hasMealBlock(blocks, mealName) {
+  const target = String(mealName || "").toLowerCase();
+  return (blocks || []).some(
+    (block) =>
+      String(block.activity || "").toLowerCase().includes(target)
+  );
+}
+
+function insertMealIntoBlocks(blocks, mealName, mealStart, mealMinutes) {
+  const startMinutes = minutesFromHHMM(mealStart);
+  const mealEnd = hhmmFromMinutes(startMinutes + mealMinutes);
+
+  for (let i = 0; i < blocks.length; i += 1) {
+    const block = blocks[i];
+    if (String(block.type || "").toLowerCase() !== "free") continue;
+
+    const blockStart = minutesFromHHMM(block.start);
+    const blockEnd = minutesFromHHMM(block.end);
+    if (blockStart > startMinutes || blockEnd < minutesFromHHMM(mealEnd)) continue;
+
+    const insertItems = [];
+
+    if (blockStart < startMinutes) {
+      insertItems.push({
+        start: block.start,
+        end: mealStart,
+        activity: "Free",
+        type: "free"
+      });
+    }
+
+    insertItems.push({
+      start: mealStart,
+      end: mealEnd,
+      activity: mealName,
+      type: "meal"
+    });
+
+    if (blockEnd > minutesFromHHMM(mealEnd)) {
+      insertItems.push({
+        start: mealEnd,
+        end: block.end,
+        activity: "Free",
+        type: "free"
+      });
+    }
+
+    blocks.splice(i, 1, ...insertItems);
+    return true;
+  }
+
+  return false;
+}
+
+function insertFixedBlockIntoBlocks(blocks, fixedBlock) {
+  const startMinutes = minutesFromHHMM(fixedBlock.start);
+  const endMinutes = minutesFromHHMM(fixedBlock.end);
+
+  if (startMinutes === null || endMinutes === null) {
+    return false;
+  }
+
+  for (let i = 0; i < blocks.length; i += 1) {
+    const block = blocks[i];
+    if (String(block.type || "").toLowerCase() !== "free") continue;
+
+    const blockStart = minutesFromHHMM(block.start);
+    const blockEnd = minutesFromHHMM(block.end);
+    if (blockStart > startMinutes || blockEnd < endMinutes) continue;
+
+    const insertItems = [];
+
+    if (blockStart < startMinutes) {
+      insertItems.push({
+        start: block.start,
+        end: fixedBlock.start,
+        activity: "Free",
+        type: "free"
+      });
+    }
+
+    insertItems.push({ ...fixedBlock });
+
+    if (blockEnd > endMinutes) {
+      insertItems.push({
+        start: fixedBlock.end,
+        end: block.end,
+        activity: "Free",
+        type: "free"
+      });
+    }
+
+    blocks.splice(i, 1, ...insertItems);
+    return true;
+  }
+
+  return false;
+}
+
+function ensureWakeBlock(timetable, wakeTime) {
+  if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
+    return timetable;
+  }
+
+  const blocks = timetable.blocks.map((block) => ({ ...block }));
+  const hasWake = blocks.some((block) => isWakeActivity(block.activity));
+
+  if (hasWake) {
+    return { ...timetable, blocks };
+  }
+
+  const start = String(wakeTime || "07:00").slice(0, 5);
+  const end = hhmmFromMinutes(minutesFromHHMM(start) + 10);
+
+  insertFixedBlockIntoBlocks(blocks, {
+    start,
+    end,
+    activity: "Wake up",
+    type: "activity"
+  });
+
+  return { ...timetable, blocks };
+}
+
+function getUserMentionedMeals(rawText) {
+  const mentioned = new Set();
+  const text = String(rawText || "").toLowerCase();
+
+  if (/breakfast\s+at\s+\d{1,2}:\d{2}|breakfast\s+\d{1,2}:\d{2}|\d{1,2}:\d{2}.*breakfast/i.test(text)) {
+    mentioned.add("Breakfast");
+  }
+
+  if (/lunch\s+at\s+\d{1,2}:\d{2}|lunch\s+\d{1,2}:\d{2}|\d{1,2}:\d{2}.*lunch/i.test(text)) {
+    mentioned.add("Lunch");
+  }
+
+  if (/dinner\s+at\s+\d{1,2}:\d{2}|dinner\s+\d{1,2}:\d{2}|\d{1,2}:\d{2}.*dinner/i.test(text)) {
+    mentioned.add("Dinner");
+  }
+
+  return mentioned;
+}
+
+function ensureDefaultMeals(timetable, wakeTime, sleepTime, rawText = "") {
+  if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
+    return timetable;
+  }
+
+  const blocks = timetable.blocks.map((block) => ({ ...block }));
+  const normalizedWake = minutesFromHHMM(String(wakeTime || "07:00").slice(0, 5));
+  const normalizedSleep = minutesFromHHMM(String(sleepTime || "23:00").slice(0, 5));
+  const userMentionedMeals = getUserMentionedMeals(rawText);
+
+  const mealPlan = [
+    {
+      name: "Breakfast",
+      start: hhmmFromMinutes(normalizedWake + 30),
+      minutes: 30
+    },
+    {
+      name: "Lunch",
+      start: "13:00",
+      minutes: 45
+    },
+    {
+      name: "Dinner",
+      start: "19:00",
+      minutes: 45
+    }
+  ];
+
+  for (const meal of mealPlan) {
+    if (userMentionedMeals.has(meal.name)) {
+      continue;
+    }
+
+    if (minutesFromHHMM(meal.start) < normalizedWake || minutesFromHHMM(meal.start) + meal.minutes > normalizedSleep) {
+      continue;
+    }
+
+    if (hasMealBlock(blocks, meal.name)) {
+      continue;
+    }
+
+    insertMealIntoBlocks(blocks, meal.name, meal.start, meal.minutes);
+  }
+
+  return { ...timetable, blocks };
+}
+
+function reconcileExactTimeTasks(timetable, tasks) {
+  if (!timetable || !Array.isArray(timetable.blocks) || !Array.isArray(tasks) || tasks.length === 0) {
+    return timetable;
+  }
+
+  let blocks = timetable.blocks.map((block) => ({ ...block }));
+
+  for (const task of tasks) {
+    const exactStart = task?.fixed_time?.start ? String(task.fixed_time.start).slice(0, 5) : null;
+    const exactEnd = task?.fixed_time?.end ? String(task.fixed_time.end).slice(0, 5) : null;
+    const taskName = String(task?.name || "").trim();
+
+    if (!exactStart || !exactEnd || !taskName) continue;
+
+    blocks = blocks.filter((block) => {
+      const activity = String(block.activity || "").trim().toLowerCase();
+      const sameName = activity === taskName.toLowerCase();
+      const overlapsExact =
+        minutesFromHHMM(block.start) < minutesFromHHMM(exactEnd) &&
+        minutesFromHHMM(block.end) > minutesFromHHMM(exactStart);
+
+      if (sameName) return false;
+      if (!overlapsExact) return true;
+
+      return String(block.type || "").toLowerCase() === "free";
+    });
+
+    const insertIndex = blocks.findIndex((block) => minutesFromHHMM(block.start) >= minutesFromHHMM(exactStart));
+    const exactBlock = {
+      start: exactStart,
+      end: exactEnd,
+      activity: taskName,
+      type: "activity"
+    };
+
+    if (insertIndex === -1) {
+      blocks.push(exactBlock);
+      continue;
+    }
+
+    const target = blocks[insertIndex];
+    const targetStart = minutesFromHHMM(target.start);
+    const targetEnd = minutesFromHHMM(target.end);
+    const exactStartMinutes = minutesFromHHMM(exactStart);
+    const exactEndMinutes = minutesFromHHMM(exactEnd);
+
+    if (targetStart >= exactEndMinutes) {
+      blocks.splice(insertIndex, 0, exactBlock);
+      continue;
+    }
+
+    if (String(target.type || "").toLowerCase() === "free" && targetStart <= exactStartMinutes && targetEnd >= exactEndMinutes) {
+      const before = targetStart < exactStartMinutes
+        ? {
+            start: target.start,
+            end: exactStart,
+            activity: "Free",
+            type: "free"
+          }
+        : null;
+
+      const after = targetEnd > exactEndMinutes
+        ? {
+            start: exactEnd,
+            end: target.end,
+            activity: "Free",
+            type: "free"
+          }
+        : null;
+
+      const insertItems = [];
+      if (before) insertItems.push(before);
+      insertItems.push(exactBlock);
+      if (after) insertItems.push(after);
+
+      blocks.splice(insertIndex, 1, ...insertItems);
+      continue;
+    }
+
+    blocks.splice(insertIndex, 0, exactBlock);
+  }
+
+  return { ...timetable, blocks };
+}
+
+function placeTaskMinutesInFreeBlocks(blocks, taskName, minutesNeeded, startIndex = 0) {
+  let remaining = minutesNeeded;
+
+  for (let i = startIndex; i < blocks.length && remaining > 0; ) {
+    const block = blocks[i];
+    if (String(block.type || "").toLowerCase() !== "free") {
+      i += 1;
+      continue;
+    }
+
+    const freeMinutes = durationMinutes(block.start, block.end);
+    if (freeMinutes === null || freeMinutes <= 0) {
+      i += 1;
+      continue;
+    }
+
+    const pieceMinutes = Math.min(remaining, freeMinutes);
+    const pieceEnd = hhmmFromMinutes(minutesFromHHMM(block.start) + pieceMinutes);
+    const activityBlock = {
+      start: block.start,
+      end: pieceEnd,
+      activity: taskName,
+      type: "activity"
+    };
+
+    if (pieceMinutes === freeMinutes) {
+      blocks.splice(i, 1, activityBlock);
+      remaining -= pieceMinutes;
+      i += 1;
+      continue;
+    }
+
+    blocks.splice(i, 1,
+      activityBlock,
+      {
+        start: pieceEnd,
+        end: block.end,
+        activity: "Free",
+        type: "free"
+      }
+    );
+
+    remaining -= pieceMinutes;
+    i += 2;
+  }
+
+  return remaining;
+}
+
+function reconcileDurationTasks(timetable, tasks) {
+  if (!timetable || !Array.isArray(timetable.blocks) || !Array.isArray(tasks) || tasks.length === 0) {
+    return timetable;
+  }
+
+  const blocks = timetable.blocks.map((block) => ({ ...block }));
+
+  for (const task of tasks) {
+    const targetMinutes = task?.duration_minutes;
+    const taskName = String(task?.name || "").trim().toLowerCase();
+
+    if (!taskName || !targetMinutes || targetMinutes <= 0) continue;
+
+    const matchingIndexes = blocks
+      .map((block, index) => ({ block, index }))
+      .filter(({ block }) => String(block.activity || "").trim().toLowerCase() === taskName && String(block.type || "").toLowerCase() === "activity")
+      .map(({ index }) => index);
+
+    if (!matchingIndexes.length) continue;
+
+    let total = matchingIndexes.reduce(
+      (sum, index) => sum + (durationMinutes(blocks[index].start, blocks[index].end) || 0),
+      0
+    );
+
+    if (total <= targetMinutes) continue;
+
+    let excess = total - targetMinutes;
+
+    for (let i = matchingIndexes.length - 1; i >= 0 && excess > 0; i -= 1) {
+      const blockIndex = matchingIndexes[i];
+      const block = blocks[blockIndex];
+      const blockMinutes = durationMinutes(block.start, block.end) || 0;
+
+      if (blockMinutes <= excess) {
+        blocks.splice(blockIndex, 1);
+        excess -= blockMinutes;
+        continue;
+      }
+
+      const newEnd = hhmmFromMinutes(minutesFromHHMM(block.end) - excess);
+      block.end = newEnd;
+      excess = 0;
+    }
+
+    continue;
+  }
+
+  for (const task of tasks) {
+    const targetMinutes = task?.duration_minutes;
+    const taskName = String(task?.name || "").trim().toLowerCase();
+
+    if (!taskName || !targetMinutes || targetMinutes <= 0) continue;
+
+    const matchingIndexes = blocks
+      .map((block, index) => ({ block, index }))
+      .filter(({ block }) => String(block.activity || "").trim().toLowerCase() === taskName && String(block.type || "").toLowerCase() === "activity")
+      .map(({ index }) => index);
+
+    if (!matchingIndexes.length) continue;
+
+    const total = matchingIndexes.reduce(
+      (sum, index) => sum + (durationMinutes(blocks[index].start, blocks[index].end) || 0),
+      0
+    );
+
+    if (total >= targetMinutes) continue;
+
+    const deficit = targetMinutes - total;
+    const preferredStartIndex = matchingIndexes[matchingIndexes.length - 1] + 1;
+
+    let remaining = placeTaskMinutesInFreeBlocks(blocks, taskName, deficit, preferredStartIndex);
+
+    if (remaining > 0) {
+      remaining = placeTaskMinutesInFreeBlocks(blocks, taskName, remaining, 0);
+    }
+  }
+
+  return { ...timetable, blocks };
 }
 
 function insertMissingTaskBlocks(timetable, tasks) {
@@ -371,13 +979,8 @@ async function generateTimetable(schedule) {
 
   const wakeTime = schedule.wake_time || "07:00";
   const sleepTime = schedule.sleep_time || "23:00";
-  const relaxPreference = schedule.relaxation_preference || "medium";
-  const breakAfterFreePreference = Boolean(schedule.break_after_free_preference);
-  const freeAfterTaskPreference = Boolean(schedule.free_after_task_preference);
   const goalText = schedule.goal || schedule.raw_text || "None";
-
-  const relaxTargetMinutes =
-    relaxPreference === "high" ? 120 : relaxPreference === "low" ? 60 : 90;
+  const rawText = schedule.raw_text || "None";
 
   const fixedActivitiesText = (schedule.activities || []).length
     ? schedule.activities.map((a) => `${a.name} from ${a.start} to ${a.end}`).join("\n")
@@ -401,11 +1004,11 @@ Using the following schedule data, generate a clear daily timetable as JSON.
 Primary goal or intent:
 ${goalText}
 
+Raw user message:
+${rawText}
+
 Wake time: ${wakeTime}
 Sleep time: ${sleepTime}
-Relaxation preference: ${relaxPreference}
-Target relaxing time (break + free + recovery): at least ${relaxTargetMinutes} minutes
-
 Fixed-time activities:
 ${fixedActivitiesText}
 
@@ -427,29 +1030,23 @@ Return ONLY valid JSON (no markdown, no backticks) with this exact structure:
   "summary": "One-sentence summary of the day"
 }
 Routine rules:
-1) Fill the entire period from wake time to sleep time with contiguous blocks and keep them in chronological order.
-2) If a task or activity has a fixed time, schedule it exactly at that time.
-3) If a task has a duration, preserve that duration exactly and place it in a realistic slot.
-4) Do not invent new subjects, tasks, or activities. Only schedule what the user actually mentioned.
-5) Do not skip any user-mentioned task or activity. Every input item must appear somewhere in the routine.
-6) Prefer a balanced day: early focus blocks for important work, short breaks between work blocks, meals at natural times, and a calmer wind-down near sleep.
-7) Keep focused work blocks reasonably short, usually 25-50 minutes, and keep breaks short, usually 5-10 minutes.
-8) Never place consecutive free, break, or recovery blocks. If two low-intensity blocks touch, merge them into one block.
-9) Do not overlap blocks or leave gaps between blocks unless the gap is part of a single free block.
-10) If the user asked for a short break after free time, place a 5-10 minute break immediately after each free block except right before sleep.
-11) If the user asked for free time after tasks, place a short free block after each completed task or work block whenever the schedule has room.
-${breakAfterFreePreference
-  ? '12) User requested this explicitly: after every "free" block, add a short 5-10 minute "break" block next, unless it is immediately followed by sleep. Never place a break immediately before a free block.'
-  : ""}
-${freeAfterTaskPreference
-  ? '13) User requested this explicitly: after each task or work block, add a short free-time block when possible so the day has breathing room between tasks.'
-  : ""}
+1) Always include Wake up, Sleep, Breakfast, Lunch, and Dinner in every routine.
+2) Fill the entire period from wake time to sleep time with contiguous blocks and keep them in chronological order.
+3) If a task or activity has a fixed time, schedule it exactly at that time.
+4) If a task has a duration, preserve that duration exactly and place it in a realistic slot.
+5) Do not invent new subjects, tasks, or activities. Only schedule what the user actually mentioned.
+6) Do not skip any user-mentioned task or activity. Every input item must appear somewhere in the routine.
+7) Prefer a balanced day with work, meals, and short breaks.
+8) Do not overlap blocks or leave gaps between blocks.
+9) Use the raw user message as the main source of truth and infer the routine from it.
+10) After each task, leave 10 to 30 minutes of free time when the schedule has room.
+11) If a study or work task is long, split it into shorter sessions with a short break in the middle instead of one very long block.
 `;
 
   const response = await client.chat.completions.create({
     model,
     messages: [
-      { role: "system", content: "You generate optimized student timetables. Always respond with valid JSON only, no markdown." },
+      { role: "system", content: "You generate optimized student timetables. Infer the schedule from the user's raw message and always respond with valid JSON only, no markdown." },
       { role: "user", content: prompt }
     ],
     temperature: 0.7
@@ -464,15 +1061,26 @@ ${freeAfterTaskPreference
     const parsed = JSON.parse(cleaned);
     let timetable = normalizeBlocks(parsed);
 
+    timetable = ensureWakeBlock(timetable, wakeTime);
+    timetable = normalizeWakeAndSleepBlocks(timetable, sleepTime);
+    timetable = ensureMorningRoutine(timetable);
+    timetable = reconcileExactTimeTasks(timetable, schedule.tasks);
+
     if (Array.isArray(schedule.tasks) && schedule.tasks.length) {
       timetable = insertMissingTaskBlocks(timetable, schedule.tasks);
     }
 
-    if (breakAfterFreePreference) {
-      timetable = enforceBreakAfterFree(timetable, sleepTime);
-    }
+    timetable = reconcileDurationTasks(timetable, schedule.tasks);
 
-    return normalizeBlocks(timetable);
+    timetable = normalizeWakeAndSleepBlocks(timetable, sleepTime);
+    timetable = ensureMorningRoutine(timetable);
+    timetable = reconcileExactTimeTasks(timetable, schedule.tasks);
+    timetable = reconcileDurationTasks(timetable, schedule.tasks);
+    timetable = fillGapsBetweenBlocks(timetable, wakeTime, sleepTime);
+    timetable = ensureDefaultMeals(timetable, wakeTime, sleepTime, rawText);
+    timetable = normalizeBlocks(timetable);
+
+    return timetable;
   } catch {
     // Fallback: return raw text so the frontend can still display something
     return { raw_text: raw, blocks: [] };
