@@ -141,6 +141,7 @@ async function generateTimetable(schedule) {
   const sleepTime = schedule.sleep_time || "23:00";
   const relaxPreference = schedule.relaxation_preference || "medium";
   const breakAfterFreePreference = Boolean(schedule.break_after_free_preference);
+  const goalText = schedule.goal || schedule.raw_text || "None";
 
   const relaxTargetMinutes =
     relaxPreference === "high" ? 120 : relaxPreference === "low" ? 60 : 90;
@@ -163,6 +164,9 @@ async function generateTimetable(schedule) {
 You are a productivity assistant.
 
 Using the following schedule data, generate a clear daily timetable as JSON.
+
+Primary goal or intent:
+${goalText}
 
 Wake time: ${wakeTime}
 Sleep time: ${sleepTime}
@@ -191,16 +195,14 @@ Return ONLY valid JSON (no markdown, no backticks) with this exact structure:
 }
 
 Fill the entire day from wake to sleep with time blocks.
-Rules:
-1) Respect all fixed-time tasks exactly.
-2) Allocate flexible tasks into realistic focus blocks (usually 45-90 minutes each).
-3) Insert short relaxing breaks after each focus block and at least one longer recovery/free block.
-4) Include meal blocks at sensible times.
-5) Keep transitions realistic and avoid overlapping blocks.
-6) Make sure total relaxing time reaches or exceeds the target above.
-7) If tasks are too many, reduce low-priority task time first and mention it in summary.
+Strict rules:
+1) For any task where the user specifies a time, schedule it exactly at that time.
+2) For any task where the user specifies a duration, preserve that duration for the block.
+3) Never schedule consecutive free, break, or recovery blocks—merge them into a single longer block instead, even if they are of different types.
+4) Do not invent, add, or change the timing or duration of any activity, subject, or task that the user did not mention. Only use the user’s actual input for all scheduled blocks.
+5) Do not skip any tasks or activities from the user’s input. Every task, activity, or subject mentioned by the user must appear in the schedule, even if no time or duration is specified.
 ${breakAfterFreePreference
-  ? '8) User requested this explicitly: after every "free" block, add a short 5-10 minute "break" block next, unless it is immediately followed by sleep. Never place a break immediately before a free block.'
+  ? '6) User requested this explicitly: after every "free" block, add a short 5-10 minute "break" block next, unless it is immediately followed by sleep. Never place a break immediately before a free block.'
   : ""}
 `;
 

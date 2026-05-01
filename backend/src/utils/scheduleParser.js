@@ -53,6 +53,7 @@ function detectBreakAfterFreePreference(text) {
 
 function extractSchedule(text) {
   const data = {
+    goal: null,
     wake_time: null,
     sleep_time: null,
     activities: [],
@@ -65,6 +66,9 @@ function extractSchedule(text) {
   const lower = text.toLowerCase();
   data.relaxation_preference = detectRelaxPreference(lower);
   data.break_after_free_preference = detectBreakAfterFreePreference(lower);
+
+  const goalMatch = text.match(/(?:i want to|i need to|my goal is|goal[:\-]|focus on|finish|complete)\s+(.+?)(?:\.|,|\n|$)/i);
+  data.goal = goalMatch?.[1]?.trim() || text.trim();
 
   /* =============================
       Wake & Sleep
