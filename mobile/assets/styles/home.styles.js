@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   headerSubtitle: {
-    fontSize: 15,
+    fontSize: 18,
     color: COLORS.textSecondary,
     textAlign: "center",
   },
@@ -62,6 +62,10 @@ const styles = StyleSheet.create({
   },
   footerLoader: {
     marginVertical: 20,
+  },
+  wallpaperOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(227, 242, 253, 0)", // close to your COLORS.background
   },
 });
 
