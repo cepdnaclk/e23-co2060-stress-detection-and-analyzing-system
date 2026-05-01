@@ -8,8 +8,7 @@ import {
   View,
 } from "react-native";
 import styles from "../../assets/styles/routine.styles";
-
-const API_URL = "http://192.168.0.2:3000/api";
+import { API_URL, fetchWithTimeout } from "../../constants/api";
 
 export default function RoutineGeneratorScreen() {
   const [tasks, setTasks] = useState("");
@@ -46,7 +45,7 @@ export default function RoutineGeneratorScreen() {
     setIsGenerating(true);
 
     try {
-      const response = await fetch(`${API_URL}/schedule/parse`, {
+      const response = await fetchWithTimeout(`${API_URL}/schedule/parse`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +83,7 @@ export default function RoutineGeneratorScreen() {
         <View style={styles.overlayLayer}>
           <TextInput
             style={styles.input}
-            placeholder="Describe your goal and tasks, e.g. finish a native app or study for exams..."
+            placeholder="Describe your daily tasks to generate a routine..."
             placeholderTextColor="#7AA7D6"
             multiline
             textAlignVertical="top"
@@ -106,4 +105,3 @@ export default function RoutineGeneratorScreen() {
     </View>
   );
 }
-

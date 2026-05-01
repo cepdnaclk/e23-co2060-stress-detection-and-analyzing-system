@@ -1,6 +1,8 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /**
  * Generate JWT Token
  */
@@ -35,8 +37,16 @@ export const registerUser = async (req, res) => {
             });
         }
 
+        if (username.trim().toLowerCase() === "admin") {
+            return res.status(400).json({
+                message: "Username is reserved",
+            });
+        }
+
         // Check if user exists
-        const existingUsername = await User.findOne({ username });
+        const existingUsername = await User.findOne({
+            username: { $regex: `^${username}$`, $options: "i" },
+        });
 
         if (existingUsername) {
             return res.status(400).json({
@@ -67,6 +77,7 @@ export const registerUser = async (req, res) => {
                 gender: user.gender,
                 username: user.username,
                 profileImage: user.profileImage,
+                role: user.role,
             },
         });
 
@@ -122,6 +133,7 @@ export const loginUser = async (req, res) => {
                 gender: user.gender,
                 username: user.username,
                 profileImage: user.profileImage,
+                role: user.role,
             },
         });
 
@@ -131,5 +143,105 @@ export const loginUser = async (req, res) => {
         res.status(500).json({
             message: "Internal Server error",
         });
+    }
+};
+
+/**
+ * Get Current User
+ */
+export const getMe = async (req, res) => {
+    try {
+        const user = req.user;
+
+        return res.status(200).json({
+            user: {
+                id: user._id,
+                age: user.age,
+                gender: user.gender,
+                username: user.username,
+                profileImage: user.profileImage,
+                role: user.role,
+            },
+        });
+    } catch (error) {
+        console.log("Error in getMe controller:", error);
+        return res.status(500).json({ message: "Internal Server error" });
+    }
+};
+
+/**
+ * Update Current User (editable signup details)
+ */
+export const updateMe = async (req, res) => {
+    try {
+        const { username, age, gender, password } = req.body;
+
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (username !== undefined) {
+            const nextUsername = String(username).trim();
+
+            if (nextUsername.length < 3) {
+                return res.status(400).json({ message: "Username must be at least 3 characters" });
+            }
+
+            if (nextUsername.toLowerCase() === "admin") {
+                return res.status(400).json({ message: "Username is reserved" });
+            }
+
+            const existingUsername = await User.findOne({
+                _id: { $ne: user._id },
+                username: { $regex: `^${escapeRegex(nextUsername)}$`, $options: "i" },
+            });
+
+            if (existingUsername) {
+                return res.status(400).json({ message: "Username already exists" });
+            }
+
+            user.username = nextUsername;
+        }
+
+        if (age !== undefined) {
+            const nextAge = Number(age);
+            if (!Number.isFinite(nextAge) || nextAge <= 0) {
+                return res.status(400).json({ message: "Invalid age" });
+            }
+            user.age = nextAge;
+        }
+
+        if (gender !== undefined) {
+            const nextGender = String(gender).trim();
+            if (!nextGender) {
+                return res.status(400).json({ message: "Gender is required" });
+            }
+            user.gender = nextGender;
+        }
+
+        if (password !== undefined) {
+            const nextPassword = String(password);
+            if (nextPassword.length < 6) {
+                return res.status(400).json({ message: "Password must be at least 6 characters" });
+            }
+            user.password = nextPassword;
+        }
+
+        await user.save();
+
+        return res.status(200).json({
+            user: {
+                id: user._id,
+                age: user.age,
+                gender: user.gender,
+                username: user.username,
+                profileImage: user.profileImage,
+                role: user.role,
+            },
+        });
+    } catch (error) {
+        console.log("Error in updateMe controller:", error);
+        return res.status(500).json({ message: "Internal Server error" });
     }
 };
