@@ -106,6 +106,24 @@ function isOpenTaskSentence(sentence) {
     && !/\b(?:to|-)\s*\d{1,2}(?::\d{2})?\s?(?:am|pm)?\b/i.test(sentence);
 }
 
+function splitSentences(text) {
+  return text
+    .split(/(?:\n|\.|;)+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function extractTaskName(sentence) {
+  return sentence
+    .replace(/\b(?:i need to|i have to|i should|i want to|please|today|tomorrow|my|also|then)\b/gi, " ")
+    .replace(/\b(?:at|on|for|about|with|to)\s*(?:\d{1,2}(?::\d{2})?\s?(?:am|pm)?|\d+(?:\.\d+)?\s*(?:hours?|hrs?|minutes?|mins?|h|m))\b/gi, " ")
+    .replace(/\b(?:from\s*\d{1,2}(?::\d{2})?\s?(?:am|pm)?\s*(?:to|-)\s*\d{1,2}(?::\d{2})?\s?(?:am|pm)?)/gi, " ")
+    .replace(/\b(?:some|a|the)\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, "");
+}
+
 function extractSchedule(text) {
   const data = {
     goal: null,
@@ -140,6 +158,58 @@ function extractSchedule(text) {
   if (sleep) {
     const time = chrono.parseDate(sleep[1]);
     if (time) data.sleep_time = formatTime(time);
+  }
+
+  for (const sentence of splitSentences(text)) {
+    const sentenceLower = sentence.toLowerCase();
+
+    if (/\b(?:from|at)\s*\d{1,2}(?::\d{2})?\s?(?:am|pm)?\s*(?:to|-)/i.test(sentence)) {
+      continue;
+    }
+
+    const singleTimeMatch = sentence.match(/\b(?:at|by)\s*(\d{1,2}(?::\d{2})?\s?(?:am|pm)?)/i);
+    const durationMatch = sentence.match(/\bfor\s+(\d+(?:\.\d+)?)\s*(hours?|hrs?|minutes?|mins?|h|m)\b/i);
+
+    if (singleTimeMatch && /\b(work on|study|revise|review|read|reading|practice|write|build|prepare|project|assignment|homework|research|exercise|walk|meet|call|dinner|lunch|breakfast|go for a walk|take a walk)\b/i.test(sentence)) {
+      const time = chrono.parseDate(singleTimeMatch[1]);
+      const name = extractTaskName(sentence);
+
+      if (time && name) {
+        const startTime = formatTime(time);
+        const inferredDuration = /\bwalk\b/i.test(name) ? 30 : /\b(lunch|breakfast|dinner|meal)\b/i.test(name) ? 45 : 60;
+        const endTime = addMinutesToTime(startTime, inferredDuration) || startTime;
+
+        data.activities.push({ name, start: startTime, end: endTime });
+        data.tasks.push({
+          name,
+          priority: detectPriority(sentence),
+          fixed_time: { start: startTime, end: endTime },
+          duration_minutes: inferredDuration
+        });
+        continue;
+      }
+    }
+
+    if (durationMatch && isOpenTaskSentence(sentenceLower)) {
+      const value = Number(durationMatch[1]);
+      const unit = durationMatch[2];
+      if (!Number.isNaN(value) && value > 0) {
+        const duration = /h|hour|hr/i.test(unit) ? Math.round(value * 60) : Math.round(value);
+        const name = extractTaskName(sentence.replace(durationMatch[0], " "));
+
+        if (name) {
+          addTaskIfMissing(data, name, sentence, { duration_minutes: duration });
+          continue;
+        }
+      }
+    }
+
+    if (isOpenTaskSentence(sentence)) {
+      const name = extractTaskName(sentence);
+      if (name) {
+        addTaskIfMissing(data, name, sentence);
+      }
+    }
   }
 
   const walkMatch = lower.match(/\b(?:go for a walk|take a walk|walk)\b(?:\s*(?:at)?\s*(.+?))?(?:\.|,|and|$|\n)/);
@@ -261,27 +331,6 @@ function extractSchedule(text) {
         duration_minutes: duration,
         priority: detectPriority(match[0])
       });
-    }
-  }
-
-  // Match simple task phrases without a duration or fixed time.
-  const openTaskPatterns = [
-    /\b(?:need to\s+)?work on (?:my\s+)?([a-z][^\n\.,;]*)/gi,
-    /\b(?:do|work on|finish|complete|read|reading|practice|revise|study) (?:some\s+|a\s+|the\s+)?([a-z][^\n\.,;]*)/gi,
-    /\bsome reading\b/gi
-  ];
-
-  for (const pattern of openTaskPatterns) {
-    while ((match = pattern.exec(lower)) !== null) {
-      if (/some reading/i.test(match[0])) {
-        addTaskIfMissing(data, "reading", match[0]);
-        continue;
-      }
-
-      const name = cleanName(match[1] || match[0]);
-      if (!name || !isOpenTaskSentence(match[0])) continue;
-
-      addTaskIfMissing(data, name, match[0]);
     }
   }
 

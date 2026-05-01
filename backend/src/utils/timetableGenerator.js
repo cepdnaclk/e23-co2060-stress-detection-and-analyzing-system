@@ -22,6 +22,12 @@ function durationMinutes(startHHMM, endHHMM) {
   return (24 * 60 - start) + end;
 }
 
+function isLowIntensityBlock(block) {
+  const type = String(block?.type || "").toLowerCase();
+  const activity = String(block?.activity || "").toLowerCase();
+  return type === "free" || type === "break" || type === "recovery" || activity.includes("free") || activity.includes("break") || activity.includes("recovery");
+}
+
 function estimateTaskMinutes(task) {
   if (task?.duration_minutes && task.duration_minutes > 0) {
     return task.duration_minutes;
@@ -59,6 +65,15 @@ function normalizeBlocks(timetable) {
 
   for (const block of blocks) {
     const previous = merged[merged.length - 1];
+
+    if (previous && previous.end === block.start && isLowIntensityBlock(previous) && isLowIntensityBlock(block)) {
+      previous.end = block.end;
+      previous.type = "free";
+      previous.activity = previous.activity.toLowerCase().includes("break") || previous.activity.toLowerCase().includes("recovery")
+        ? "Free"
+        : previous.activity;
+      continue;
+    }
 
     if (
       previous &&
