@@ -69,8 +69,19 @@ function addTaskIfMissing(data, name, sourceText, extra = {}) {
   const normalizedName = name.trim();
   if (!normalizedName) return;
 
+  const fixedStart = extra.fixed_time?.start ? String(extra.fixed_time.start).slice(0, 5) : null;
+  const fixedEnd = extra.fixed_time?.end ? String(extra.fixed_time.end).slice(0, 5) : null;
+
   const duplicate = data.tasks.some(
-    (task) => task.name === normalizedName && task.duration_minutes === extra.duration_minutes && !task.fixed_time
+    (task) => {
+      const taskStart = task.fixed_time?.start ? String(task.fixed_time.start).slice(0, 5) : null;
+      const taskEnd = task.fixed_time?.end ? String(task.fixed_time.end).slice(0, 5) : null;
+
+      return task.name === normalizedName
+        && task.duration_minutes === extra.duration_minutes
+        && taskStart === fixedStart
+        && taskEnd === fixedEnd;
+    }
   );
 
   if (!duplicate) {
@@ -99,7 +110,7 @@ function extractGoal(text) {
 }
 
 function isOpenTaskSentence(sentence) {
-  return /\b(work on|study|revise|review|read|reading|practice|write|build|prepare|project|assignment|homework|research|exercise|walk)\b/i.test(sentence)
+  return /\b(do|need to do|work on|study|revise|review|read|reading|practice|write|build|prepare|project|assignment|homework|research|exercise|walk|finish|complete|handle|make|task|todo|to do)\b/i.test(sentence)
     && !/\b(?:from|at)\s*\d{1,2}/i.test(sentence)
     && !/\b\d+(?:\.\d+)?\s*(?:hours?|hrs?|minutes?|mins?|h|m)\b/i.test(sentence)
     && !/\b(?:at|from)\s*\d{1,2}:\d{2}\b/i.test(sentence)
@@ -115,7 +126,8 @@ function splitSentences(text) {
 
 function extractTaskName(sentence) {
   return sentence
-    .replace(/\b(?:i need to|i have to|i should|i want to|please|today|tomorrow|my|also|then)\b/gi, " ")
+    .replace(/\b(?:i need to|i have to|i should|i want to|i'm trying to|please|today|tomorrow|my|also|then|need to)\b/gi, " ")
+    .replace(/\b(?:do|do this|do that|do some|do a|do the|to do|need to do|have to do|want to do)\b/gi, " ")
     .replace(/\b(?:at|on|for|about|with|to)\s*(?:\d{1,2}(?::\d{2})?\s?(?:am|pm)?|\d+(?:\.\d+)?\s*(?:hours?|hrs?|minutes?|mins?|h|m))\b/gi, " ")
     .replace(/\b(?:from\s*\d{1,2}(?::\d{2})?\s?(?:am|pm)?\s*(?:to|-)\s*\d{1,2}(?::\d{2})?\s?(?:am|pm)?)/gi, " ")
     .replace(/\b(?:some|a|the)\b/gi, " ")
@@ -209,31 +221,6 @@ function extractSchedule(text) {
       if (name) {
         addTaskIfMissing(data, name, sentence);
       }
-    }
-  }
-
-  const walkMatch = lower.match(/\b(?:go for a walk|take a walk|walk)\b(?:\s*(?:at)?\s*(.+?))?(?:\.|,|and|$|\n)/);
-  if (walkMatch?.[1]) {
-    const time = chrono.parseDate(walkMatch[1]);
-    if (time) {
-      const startTime = formatTime(time);
-      const endTime = addMinutesToTime(startTime, 30) || startTime;
-
-      data.activities.push({
-        name: "walk",
-        start: startTime,
-        end: endTime
-      });
-
-      data.tasks.push({
-        name: "walk",
-        priority: detectPriority(walkMatch[0]),
-        fixed_time: {
-          start: startTime,
-          end: endTime
-        },
-        duration_minutes: 30
-      });
     }
   }
 

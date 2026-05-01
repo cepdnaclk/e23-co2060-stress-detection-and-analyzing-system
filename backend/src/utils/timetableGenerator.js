@@ -43,6 +43,10 @@ function estimateTaskMinutes(task) {
   return 45;
 }
 
+function sameHHMM(a, b) {
+  return String(a || "").slice(0, 5) === String(b || "").slice(0, 5);
+}
+
 function normalizeBlocks(timetable) {
   if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
     return timetable;
@@ -69,9 +73,7 @@ function normalizeBlocks(timetable) {
     if (previous && previous.end === block.start && isLowIntensityBlock(previous) && isLowIntensityBlock(block)) {
       previous.end = block.end;
       previous.type = "free";
-      previous.activity = previous.activity.toLowerCase().includes("break") || previous.activity.toLowerCase().includes("recovery")
-        ? "Free"
-        : previous.activity;
+      previous.activity = "Free";
       continue;
     }
 
@@ -114,6 +116,76 @@ function insertMissingTaskBlocks(timetable, tasks) {
     const taskName = String(task.name || "").trim();
     const taskMinutes = estimateTaskMinutes(task);
     if (!taskName || taskMinutes <= 0) continue;
+
+    if (task.fixed_time?.start && task.fixed_time?.end) {
+      const exactStart = String(task.fixed_time.start);
+      const exactEnd = String(task.fixed_time.end);
+      const exactDuration = durationMinutes(exactStart, exactEnd) ?? taskMinutes;
+
+      const alreadyPlaced = blocks.some(
+        (block) =>
+          String(block.activity || "").trim().toLowerCase() === taskName.toLowerCase() &&
+          sameHHMM(block.start, exactStart) &&
+          sameHHMM(block.end, exactEnd)
+      );
+
+      if (alreadyPlaced) {
+        continue;
+      }
+
+      const exactBlock = {
+        start: exactStart,
+        end: exactEnd,
+        activity: taskName,
+        type: "activity"
+      };
+
+      const exactSlotIndex = blocks.findIndex(
+        (block) =>
+          String(block.type || "").toLowerCase() === "free" &&
+          minutesFromHHMM(block.start) <= minutesFromHHMM(exactStart) &&
+          minutesFromHHMM(block.end) >= minutesFromHHMM(exactEnd)
+      );
+
+      if (exactSlotIndex !== -1) {
+        const freeBlock = blocks[exactSlotIndex];
+        if (sameHHMM(freeBlock.start, exactStart) && sameHHMM(freeBlock.end, exactEnd)) {
+          blocks.splice(exactSlotIndex, 1, exactBlock);
+        } else if (sameHHMM(freeBlock.start, exactStart)) {
+          blocks.splice(exactSlotIndex, 1,
+            exactBlock,
+            {
+              start: exactEnd,
+              end: freeBlock.end,
+              activity: "Free",
+              type: "free"
+            }
+          );
+        } else {
+          const beforeFreeEnd = exactStart;
+          const afterFreeStart = exactEnd;
+          blocks.splice(exactSlotIndex, 1,
+            {
+              start: freeBlock.start,
+              end: beforeFreeEnd,
+              activity: "Free",
+              type: "free"
+            },
+            exactBlock,
+            {
+              start: afterFreeStart,
+              end: freeBlock.end,
+              activity: "Free",
+              type: "free"
+            }
+          );
+        }
+      } else {
+        blocks.push(exactBlock);
+      }
+
+      continue;
+    }
 
     let placed = false;
 
