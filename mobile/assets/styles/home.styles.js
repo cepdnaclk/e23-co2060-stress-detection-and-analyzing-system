@@ -7,6 +7,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  wallpaperOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(227, 242, 253, 0.75)",
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",

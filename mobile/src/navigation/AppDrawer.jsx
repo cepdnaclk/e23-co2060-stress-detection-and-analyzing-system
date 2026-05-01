@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   createDrawerNavigator,
@@ -14,6 +14,7 @@ import LogoutScreen from "../screens/LogoutScreen";
 import ClinicalLocatorScreen from "../screens/ClinicalLocatorScreen";
 import RoutineGeneratorScreen from "../screens/RoutineGeneratorScreen";
 import AdminDashboardScreen from "../screens/AdminDashboardScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 import { useAuthStore } from "../../store/authStore";
 import styles from "../../assets/styles/appdrawer.styles";
 
@@ -64,8 +65,9 @@ export default function AppDrawer() {
         drawerActiveBackgroundColor: "#d9ecff",
         drawerLabelStyle: styles.drawerLabel,
         drawerItemStyle: styles.drawerItem,
-        header: ({ route, options }) => {
+        header: ({ navigation, route, options }) => {
           const title = options.title ?? route?.name ?? "";
+          const showProfileAction = route?.name === "Home";
 
           return (
           <View
@@ -85,7 +87,18 @@ export default function AppDrawer() {
                 {title}
               </Text>
             </View>
-            <View style={styles.sideContainer} />
+            <View style={styles.sideContainerRight}>
+              {showProfileAction ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open profile"
+                  onPress={() => navigation.navigate("Profile")}
+                  style={styles.headerActionButton}
+                >
+                  <Ionicons name="person-circle-outline" size={30} color="#1976D2" />
+                </Pressable>
+              ) : null}
+            </View>
           </View>
           );
         },
@@ -125,6 +138,16 @@ export default function AppDrawer() {
         component={LogoutScreen}
         options={{
           drawerIcon: ({ focused }) => renderDrawerIcon("log-out-outline", focused),
+        }}
+      />
+
+      <Drawer.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          title: "Profile",
+          drawerItemStyle: { display: "none" },
+          drawerLabel: () => null,
         }}
       />
     </Drawer.Navigator>
