@@ -84,7 +84,7 @@ export default function RoutineGeneratorScreen() {
         <View style={styles.overlayLayer}>
           <TextInput
             style={styles.input}
-            placeholder="Describe your daily tasks to generate a routine..."
+            placeholder="Describe your goal and tasks, e.g. finish a native app or study for exams..."
             placeholderTextColor="#7AA7D6"
             multiline
             textAlignVertical="top"
