@@ -18,6 +18,7 @@ function normalizeType(type, activity) {
   const a = String(activity || "").toLowerCase();
 
   if (["activity", "meal", "break", "free"].includes(t)) return t;
+  if (t === "recovery" || t === "relax") return "free";
   if (/meal|breakfast|lunch|dinner/.test(a)) return "meal";
   if (/break|short rest/.test(a)) return "break";
   if (/free|recovery|relax/.test(a)) return "free";
@@ -26,7 +27,9 @@ function normalizeType(type, activity) {
 }
 
 function isRelaxBlock(block) {
-  return block.type === "break" || block.type === "free";
+  const type = String(block?.type || "").toLowerCase();
+  const activity = String(block?.activity || "").toLowerCase();
+  return type === "break" || type === "free" || type === "recovery" || /free|recovery|relax|break/.test(activity);
 }
 
 function splitLongRelaxBlocks(blocks, maxRelaxMinutes) {
@@ -140,6 +143,155 @@ function normalizeBlocks(blocks, maxRelaxMinutes = 120) {
   return splitLongRelaxBlocks(merged, maxRelaxMinutes);
 }
 
+function parseFlexibleTimeToHHMM(text) {
+  const value = String(text || "").trim().toLowerCase();
+  const match = value.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (!match) return null;
+
+  let hour = Number(match[1]);
+  const minute = Number(match[2] || "0");
+  const meridiem = String(match[3] || "").toLowerCase();
+
+  if (Number.isNaN(hour) || Number.isNaN(minute) || minute < 0 || minute > 59) {
+    return null;
+  }
+
+  if (meridiem) {
+    if (hour < 1 || hour > 12) return null;
+    if (meridiem === "am") {
+      if (hour === 12) hour = 0;
+    } else if (meridiem === "pm") {
+      if (hour !== 12) hour += 12;
+    }
+  }
+
+  if (!meridiem && (hour < 0 || hour > 23)) return null;
+
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+function extractUserMealTimes(rawText) {
+  const text = String(rawText || "");
+  const patterns = {
+    Breakfast: /breakfast\s*(?:at|around|by)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i,
+    Lunch: /lunch\s*(?:at|around|by)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i,
+    Dinner: /dinner\s*(?:at|around|by)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i,
+  };
+
+  const result = {};
+
+  for (const [mealName, pattern] of Object.entries(patterns)) {
+    const match = text.match(pattern);
+    const parsed = parseFlexibleTimeToHHMM(match?.[1] || "");
+    if (parsed) result[mealName] = parsed;
+  }
+
+  return result;
+}
+
+function sameActivityName(activity, name) {
+  return String(activity || "").trim().toLowerCase() === String(name || "").trim().toLowerCase();
+}
+
+function insertBlockWithPriority(blocks, fixedBlock) {
+  const fixedStart = minutesFromHHMM(fixedBlock?.start);
+  const fixedEnd = minutesFromHHMM(fixedBlock?.end);
+  if (fixedStart === null || fixedEnd === null || fixedEnd <= fixedStart) return blocks;
+
+  const next = [];
+
+  for (const block of blocks) {
+    const blockStart = minutesFromHHMM(block.start);
+    const blockEnd = minutesFromHHMM(block.end);
+
+    if (blockStart === null || blockEnd === null || blockEnd <= blockStart) continue;
+
+    if (blockEnd <= fixedStart || blockStart >= fixedEnd) {
+      next.push(block);
+      continue;
+    }
+
+    if (blockStart < fixedStart) {
+      next.push({
+        ...block,
+        end: hhmmFromMinutes(fixedStart),
+      });
+    }
+
+    if (blockEnd > fixedEnd) {
+      next.push({
+        ...block,
+        start: hhmmFromMinutes(fixedEnd),
+      });
+    }
+  }
+
+  next.push({ ...fixedBlock });
+  return normalizeBlocks(next, 120);
+}
+
+function enforceCoreRoutine(blocks, wakeTime, sleepTime, rawText, maxRelaxBlockMinutes) {
+  const wakeMinutes = minutesFromHHMM(String(wakeTime || "07:00").slice(0, 5));
+  const sleepMinutes = minutesFromHHMM(String(sleepTime || "23:00").slice(0, 5));
+
+  if (wakeMinutes === null || sleepMinutes === null || sleepMinutes <= wakeMinutes) {
+    return normalizeBlocks(blocks, maxRelaxBlockMinutes);
+  }
+
+  const userMealTimes = extractUserMealTimes(rawText);
+
+  let result = normalizeBlocks(blocks, maxRelaxBlockMinutes).filter((block) => {
+    const start = minutesFromHHMM(block.start);
+    const end = minutesFromHHMM(block.end);
+    return start !== null && end !== null && start >= wakeMinutes && end <= sleepMinutes;
+  });
+
+  // Force the day to start with Wake up, then Morning routine.
+  result = result.filter((block) => !sameActivityName(block.activity, "Wake up") && !sameActivityName(block.activity, "Morning routine"));
+  result = insertBlockWithPriority(result, {
+    start: hhmmFromMinutes(wakeMinutes),
+    end: hhmmFromMinutes(wakeMinutes + 10),
+    activity: "Wake up",
+    type: "activity",
+  });
+  result = insertBlockWithPriority(result, {
+    start: hhmmFromMinutes(wakeMinutes + 10),
+    end: hhmmFromMinutes(wakeMinutes + 30),
+    activity: "Morning routine",
+    type: "activity",
+  });
+
+  const mealPlan = [
+    { name: "Breakfast", minutes: 30, defaultStart: hhmmFromMinutes(wakeMinutes + 30) },
+    { name: "Lunch", minutes: 45, defaultStart: "13:00" },
+    { name: "Dinner", minutes: 45, defaultStart: "19:00" },
+  ];
+
+  for (const meal of mealPlan) {
+    const explicitTime = userMealTimes[meal.name] || null;
+    const preferredStart = explicitTime || meal.defaultStart;
+    const preferredStartMinutes = minutesFromHHMM(preferredStart);
+
+    result = result.filter((block) => !sameActivityName(block.activity, meal.name));
+
+    if (preferredStartMinutes === null) continue;
+    const preferredEndMinutes = preferredStartMinutes + meal.minutes;
+
+    if (preferredStartMinutes < wakeMinutes || preferredEndMinutes > sleepMinutes) {
+      continue;
+    }
+
+    result = insertBlockWithPriority(result, {
+      start: hhmmFromMinutes(preferredStartMinutes),
+      end: hhmmFromMinutes(preferredEndMinutes),
+      activity: meal.name,
+      type: "meal",
+    });
+  }
+
+  return normalizeBlocks(result, maxRelaxBlockMinutes);
+}
+
 function buildClientConfig() {
   const provider = (process.env.LLM_PROVIDER || "").toLowerCase();
   const openaiKey = (process.env.OPENAI_API_KEY || "").trim();
@@ -187,6 +339,8 @@ async function generateTimetable(schedule) {
 
   const wakeTime = schedule.wake_time || "07:00";
   const sleepTime = schedule.sleep_time || "23:00";
+  const goalText = schedule.goal || schedule.raw_text || "None";
+  const rawText = schedule.raw_text || schedule.goal || "None";
   const relaxPreference = schedule.relaxation_preference || "medium";
 
   const relaxTargetMinutes =
@@ -244,14 +398,16 @@ Return ONLY valid JSON (no markdown, no backticks) with this exact structure:
 
 Fill the entire day from wake to sleep with time blocks.
 Rules:
-1) Respect all fixed-time tasks exactly.
-2) Allocate flexible tasks into realistic focus blocks (usually 45-90 minutes each).
-3) Insert short relaxing breaks after each focus block and at least one longer recovery/free block.
-4) Include meal blocks at sensible times.
-5) Keep transitions realistic and avoid overlapping blocks.
-6) Make sure total relaxing time reaches or exceeds the target above.
-7) If tasks are too many, reduce low-priority task time first and mention it in summary.
-8) Never output consecutive relaxation blocks (break/free/recovery) back-to-back; merge them into one longer recovery block instead.
+1) Start every routine with "Wake up" then "Morning routine" immediately after.
+2) Respect all fixed-time tasks exactly.
+3) Allocate flexible tasks into realistic focus blocks (usually 45-90 minutes each).
+4) Insert short relaxing breaks after each focus block and at least one longer recovery/free block.
+5) Always include Breakfast, Lunch, and Dinner.
+6) If the user gives a specific meal time, use that exact time. If not, use defaults: Breakfast at wake+30min, Lunch at 13:00, Dinner at 19:00.
+7) Keep transitions realistic and avoid overlapping blocks.
+8) Make sure total relaxing time reaches or exceeds the target above.
+9) If tasks are too many, reduce low-priority task time first and mention it in summary.
+10) Never output consecutive relaxation blocks (break/free/recovery) back-to-back; merge them into one longer recovery block instead.
 `;
 
   const response = await client.chat.completions.create({
@@ -270,9 +426,14 @@ Rules:
 
   try {
     const parsed = JSON.parse(cleaned);
+    const normalized = normalizeBlocks(parsed.blocks, maxRelaxBlockMinutes);
+    const enforced = enforceCoreRoutine(normalized, wakeTime, sleepTime, rawText, maxRelaxBlockMinutes);
+
     return {
       ...parsed,
-      blocks: normalizeBlocks(parsed.blocks, maxRelaxBlockMinutes),
+      wake_time: wakeTime,
+      sleep_time: sleepTime,
+      blocks: enforced,
     };
   } catch {
     // Fallback: return raw text so the frontend can still display something
