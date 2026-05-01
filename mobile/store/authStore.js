@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { API_URL } from "../constants/api";
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   user: null,
   token: null,
   isLoading: false,
@@ -73,5 +73,33 @@ export const useAuthStore = create((set) => ({
   logout: async () => {
     // Clear in-memory auth state only
     set({ token: null, user: null });
+  },
+
+  updateProfile: async ({ username, age, gender }) => {
+    set({ isLoading: true });
+
+    try {
+      const currentToken = get().token;
+      if (!currentToken) throw new Error("Not authenticated");
+
+      const response = await fetch(`${API_URL}/users/me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentToken}`,
+        },
+        body: JSON.stringify({ username, age, gender }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Something went wrong");
+
+      set({ user: data.user, isLoading: false });
+      return { success: true };
+    } catch (error) {
+      set({ isLoading: false });
+      return { success: false, error: error.message };
+    }
   },
 }));

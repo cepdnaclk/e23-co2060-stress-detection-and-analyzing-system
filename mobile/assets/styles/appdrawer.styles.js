@@ -98,6 +98,11 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "center",
   },
+  sideContainerRight: {
+    width: 48,
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
   headerTitleContainer: {
     flex: 1,
     alignItems: "center",
@@ -110,6 +115,12 @@ const styles = StyleSheet.create({
     fontFamily: "JetBrainsMono-Medium",
     color: "#0b5ea8",
     letterSpacing: 0.2,
+  },
+  headerActionButton: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 
