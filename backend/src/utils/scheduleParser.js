@@ -51,6 +51,28 @@ function detectBreakAfterFreePreference(text) {
     && /\b(after\s+free\s*time|after\s+free\s*slot|after\s+free\b)\b/i.test(text);
 }
 
+function detectFreeAfterTaskPreference(text) {
+  return /\b(free\s*time|rest|break)\b/i.test(text)
+    && /\b(after\s+tasks?|after\s+doing\s+tasks?|after\s+doing\s+task|after\s+each\s+task|after\s+work|after\s+study)\b/i.test(text);
+}
+
+function addTaskIfMissing(data, name, sourceText, extra = {}) {
+  const normalizedName = name.trim();
+  if (!normalizedName) return;
+
+  const duplicate = data.tasks.some(
+    (task) => task.name === normalizedName && task.duration_minutes === extra.duration_minutes && !task.fixed_time
+  );
+
+  if (!duplicate) {
+    data.tasks.push({
+      name: normalizedName,
+      priority: detectPriority(sourceText),
+      ...extra
+    });
+  }
+}
+
 function extractSchedule(text) {
   const data = {
     goal: null,
@@ -60,12 +82,14 @@ function extractSchedule(text) {
     tasks: [],
     relaxation_preference: "medium",
     break_after_free_preference: false,
+    free_after_task_preference: false,
     raw_text: text
   };
 
   const lower = text.toLowerCase();
   data.relaxation_preference = detectRelaxPreference(lower);
   data.break_after_free_preference = detectBreakAfterFreePreference(lower);
+  data.free_after_task_preference = detectFreeAfterTaskPreference(lower);
 
   const goalMatch = text.match(/(?:i want to|i need to|my goal is|goal[:\-]|focus on|finish|complete)\s+(.+?)(?:\.|,|\n|$)/i);
   data.goal = goalMatch?.[1]?.trim() || text.trim();
@@ -180,6 +204,27 @@ function extractSchedule(text) {
         duration_minutes: duration,
         priority: detectPriority(match[0])
       });
+    }
+  }
+
+  // Match simple task phrases without a duration or fixed time.
+  const openTaskPatterns = [
+    /\b(?:need to\s+)?work on (?:my\s+)?([a-z][^\n\.,;]*)/gi,
+    /\b(?:do|work on|finish|complete|read|reading|practice|revise|study) (?:some\s+|a\s+|the\s+)?([a-z][^\n\.,;]*)/gi,
+    /\bsome reading\b/gi
+  ];
+
+  for (const pattern of openTaskPatterns) {
+    while ((match = pattern.exec(lower)) !== null) {
+      if (/some reading/i.test(match[0])) {
+        addTaskIfMissing(data, "reading", match[0]);
+        continue;
+      }
+
+      const name = cleanName(match[1] || match[0]);
+      if (!name) continue;
+
+      addTaskIfMissing(data, name, match[0]);
     }
   }
 

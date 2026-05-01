@@ -22,6 +22,151 @@ function durationMinutes(startHHMM, endHHMM) {
   return (24 * 60 - start) + end;
 }
 
+function estimateTaskMinutes(task) {
+  if (task?.duration_minutes && task.duration_minutes > 0) {
+    return task.duration_minutes;
+  }
+
+  const name = String(task?.name || "").toLowerCase();
+
+  if (name.includes("reading")) return 30;
+  if (name.includes("project")) return 60;
+  if (name.includes("study") || name.includes("exam") || name.includes("revise") || name.includes("revision") || name.includes("homework") || name.includes("assignment")) return 45;
+  if (name.includes("walk") || name.includes("exercise") || name.includes("break")) return 30;
+
+  return 45;
+}
+
+function normalizeBlocks(timetable) {
+  if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
+    return timetable;
+  }
+
+  const blocks = timetable.blocks
+    .filter((block) => block && /^\d{2}:\d{2}$/.test(block.start) && /^\d{2}:\d{2}$/.test(block.end))
+    .map((block) => ({
+      ...block,
+      type: String(block.type || "").toLowerCase(),
+      activity: String(block.activity || "").trim()
+    }))
+    .sort(
+      (a, b) =>
+        minutesFromHHMM(a.start) - minutesFromHHMM(b.start) ||
+        minutesFromHHMM(a.end) - minutesFromHHMM(b.end)
+    );
+
+  const merged = [];
+
+  for (const block of blocks) {
+    const previous = merged[merged.length - 1];
+
+    if (
+      previous &&
+      previous.type === block.type &&
+      previous.end === block.start &&
+      previous.activity === block.activity
+    ) {
+      previous.end = block.end;
+      continue;
+    }
+
+    merged.push({ ...block });
+  }
+
+  return { ...timetable, blocks: merged };
+}
+
+function insertMissingTaskBlocks(timetable, tasks) {
+  if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
+    return timetable;
+  }
+
+  const blocks = timetable.blocks.map((block) => ({ ...block }));
+  const existingActivities = new Set(
+    blocks.map((block) => String(block.activity || "").trim().toLowerCase())
+  );
+
+  const missingTasks = (tasks || []).filter((task) => {
+    const name = String(task?.name || "").trim().toLowerCase();
+    return name && !existingActivities.has(name);
+  });
+
+  if (!missingTasks.length) {
+    return timetable;
+  }
+
+  for (const task of missingTasks) {
+    const taskName = String(task.name || "").trim();
+    const taskMinutes = estimateTaskMinutes(task);
+    if (!taskName || taskMinutes <= 0) continue;
+
+    let placed = false;
+
+    for (let i = 0; i < blocks.length; i += 1) {
+      const block = blocks[i];
+      if (String(block.type || "").toLowerCase() !== "free") continue;
+
+      const freeMinutes = durationMinutes(block.start, block.end);
+      if (freeMinutes === null || freeMinutes < taskMinutes) continue;
+
+      const start = block.start;
+      const taskEnd = hhmmFromMinutes(minutesFromHHMM(start) + taskMinutes);
+
+      const inserted = {
+        start,
+        end: taskEnd,
+        activity: taskName,
+        type: "activity"
+      };
+
+      if (taskEnd === block.end) {
+        blocks.splice(i, 1, inserted);
+      } else {
+        blocks.splice(i, 1,
+          inserted,
+          {
+            start: taskEnd,
+            end: block.end,
+            activity: "Free",
+            type: "free"
+          }
+        );
+      }
+
+      placed = true;
+      break;
+    }
+
+    if (!placed) {
+      const lastBlock = blocks[blocks.length - 1];
+      if (lastBlock && String(lastBlock.type || "").toLowerCase() === "free") {
+        const lastFreeMinutes = durationMinutes(lastBlock.start, lastBlock.end);
+        if (lastFreeMinutes !== null && lastFreeMinutes >= taskMinutes) {
+          const taskStart = lastBlock.start;
+          const taskEnd = hhmmFromMinutes(minutesFromHHMM(taskStart) + taskMinutes);
+
+          blocks.splice(blocks.length - 1, 1,
+            {
+              start: taskStart,
+              end: taskEnd,
+              activity: taskName,
+              type: "activity"
+            },
+            {
+              start: taskEnd,
+              end: lastBlock.end,
+              activity: "Free",
+              type: "free"
+            }
+          );
+        }
+      }
+    }
+  }
+
+  return { ...timetable, blocks };
+}
+
 function enforceBreakAfterFree(timetable, sleepTime) {
   if (!timetable || !Array.isArray(timetable.blocks) || timetable.blocks.length === 0) {
     return timetable;
@@ -141,6 +286,7 @@ async function generateTimetable(schedule) {
   const sleepTime = schedule.sleep_time || "23:00";
   const relaxPreference = schedule.relaxation_preference || "medium";
   const breakAfterFreePreference = Boolean(schedule.break_after_free_preference);
+  const freeAfterTaskPreference = Boolean(schedule.free_after_task_preference);
   const goalText = schedule.goal || schedule.raw_text || "None";
 
   const relaxTargetMinutes =
@@ -193,16 +339,23 @@ Return ONLY valid JSON (no markdown, no backticks) with this exact structure:
   ],
   "summary": "One-sentence summary of the day"
 }
-
-Fill the entire day from wake to sleep with time blocks.
-Strict rules:
-1) For any task where the user specifies a time, schedule it exactly at that time.
-2) For any task where the user specifies a duration, preserve that duration for the block.
-3) Never schedule consecutive free, break, or recovery blocks—merge them into a single longer block instead, even if they are of different types.
-4) Do not invent, add, or change the timing or duration of any activity, subject, or task that the user did not mention. Only use the user’s actual input for all scheduled blocks.
-5) Do not skip any tasks or activities from the user’s input. Every task, activity, or subject mentioned by the user must appear in the schedule, even if no time or duration is specified.
+Routine rules:
+1) Fill the entire period from wake time to sleep time with contiguous blocks and keep them in chronological order.
+2) If a task or activity has a fixed time, schedule it exactly at that time.
+3) If a task has a duration, preserve that duration exactly and place it in a realistic slot.
+4) Do not invent new subjects, tasks, or activities. Only schedule what the user actually mentioned.
+5) Do not skip any user-mentioned task or activity. Every input item must appear somewhere in the routine.
+6) Prefer a balanced day: early focus blocks for important work, short breaks between work blocks, meals at natural times, and a calmer wind-down near sleep.
+7) Keep focused work blocks reasonably short, usually 25-50 minutes, and keep breaks short, usually 5-10 minutes.
+8) Never place consecutive free, break, or recovery blocks. If two low-intensity blocks touch, merge them into one block.
+9) Do not overlap blocks or leave gaps between blocks unless the gap is part of a single free block.
+10) If the user asked for a short break after free time, place a 5-10 minute break immediately after each free block except right before sleep.
+11) If the user asked for free time after tasks, place a short free block after each completed task or work block whenever the schedule has room.
 ${breakAfterFreePreference
-  ? '6) User requested this explicitly: after every "free" block, add a short 5-10 minute "break" block next, unless it is immediately followed by sleep. Never place a break immediately before a free block.'
+  ? '12) User requested this explicitly: after every "free" block, add a short 5-10 minute "break" block next, unless it is immediately followed by sleep. Never place a break immediately before a free block.'
+  : ""}
+${freeAfterTaskPreference
+  ? '13) User requested this explicitly: after each task or work block, add a short free-time block when possible so the day has breathing room between tasks.'
   : ""}
 `;
 
@@ -222,10 +375,17 @@ ${breakAfterFreePreference
 
   try {
     const parsed = JSON.parse(cleaned);
-    if (breakAfterFreePreference) {
-      return enforceBreakAfterFree(parsed, sleepTime);
+    let timetable = normalizeBlocks(parsed);
+
+    if (Array.isArray(schedule.tasks) && schedule.tasks.length) {
+      timetable = insertMissingTaskBlocks(timetable, schedule.tasks);
     }
-    return parsed;
+
+    if (breakAfterFreePreference) {
+      timetable = enforceBreakAfterFree(timetable, sleepTime);
+    }
+
+    return normalizeBlocks(timetable);
   } catch {
     // Fallback: return raw text so the frontend can still display something
     return { raw_text: raw, blocks: [] };
