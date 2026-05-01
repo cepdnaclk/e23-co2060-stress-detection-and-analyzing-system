@@ -6,14 +6,19 @@
             "eNumber": "E/23/127"
         },
         {
-            "name": "Team Member Name 2",
-            "email": "email@eng.pdn.ac.lk",
-            "eNumber": "E/yy/xxx"
+            "name": "W.G.R.P.Gamage",
+            "email": "e23108@eng.pdn.ac.lk",
+            "eNumber": "E/23/108"
         },
         {
-            "name": "Team Member Name 3",
-            "email": "email@eng.pdn.ac.lk",
-            "eNumber": "E/yy/xxx"
+            "name": "K.M.M.Y.Kumarasinghe",
+            "email": "e23188@eng.pdn.ac.lk",
+            "eNumber": "E/23/188"
+        },
+        {
+            "name": "W.R.A.D.N.Gunathilake",
+            "email": "e23117@eng.pdn.ac.lk",
+            "eNumber": "E/23/117"
         }
     ],
     "supervisors": [
