@@ -22,6 +22,15 @@ function durationMinutes(startHHMM, endHHMM) {
   return (24 * 60 - start) + end;
 }
 
+function addMinutesToTime(hhmm, minutes) {
+  const start = minutesFromHHMM(hhmm);
+  if (start === null) return null;
+  const total = start + minutes;
+  const hours = String(Math.floor((total % (24 * 60)) / 60)).padStart(2, "0");
+  const mins = String(total % 60).padStart(2, "0");
+  return `${hours}:${mins}`;
+}
+
 function cleanName(raw) {
   return raw
     .replace(/\b(i need to|i have to|i should|please|today|tomorrow|my|and|then|also)\b/gi, "")
@@ -108,6 +117,31 @@ function extractSchedule(text) {
   if (sleep) {
     const time = chrono.parseDate(sleep[1]);
     if (time) data.sleep_time = formatTime(time);
+  }
+
+  const walkMatch = lower.match(/\b(?:go for a walk|take a walk|walk)\b(?:\s*(?:at)?\s*(.+?))?(?:\.|,|and|$|\n)/);
+  if (walkMatch?.[1]) {
+    const time = chrono.parseDate(walkMatch[1]);
+    if (time) {
+      const startTime = formatTime(time);
+      const endTime = addMinutesToTime(startTime, 30) || startTime;
+
+      data.activities.push({
+        name: "walk",
+        start: startTime,
+        end: endTime
+      });
+
+      data.tasks.push({
+        name: "walk",
+        priority: detectPriority(walkMatch[0]),
+        fixed_time: {
+          start: startTime,
+          end: endTime
+        },
+        duration_minutes: 30
+      });
+    }
   }
 
   /* =============================
