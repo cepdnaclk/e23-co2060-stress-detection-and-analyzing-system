@@ -82,6 +82,30 @@ function addTaskIfMissing(data, name, sourceText, extra = {}) {
   }
 }
 
+function extractGoal(text) {
+  const goalPatterns = [
+    /(?:^|\b)(?:my goal is|goal(?:\s+for\s+today)?|i want to|i need to|focus on|finish|complete|today i want to|i'm trying to)\s+(.+?)(?:\.|,|\n|$)/i,
+    /(?:^|\b)(?:goal|target)[:\-]\s*(.+?)(?:\.|,|\n|$)/i
+  ];
+
+  for (const pattern of goalPatterns) {
+    const match = text.match(pattern);
+    if (match?.[1]) {
+      return match[1].trim();
+    }
+  }
+
+  return text.trim();
+}
+
+function isOpenTaskSentence(sentence) {
+  return /\b(work on|study|revise|review|read|reading|practice|write|build|prepare|project|assignment|homework|research|exercise|walk)\b/i.test(sentence)
+    && !/\b(?:from|at)\s*\d{1,2}/i.test(sentence)
+    && !/\b\d+(?:\.\d+)?\s*(?:hours?|hrs?|minutes?|mins?|h|m)\b/i.test(sentence)
+    && !/\b(?:at|from)\s*\d{1,2}:\d{2}\b/i.test(sentence)
+    && !/\b(?:to|-)\s*\d{1,2}(?::\d{2})?\s?(?:am|pm)?\b/i.test(sentence);
+}
+
 function extractSchedule(text) {
   const data = {
     goal: null,
@@ -100,8 +124,7 @@ function extractSchedule(text) {
   data.break_after_free_preference = detectBreakAfterFreePreference(lower);
   data.free_after_task_preference = detectFreeAfterTaskPreference(lower);
 
-  const goalMatch = text.match(/(?:i want to|i need to|my goal is|goal[:\-]|focus on|finish|complete)\s+(.+?)(?:\.|,|\n|$)/i);
-  data.goal = goalMatch?.[1]?.trim() || text.trim();
+  data.goal = extractGoal(text);
 
   /* =============================
       Wake & Sleep
@@ -256,7 +279,7 @@ function extractSchedule(text) {
       }
 
       const name = cleanName(match[1] || match[0]);
-      if (!name) continue;
+      if (!name || !isOpenTaskSentence(match[0])) continue;
 
       addTaskIfMissing(data, name, match[0]);
     }
