@@ -14,6 +14,8 @@ import LogoutScreen from "../screens/LogoutScreen";
 import ClinicalLocatorScreen from "../screens/ClinicalLocatorScreen";
 import RoutineGeneratorScreen from "../screens/RoutineGeneratorScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import AdminDashboardScreen from "../screens/AdminDashboardScreen";
+import EditQuestionnaireScreen from "../screens/EditQuestionnaireScreen";
 import { useAuthStore } from "../../store/authStore";
 import styles from "../../assets/styles/appdrawer.styles";
 
@@ -52,10 +54,11 @@ function CustomDrawerContent(props) {
 export default function AppDrawer() {
   const { user } = useAuthStore();
   const insets = useSafeAreaInsets();
+  const isAdmin = user?.role === "admin";
 
   return (
     <Drawer.Navigator
-      initialRouteName="Home"
+      initialRouteName={isAdmin ? "Admin Dashboard" : "Home"}
       screenOptions={{
         drawerType: "front",
         drawerStyle: styles.drawerStyle,
@@ -66,7 +69,7 @@ export default function AppDrawer() {
         drawerItemStyle: styles.drawerItem,
         header: ({ navigation, route, options }) => {
           const title = options.title ?? route?.name ?? "";
-          const showProfileAction = route?.name === "Home";
+          const showProfileAction = !isAdmin && route?.name === "Home";
 
           return (
           <View
@@ -104,51 +107,79 @@ export default function AppDrawer() {
       }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
-      <Drawer.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("home-outline", focused),
-        }}
-      />
-      <Drawer.Screen
-        name="Questionnaire"
-        component={QuestionnaireScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("reader-outline", focused),
-        }}
-      />
-      <Drawer.Screen
-        name="Clinical Locator"
-        component={ClinicalLocatorScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("location-outline", focused),
-        }}
-      />
-      <Drawer.Screen
-        name="Routine Generator"
-        component={RoutineGeneratorScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("calendar-clear-outline", focused),
-        }}
-      />
-      <Drawer.Screen
-        name="Logout"
-        component={LogoutScreen}
-        options={{
-          drawerIcon: ({ focused }) => renderDrawerIcon("log-out-outline", focused),
-        }}
-      />
+      {isAdmin ? (
+        <>
+          <Drawer.Screen
+            name="Admin Dashboard"
+            component={AdminDashboardScreen}
+            options={{
+              drawerIcon: ({ focused }) => renderDrawerIcon("speedometer-outline", focused),
+            }}
+          />
+          <Drawer.Screen
+            name="Edit Questionnaire"
+            component={EditQuestionnaireScreen}
+            options={{
+              drawerIcon: ({ focused }) => renderDrawerIcon("create-outline", focused),
+            }}
+          />
+          <Drawer.Screen
+            name="Logout"
+            component={LogoutScreen}
+            options={{
+              drawerIcon: ({ focused }) => renderDrawerIcon("log-out-outline", focused),
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <Drawer.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              drawerIcon: ({ focused }) => renderDrawerIcon("home-outline", focused),
+            }}
+          />
+          <Drawer.Screen
+            name="Questionnaire"
+            component={QuestionnaireScreen}
+            options={{
+              drawerIcon: ({ focused }) => renderDrawerIcon("reader-outline", focused),
+            }}
+          />
+          <Drawer.Screen
+            name="Clinical Locator"
+            component={ClinicalLocatorScreen}
+            options={{
+              drawerIcon: ({ focused }) => renderDrawerIcon("location-outline", focused),
+            }}
+          />
+          <Drawer.Screen
+            name="Routine Generator"
+            component={RoutineGeneratorScreen}
+            options={{
+              drawerIcon: ({ focused }) => renderDrawerIcon("calendar-clear-outline", focused),
+            }}
+          />
+          <Drawer.Screen
+            name="Logout"
+            component={LogoutScreen}
+            options={{
+              drawerIcon: ({ focused }) => renderDrawerIcon("log-out-outline", focused),
+            }}
+          />
 
-      <Drawer.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          title: "Profile",
-          drawerItemStyle: { display: "none" },
-          drawerLabel: () => null,
-        }}
-      />
+          <Drawer.Screen
+            name="Profile"
+            component={ProfileScreen}
+            options={{
+              title: "Profile",
+              drawerItemStyle: { display: "none" },
+              drawerLabel: () => null,
+            }}
+          />
+        </>
+      )}
     </Drawer.Navigator>
   );
 }
