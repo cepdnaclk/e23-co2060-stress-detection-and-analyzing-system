@@ -14,46 +14,10 @@ import COLORS from "../../constants/colors";
 import { API_URL, fetchWithTimeout } from "../../constants/api";
 import { useAuthStore } from "../../store/authStore";
 
-const FALLBACK_QUESTIONS = [
-  { id: 1, text: "I found it hard to wind down" },
-  { id: 2, text: "I was aware of dryness of my mouth" },
-  { id: 3, text: "I couldn’t seem to experience any positive feeling at all" },
-  {
-    id: 4,
-    text: "I experienced breathing difficulty (e.g. excessively rapid breathing, breathlessness in the absence of physical exertion)",
-  },
-  { id: 5, text: "I found it difficult to work up the initiative to do things" },
-  { id: 6, text: "I tended to over-react to situations" },
-  { id: 7, text: "I experienced trembling (e.g. in the hands)" },
-  { id: 8, text: "I felt that I was using a lot of nervous energy" },
-  {
-    id: 9,
-    text: "I was worried about situations in which I might panic and make a fool of myself",
-  },
-  { id: 10, text: "I felt that I had nothing to look forward to" },
-  { id: 11, text: "I found myself getting agitated" },
-  { id: 12, text: "I found it difficult to relax" },
-  { id: 13, text: "I felt down-hearted and blue" },
-  {
-    id: 14,
-    text: "I was intolerant of anything that kept me from getting on with what I was doing",
-  },
-  { id: 15, text: "I felt I was close to panic" },
-  { id: 16, text: "I was unable to become enthusiastic about anything" },
-  { id: 17, text: "I felt I wasn’t worth much as a person" },
-  { id: 18, text: "I felt that I was rather touchy" },
-  {
-    id: 19,
-    text: "I was aware of the action of my heart in the absence of physical exertion (e.g. sense of heart rate increase, heart missing a beat)",
-  },
-  { id: 20, text: "I felt scared without any good reason" },
-  { id: 21, text: "I felt that life was meaningless" },
-];
-
 export default function EditQuestionnaireScreen() {
   const token = useAuthStore((state) => state.token);
 
-  const [questions, setQuestions] = useState(FALLBACK_QUESTIONS);
+  const [questions, setQuestions] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -76,12 +40,19 @@ export default function EditQuestionnaireScreen() {
         const normalized = data.questions
           .map((q) => ({ id: Number(q.id), text: String(q.text ?? "") }))
           .sort((a, b) => a.id - b.id);
+
+        for (let i = 1; i <= 21; i++) {
+          if (normalized[i - 1]?.id !== i) {
+            throw new Error("Invalid questionnaire data");
+          }
+        }
+
         setQuestions(normalized);
       } else {
-        setQuestions(FALLBACK_QUESTIONS);
+        throw new Error("Invalid questionnaire data");
       }
     } catch (error) {
-      setQuestions(FALLBACK_QUESTIONS);
+      setQuestions(null);
       Alert.alert("Error", error.message || "Could not load questionnaire");
     } finally {
       setIsLoading(false);
@@ -160,19 +131,30 @@ export default function EditQuestionnaireScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {questions.map((q) => (
-            <View key={q.id} style={styles.card}>
-              <Text style={styles.questionLabel}>Question {q.id}</Text>
-              <TextInput
-                value={q.text}
-                onChangeText={(t) => updateText(q.id, t)}
-                placeholder="Enter question text"
-                placeholderTextColor={COLORS.placeholderText}
-                multiline
-                style={styles.input}
-              />
+          {Array.isArray(questions) ? (
+            questions.map((q) => (
+              <View key={q.id} style={styles.card}>
+                <Text style={styles.questionLabel}>Question {q.id}</Text>
+                <TextInput
+                  value={q.text}
+                  onChangeText={(t) => updateText(q.id, t)}
+                  placeholder="Enter question text"
+                  placeholderTextColor={COLORS.placeholderText}
+                  multiline
+                  style={styles.input}
+                />
+              </View>
+            ))
+          ) : (
+            <View style={styles.card}>
+              <Text style={styles.questionLabel}>{isLoading ? "Loading..." : "No questions loaded"}</Text>
+              <Text style={styles.subtitle}>
+                {isLoading
+                  ? "Fetching questionnaire questions from the server."
+                  : "Please ensure the backend is running and try again."}
+              </Text>
             </View>
-          ))}
+          )}
 
           <Pressable
             onPress={handleSave}

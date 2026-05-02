@@ -1,5 +1,15 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, Pressable, Image, Alert, Animated, Easing, ScrollView } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  Image,
+  Alert,
+  Animated,
+  Easing,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import SafeScreen from "../../components/SafeScreen";
@@ -72,46 +82,9 @@ function getSeverityTheme(rawSeverity) {
 export default function QuestionnaireScreen() {
   const navigation = useNavigation();
 
-  const fallbackQuestions = useMemo(
-    () => [
-      { id: 1, text: "I found it hard to wind down" },
-      { id: 2, text: "I was aware of dryness of my mouth" },
-      { id: 3, text: "I couldn’t seem to experience any positive feeling at all" },
-      {
-        id: 4,
-        text: "I experienced breathing difficulty (e.g. excessively rapid breathing, breathlessness in the absence of physical exertion)",
-      },
-      { id: 5, text: "I found it difficult to work up the initiative to do things" },
-      { id: 6, text: "I tended to over-react to situations" },
-      { id: 7, text: "I experienced trembling (e.g. in the hands)" },
-      { id: 8, text: "I felt that I was using a lot of nervous energy" },
-      {
-        id: 9,
-        text: "I was worried about situations in which I might panic and make a fool of myself",
-      },
-      { id: 10, text: "I felt that I had nothing to look forward to" },
-      { id: 11, text: "I found myself getting agitated" },
-      { id: 12, text: "I found it difficult to relax" },
-      { id: 13, text: "I felt down-hearted and blue" },
-      {
-        id: 14,
-        text: "I was intolerant of anything that kept me from getting on with what I was doing",
-      },
-      { id: 15, text: "I felt I was close to panic" },
-      { id: 16, text: "I was unable to become enthusiastic about anything" },
-      { id: 17, text: "I felt I wasn’t worth much as a person" },
-      { id: 18, text: "I felt that I was rather touchy" },
-      {
-        id: 19,
-        text: "I was aware of the action of my heart in the absence of physical exertion (e.g. sense of heart rate increase, heart missing a beat)",
-      },
-      { id: 20, text: "I felt scared without any good reason" },
-      { id: 21, text: "I felt that life was meaningless" },
-    ],
-    []
-  );
-
-  const [questions, setQuestions] = useState(fallbackQuestions);
+  const [questions, setQuestions] = useState(null);
+  const [isQuestionsLoading, setIsQuestionsLoading] = useState(true);
+  const [questionsLoadError, setQuestionsLoadError] = useState(null);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -137,40 +110,46 @@ export default function QuestionnaireScreen() {
   const pulseLoopRef = useRef(null);
   const scoreLoopRef = useRef(null);
 
-  useEffect(() => {
-    let isActive = true;
+  const loadQuestions = useCallback(async () => {
+    setIsQuestionsLoading(true);
+    setQuestionsLoadError(null);
 
-    const loadQuestions = async () => {
-      try {
-        const response = await fetchWithTimeout(`${API_URL}/questionnaire/questions`);
-        const data = await response.json();
+    try {
+      const response = await fetchWithTimeout(`${API_URL}/questionnaire/questions`);
+      const data = await response.json();
 
-        if (!response.ok) return;
-        if (!isActive) return;
-
-        if (Array.isArray(data.questions) && data.questions.length === 21) {
-          const normalized = data.questions
-            .map((q) => ({ id: Number(q.id), text: String(q.text ?? "") }))
-            .sort((a, b) => a.id - b.id);
-
-          // Validate ids 1..21
-          for (let i = 1; i <= 21; i++) {
-            if (normalized[i - 1]?.id !== i) return;
-          }
-
-          setQuestions(normalized);
-        }
-      } catch {
-        // Keep fallback questions on any error
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to load questionnaire");
       }
-    };
 
-    loadQuestions();
+      if (!Array.isArray(data.questions) || data.questions.length !== 21) {
+        throw new Error("Invalid questionnaire data");
+      }
 
-    return () => {
-      isActive = false;
-    };
+      const normalized = data.questions
+        .map((q) => ({ id: Number(q.id), text: String(q.text ?? "") }))
+        .sort((a, b) => a.id - b.id);
+
+      for (let i = 1; i <= 21; i++) {
+        if (normalized[i - 1]?.id !== i) {
+          throw new Error("Invalid questionnaire data");
+        }
+      }
+
+      setQuestions(normalized);
+      setCurrentIndex(0);
+      setAnswers({});
+    } catch (error) {
+      setQuestions(null);
+      setQuestionsLoadError(error.message || "Could not load questionnaire");
+    } finally {
+      setIsQuestionsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadQuestions();
+  }, [loadQuestions]);
 
   useEffect(() => {
     if (!showInstructions) return;
@@ -332,8 +311,9 @@ export default function QuestionnaireScreen() {
     scoreStarPulse,
   ]);
 
-  const currentQuestion = questions[currentIndex];
-  const isLastQuestion = currentIndex === questions.length - 1;
+  const questionCount = questions?.length ?? 0;
+  const currentQuestion = questions?.[currentIndex];
+  const isLastQuestion = questionCount > 0 && currentIndex === questionCount - 1;
   const selectedValue = answers[currentQuestion?.id];
   const severityTheme = useMemo(() => getSeverityTheme(severity), [severity]);
   const recommendation = useMemo(() => {
@@ -359,6 +339,7 @@ export default function QuestionnaireScreen() {
   }, [severity]);
 
   const handleSelect = (value) => {
+    if (!currentQuestion) return;
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
   };
 
@@ -379,6 +360,11 @@ export default function QuestionnaireScreen() {
   };
 
   const handleSubmit = async () => {
+    if (!questions || questions.length !== 21) {
+      Alert.alert("Unavailable", "Questionnaire could not be loaded. Please try again.");
+      return;
+    }
+
     if (Object.keys(answers).length !== questions.length) {
       Alert.alert("Incomplete", "Please answer all questions before finishing.");
       return;
@@ -449,7 +435,7 @@ export default function QuestionnaireScreen() {
               </View>
 
               <Text style={styles.introSubtitle}>
-                A quick, private self-check to understand how you've been feeling lately.
+                A quick, private self-check to understand how {"you've"} been feeling lately.
               </Text>
 
               <View style={styles.introStatsRow}>
@@ -471,7 +457,7 @@ export default function QuestionnaireScreen() {
                 <Image source={questionnaireBanner} style={styles.introImage} resizeMode="contain" />
               </View>
 
-              <Text style={styles.introFooterText}>Tap through when you're ready to begin.</Text>
+              <Text style={styles.introFooterText}>Tap through when {"you're"} ready to begin.</Text>
             </View>
           </Pressable>
         ) : showInstructions ? (
@@ -639,6 +625,32 @@ export default function QuestionnaireScreen() {
           </View>
         ) : (
           <>
+            {isQuestionsLoading || questionsLoadError || !questions ? (
+              <View style={styles.instructionsContainer}>
+                <View style={styles.instructionsCard}>
+                  <Text style={styles.instructionsHeading}>Loading Questionnaire</Text>
+
+                  {isQuestionsLoading ? (
+                    <View style={{ marginTop: 14 }}>
+                      <ActivityIndicator size="small" color="#0f538f" />
+                      <Text style={[styles.instructionsText, { marginTop: 12 }]}>Please wait.</Text>
+                    </View>
+                  ) : (
+                    <>
+                      <Text style={[styles.instructionsText, { marginTop: 10 }]}>
+                        {questionsLoadError || "Could not load questionnaire."}
+                      </Text>
+                      <Pressable style={[styles.startButton, { marginTop: 14 }]} onPress={loadQuestions}>
+                        <Ionicons name="refresh" size={16} color="#ffffff" />
+                        <Text style={styles.startButtonText}>Retry</Text>
+                      </Pressable>
+                    </>
+                  )}
+                </View>
+              </View>
+            ) : null}
+
+            {!isQuestionsLoading && !questionsLoadError && questions ? (
             <ScrollView
               ref={questionScrollRef}
               style={{ flex: 1 }}
@@ -727,6 +739,7 @@ export default function QuestionnaireScreen() {
                 </Pressable>
               </View>
             </ScrollView>
+            ) : null}
           </>
         )}
       </View>
