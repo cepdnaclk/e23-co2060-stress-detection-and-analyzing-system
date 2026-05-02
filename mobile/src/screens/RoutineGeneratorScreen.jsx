@@ -177,8 +177,6 @@ export default function RoutineGeneratorScreen() {
       const routineText = formatTimetableForAlert(data.timetable);
       setGeneratedRoutine(data.timetable);
       setGeneratedRoutineText(routineText);
-
-      Alert.alert("Routine Generated", routineText || "No routine generated.");
     } catch (error) {
       Alert.alert(
         "Generation Failed",
@@ -222,19 +220,6 @@ export default function RoutineGeneratorScreen() {
             <Pressable
               style={[
                 styles.secondaryButton,
-                (!generatedRoutine || isSaving || !token) && styles.buttonDisabled,
-              ]}
-              onPress={saveRoutineToServer}
-              disabled={!generatedRoutine || isSaving || !token}
-            >
-              <Text style={styles.secondaryButtonText}>
-                {isSaving ? "Saving..." : "Save Routine"}
-              </Text>
-            </Pressable>
-
-            <Pressable
-              style={[
-                styles.secondaryButton,
                 isLoadingRoutines && styles.buttonDisabled,
               ]}
               onPress={() => loadSavedRoutines(true)}
@@ -246,6 +231,40 @@ export default function RoutineGeneratorScreen() {
             </Pressable>
 
           </View>
+
+          <Modal
+            visible={!!generatedRoutine}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setGeneratedRoutine(null)}
+          >
+            <View style={styles.modalBackdrop}>
+              <View style={styles.generatedRoutineModal}>
+                <Text style={styles.generatedRoutineModalTitle}>Generated Routine</Text>
+                <ScrollView style={styles.generatedRoutineModalContent}>
+                  <Text style={styles.generatedRoutineModalText}>{generatedRoutineText}</Text>
+                </ScrollView>
+                <Pressable
+                  style={[
+                    styles.saveFromModalButton,
+                    (isSaving || !token) && styles.buttonDisabled,
+                  ]}
+                  onPress={saveRoutineToServer}
+                  disabled={isSaving || !token}
+                >
+                  <Text style={styles.saveFromModalButtonText}>
+                    {isSaving ? "Saving..." : "Save Routine"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={styles.closeButton}
+                  onPress={() => setGeneratedRoutine(null)}
+                >
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
 
           <Modal
             visible={showSavedModal}
