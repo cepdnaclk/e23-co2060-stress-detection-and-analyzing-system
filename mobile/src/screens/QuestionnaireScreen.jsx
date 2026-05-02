@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import SafeScreen from "../../components/SafeScreen";
 import styles from "../../assets/styles/question.styles";
 import questionnaireBanner from "../../assets/images/questionnaire-banner.png";
-import { API_URL } from "../../constants/api";
+import { API_URL, fetchWithTimeout } from "../../constants/api";
 
 function getSeverityTheme(rawSeverity) {
   const level = (rawSeverity || "").toLowerCase();
@@ -72,7 +72,7 @@ function getSeverityTheme(rawSeverity) {
 export default function QuestionnaireScreen() {
   const navigation = useNavigation();
 
-  const questions = useMemo(
+  const fallbackQuestions = useMemo(
     () => [
       { id: 1, text: "I found it hard to wind down" },
       { id: 2, text: "I was aware of dryness of my mouth" },
@@ -111,6 +111,8 @@ export default function QuestionnaireScreen() {
     []
   );
 
+  const [questions, setQuestions] = useState(fallbackQuestions);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showIntro, setShowIntro] = useState(true);
@@ -134,6 +136,41 @@ export default function QuestionnaireScreen() {
   const scoreStarPulse = useRef(new Animated.Value(0.55)).current;
   const pulseLoopRef = useRef(null);
   const scoreLoopRef = useRef(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadQuestions = async () => {
+      try {
+        const response = await fetchWithTimeout(`${API_URL}/questionnaire/questions`);
+        const data = await response.json();
+
+        if (!response.ok) return;
+        if (!isActive) return;
+
+        if (Array.isArray(data.questions) && data.questions.length === 21) {
+          const normalized = data.questions
+            .map((q) => ({ id: Number(q.id), text: String(q.text ?? "") }))
+            .sort((a, b) => a.id - b.id);
+
+          // Validate ids 1..21
+          for (let i = 1; i <= 21; i++) {
+            if (normalized[i - 1]?.id !== i) return;
+          }
+
+          setQuestions(normalized);
+        }
+      } catch {
+        // Keep fallback questions on any error
+      }
+    };
+
+    loadQuestions();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!showInstructions) return;
