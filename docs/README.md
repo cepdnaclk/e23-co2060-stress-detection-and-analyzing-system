@@ -3,8 +3,8 @@ layout: home
 permalink: index.html
 
 # Please update this with your repository name and project title
-repository-name: eYY-co2060-project-template
-title: Project Template
+repository-name: e23-co2060-stress-detection-and-analyzing-system
+title: Stress Detection and Analyzing System
 ---
 
 [comment]: # "This is the standard layout for the project, but you can clean this and use your own template, and add more information required for your own project"
@@ -24,9 +24,10 @@ A HTML template integrated with the given GitHub repository templates, based on 
 ---
 
 ## Team
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
+-  E/23/108, W.G.R.P. Gamage, [e23108@eng.pdn.ac.lk](mailto:e23108@eng.pdn.ac.lk)
+-  E/23/117, W.R.A.D.N. Gunathilake, [e23117@eng.pdn.ac.lk](mailto:e23117@eng.pdn.ac.lk)
+-  E/23/127, H.M.K.I. Herath, [e23127@eng.pdn.ac.lk](mailto:e23127@eng.pdn.ac.lk)
+-  E/23/188,  K.M.M.Y. Kumarasinghe, [e23188@eng.pdn.ac.lk](mailto:e23188@eng.pdn.ac.lk)
 
 <!-- Image (photo/drawing of the final hardware) should be here -->
 
@@ -44,16 +45,39 @@ A HTML template integrated with the given GitHub repository templates, based on 
 
 ## Introduction
 
-Description of the real world problem and solution, impact
+This project addresses a real-world problem by translating practical challenges into a scalable software solution. The goal is to bridge the gap between user needs and system capabilities through a well-structured, technology-driven approach.
 
+The solution is designed with a strong emphasis on reliability, usability, and extensibility, ensuring measurable impact in terms of efficiency, accuracy, and overall user experience. This project demonstrates how sound engineering principles can be applied to deliver real value in a practical context.
 
 ## Solution Architecture
 
-High level diagram + description
+The system follows a modular, layered architecture to ensure scalability, maintainability, and clear separation of concerns.
+
+At a high level, the architecture consists of:
+
+Frontend: Responsible for user interaction and presentation logic.
+
+Backend: Handles core business logic, request processing, and system orchestration.
+
+Database: Manages persistent data storage and retrieval.
+
+This architecture enables smooth communication between components, improves fault isolation, and supports future expansion with minimal architectural changes.
 
 ## Software Designs
 
-Detailed designs with many sub-sections
+The software design is broken down into multiple detailed sub-sections to clearly explain how the system operates internally.
+
+Key design aspects include:
+
+Component-level decomposition
+
+Data flow and interaction patterns
+
+Interface definitions between modules
+
+Design decisions and trade-offs
+
+This structured design approach ensures the system remains robust, easy to understand, and adaptable to evolving requirements.
 
 ## Testing
 
@@ -65,7 +89,7 @@ What was achieved, future developments, commercialization plans
 
 ## Links
 
-- [Project Repository](https://github.com/cepdnaclk/{{ page.repository-name }}){:target="_blank"}
+- [Project Repository]((https://github.com/cepdnaclk/e23-co2060-stress-detection-and-analyzing-system))
 - [Project Page](https://cepdnaclk.github.io/{{ page.repository-name}}){:target="_blank"}
 - [Department of Computer Engineering](http://www.ce.pdn.ac.lk/)
 - [University of Peradeniya](https://eng.pdn.ac.lk/)
