@@ -302,7 +302,7 @@ export default function QuestionnaireScreen() {
   const recommendation = useMemo(() => {
     const level = (severity || "").toLowerCase();
 
-    if (level === "normal" || level === "mild") {
+    if (level === "normal") {
       return {
         routeName: "Routine Generator",
         label: "Go to Routine Generator",
@@ -310,7 +310,7 @@ export default function QuestionnaireScreen() {
       };
     }
 
-    if (level === "severe") {
+    if (level === "moderate" || level === "severe") {
       return {
         routeName: "Clinical Locator",
         label: "Go to Clinical Locator",
