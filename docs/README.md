@@ -3,8 +3,8 @@ layout: home
 permalink: index.html
 
 # Please update this with your repository name and project title
-repository-name: e23-co2060-stress-detection-and-analyzing-system
-title: Stress Detection and Analyzing System
+repository-name: eYY-co2060-project-template
+title: Project Template
 ---
 
 [comment]: # "This is the standard layout for the project, but you can clean this and use your own template, and add more information required for your own project"
@@ -24,10 +24,9 @@ A HTML template integrated with the given GitHub repository templates, based on 
 ---
 
 ## Team
--  E/23/108, W.G.R.P. Gamage, [e23108@eng.pdn.ac.lk](mailto:e23108@eng.pdn.ac.lk)
--  E/23/117, W.R.A.D.N. Gunathilake, [e23117@eng.pdn.ac.lk](mailto:e23117@eng.pdn.ac.lk)
--  E/23/127, H.M.K.I. Herath, [e23127@eng.pdn.ac.lk](mailto:e23127@eng.pdn.ac.lk)
--  E/23/188,  K.M.M.Y. Kumarasinghe, [e23188@eng.pdn.ac.lk](mailto:e23188@eng.pdn.ac.lk)
+-  eNumber, Name, [email](mailto:name@email.com)
+-  eNumber, Name, [email](mailto:name@email.com)
+-  eNumber, Name, [email](mailto:name@email.com)
 
 <!-- Image (photo/drawing of the final hardware) should be here -->
 
@@ -45,51 +44,41 @@ A HTML template integrated with the given GitHub repository templates, based on 
 
 ## Introduction
 
-This project addresses a real-world problem by translating practical challenges into a scalable software solution. The goal is to bridge the gap between user needs and system capabilities through a well-structured, technology-driven approach.
+Description of the real world problem and solution, impact
 
-The solution is designed with a strong emphasis on reliability, usability, and extensibility, ensuring measurable impact in terms of efficiency, accuracy, and overall user experience. This project demonstrates how sound engineering principles can be applied to deliver real value in a practical context.
 
 ## Solution Architecture
 
-The system follows a modular, layered architecture to ensure scalability, maintainability, and clear separation of concerns.
-
-At a high level, the architecture consists of:
-
-Frontend: Responsible for user interaction and presentation logic.
-
-Backend: Handles core business logic, request processing, and system orchestration.
-
-Database: Manages persistent data storage and retrieval.
-
-This architecture enables smooth communication between components, improves fault isolation, and supports future expansion with minimal architectural changes.
+High level diagram + description
 
 ## Software Designs
 
-The software design is broken down into multiple detailed sub-sections to clearly explain how the system operates internally.
-
-Key design aspects include:
-
-Component-level decomposition
-
-Data flow and interaction patterns
-
-Interface definitions between modules
-
-Design decisions and trade-offs
-
-This structured design approach ensures the system remains robust, easy to understand, and adaptable to evolving requirements.
+Detailed designs with many sub-sections
 
 ## Testing
 
-Testing done on software : detailed + summarized results
+Testing was performed manually on the main application flows to confirm that the system works as expected from end to end. The team checked the questionnaire flow, result generation, routine creation, saving and viewing routines, and the clinic locator experience.
+
+The following areas were covered during testing:
+
+- User registration and login
+- Questionnaire submission and result display
+- Routine generation from user-entered tasks
+- Saving generated routines and loading them later
+- Clinic locator response for nearby clinics
+- Data persistence and repeated access to saved records
+
+These checks helped confirm that the application is stable for normal use and that the major features remain functional after updates.
 
 ## Conclusion
 
-What was achieved, future developments, commercialization plans
+The project successfully combines stress screening, routine planning, clinic support, and stored user data into a single accessible application. It demonstrates how a simple user flow can be used to support stress awareness and provide practical guidance through both mobile and web interfaces.
+
+Future work can focus on improving analytics, adding reminders and notifications, enhancing the generated routine quality, and expanding the reporting features. These additions would make the system more helpful for long-term stress management and analysis.
 
 ## Links
 
-- [Project Repository]((https://github.com/cepdnaclk/e23-co2060-stress-detection-and-analyzing-system))
+- [Project Repository](https://github.com/cepdnaclk/{{ page.repository-name }}){:target="_blank"}
 - [Project Page](https://cepdnaclk.github.io/{{ page.repository-name}}){:target="_blank"}
 - [Department of Computer Engineering](http://www.ce.pdn.ac.lk/)
 - [University of Peradeniya](https://eng.pdn.ac.lk/)

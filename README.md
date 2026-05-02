@@ -81,11 +81,24 @@ This structured design approach ensures the system remains robust, easy to under
 
 ## Testing
 
-Testing done on software : detailed + summarized results
+Testing was carried out manually across the main user flows in both the mobile app and the backend-supported pages. The team verified that users can register, log in, complete the questionnaire, receive a stress result, and move to the next suggested action without breaking the flow.
+
+The following features were checked during testing:
+
+- User registration and login with valid and invalid credentials
+- Questionnaire submission and result generation
+- Routine generation from daily task input
+- Saving and viewing generated routines
+- Clinic locator results for nearby clinics
+- Persistence of user data for later access
+
+Acceptance testing was also used to confirm that the app behaves correctly in realistic usage scenarios, including repeated logins, revisiting saved data, and switching between mobile screens.
 
 ## Conclusion
 
-What was achieved, future developments, commercialization plans
+This project delivers a complete stress management system that combines questionnaire-based assessment, AI-assisted routine generation, clinic location support, and saved user data in one workflow. The application is designed to help users understand their stress-related state and take practical next steps with minimal effort.
+
+The current implementation provides a solid base for future improvements such as richer stress trend analytics, notification reminders, better report export, and additional personalization in the generated routines. With these extensions, the system can evolve into a more complete stress monitoring and support platform.
 
 ## Links
 
