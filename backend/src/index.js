@@ -4,6 +4,7 @@ import cors from "cors";
 
 import authRoutes from "./routes/authRoutes.js";
 import scheduleRoutes from "./routes/schedule.js";
+import routineRoutes from "./routes/routineRoutes.js";
 import clinicRoutes from "./routes/clinicRoutes.js";
 import questionnaireRoutes from "./routes/questionnaireRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -20,6 +21,7 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 app.use("/api/auth", authRoutes);
 app.use("/api/schedule", scheduleRoutes);
+app.use("/api/routine", routineRoutes);
 app.use("/api/clinics", clinicRoutes);
 app.use("/api/questionnaire", questionnaireRoutes);
 app.use("/api/admin", adminRoutes);

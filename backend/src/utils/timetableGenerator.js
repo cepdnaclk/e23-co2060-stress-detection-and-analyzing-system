@@ -342,6 +342,8 @@ async function generateTimetable(schedule) {
   const goalText = schedule.goal || schedule.raw_text || "None";
   const rawText = schedule.raw_text || schedule.goal || "None";
   const relaxPreference = schedule.relaxation_preference || "medium";
+  const goalText = schedule.goal || schedule.raw_text || "No explicit goal provided.";
+  const rawText = schedule.raw_text || goalText;
 
   const relaxTargetMinutes =
     relaxPreference === "high" ? 120 : relaxPreference === "low" ? 60 : 90;
