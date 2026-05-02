@@ -103,7 +103,7 @@ The current implementation provides a solid base for future improvements such as
 ## Links
 
 - [Project Repository]((https://github.com/cepdnaclk/e23-co2060-stress-detection-and-analyzing-system))
-- [Project Page](https://cepdnaclk.github.io/{{ page.repository-name}}){:target="_blank"}
+- [Project Page](https://cepdnaclk.github.io/e23-co2060-stress-detection-and-analyzing-system/){:target="_blank"}
 - [Department of Computer Engineering](http://www.ce.pdn.ac.lk/)
 - [University of Peradeniya](https://eng.pdn.ac.lk/)
 
