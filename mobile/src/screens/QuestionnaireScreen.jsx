@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable, Image, Alert, Animated, Easing, ScrollView } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import SafeScreen from "../../components/SafeScreen";
 import styles from "../../assets/styles/question.styles";
@@ -69,6 +70,8 @@ function getSeverityTheme(rawSeverity) {
 }
 
 export default function QuestionnaireScreen() {
+  const navigation = useNavigation();
+
   const questions = useMemo(
     () => [
       { id: 1, text: "I found it hard to wind down" },
@@ -296,6 +299,27 @@ export default function QuestionnaireScreen() {
   const isLastQuestion = currentIndex === questions.length - 1;
   const selectedValue = answers[currentQuestion?.id];
   const severityTheme = useMemo(() => getSeverityTheme(severity), [severity]);
+  const recommendation = useMemo(() => {
+    const level = (severity || "").toLowerCase();
+
+    if (level === "normal" || level === "mild") {
+      return {
+        routeName: "Routine Generator",
+        label: "Go to Routine Generator",
+        icon: "calendar-clear-outline",
+      };
+    }
+
+    if (level === "severe") {
+      return {
+        routeName: "Clinical Locator",
+        label: "Go to Clinical Locator",
+        icon: "location-outline",
+      };
+    }
+
+    return null;
+  }, [severity]);
 
   const handleSelect = (value) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
@@ -554,6 +578,26 @@ export default function QuestionnaireScreen() {
                 <Ionicons name="refresh" size={16} color="#ffffff" />
                 <Text style={styles.startButtonText}>Retake Questionnaire</Text>
               </Pressable>
+
+              {recommendation ? (
+                <>
+                  <Text
+                    style={[
+                      styles.optionDescription,
+                      { textAlign: "center", marginTop: 14, marginBottom: 6 },
+                    ]}
+                  >
+                    Based on your results, we recommend taking the following next step:
+                  </Text>
+                  <Pressable
+                    style={[styles.startButton, { marginTop: 0 }]}
+                    onPress={() => navigation.navigate(recommendation.routeName)}
+                  >
+                    <Ionicons name={recommendation.icon} size={16} color="#ffffff" />
+                    <Text style={styles.startButtonText}>{recommendation.label}</Text>
+                  </Pressable>
+                </>
+              ) : null}
             </Animated.View>
           </View>
         ) : (
