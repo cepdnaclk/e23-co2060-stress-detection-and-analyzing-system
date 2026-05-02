@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, Pressable, Image, Alert, Animated, Easing } from "react-native";
+import { View, Text, Pressable, Image, Alert, Animated, Easing, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import SafeScreen from "../../components/SafeScreen";
 import styles from "../../assets/styles/question.styles";
@@ -122,6 +122,7 @@ export default function QuestionnaireScreen() {
   const alertPulse = useRef(new Animated.Value(1)).current;
   const questionOpacity = useRef(new Animated.Value(1)).current;
   const questionLift = useRef(new Animated.Value(0)).current;
+  const questionScrollRef = useRef(null);
   const resultsOpacity = useRef(new Animated.Value(0)).current;
   const resultsLift = useRef(new Animated.Value(24)).current;
   const scoreScale = useRef(new Animated.Value(0.9)).current;
@@ -178,6 +179,8 @@ export default function QuestionnaireScreen() {
 
   useEffect(() => {
     if (showIntro || showInstructions || showResults) return;
+
+    questionScrollRef.current?.scrollTo?.({ y: 0, animated: false });
 
     questionOpacity.setValue(0);
     questionLift.setValue(18);
@@ -555,87 +558,94 @@ export default function QuestionnaireScreen() {
           </View>
         ) : (
           <>
-            <Animated.View
-              style={[
-                styles.questionContentWrap,
-                {
-                  opacity: questionOpacity,
-                  transform: [{ translateY: questionLift }],
-                },
-              ]}
+            <ScrollView
+              ref={questionScrollRef}
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
             >
-              <View style={styles.progressRow}>
-                <View style={styles.progressPill}>
-                  <Ionicons name="help-circle-outline" size={18} color="#0f538f" />
-                  <Text style={styles.progressText}>
-                    Question {currentIndex + 1} of {questions.length}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.card}>
-                <Text style={styles.questionText}>{currentQuestion.text}</Text>
-              </View>
-
-              <View style={styles.optionsContainer}>
-                {[0, 1, 2, 3].map((value) => (
-                  <Pressable
-                    key={value}
-                    style={[
-                      styles.optionButton,
-                      selectedValue === value && styles.optionButtonSelected,
-                    ]}
-                    onPress={() => handleSelect(value)}
-                  >
-                    <View style={styles.optionTopRow}>
-                      <Text
-                        style={[
-                          styles.optionLabel,
-                          selectedValue === value && styles.optionLabelSelected,
-                        ]}
-                      >
-                        {value}
-                      </Text>
-                      {selectedValue === value && (
-                        <Ionicons name="checkmark-circle" size={18} color="#1976D2" />
-                      )}
-                    </View>
-                    <Text style={styles.optionDescription}>
-                      {value === 0 && "Did not apply to me at all"}
-                      {value === 1 && "Applied to me to some degree, or some of the time"}
-                      {value === 2 &&
-                        "Applied to me to a considerable degree or a good part of the time"}
-                      {value === 3 && "Applied to me very much or most of the time"}
+              <Animated.View
+                style={[
+                  styles.questionContentWrap,
+                  {
+                    opacity: questionOpacity,
+                    transform: [{ translateY: questionLift }],
+                  },
+                ]}
+              >
+                <View style={styles.progressRow}>
+                  <View style={styles.progressPill}>
+                    <Ionicons name="help-circle-outline" size={18} color="#0f538f" />
+                    <Text style={styles.progressText}>
+                      Question {currentIndex + 1} of {questions.length}
                     </Text>
-                  </Pressable>
-                ))}
+                  </View>
+                </View>
+
+                <View style={styles.card}>
+                  <Text style={styles.questionText}>{currentQuestion.text}</Text>
+                </View>
+
+                <View style={styles.optionsContainer}>
+                  {[0, 1, 2, 3].map((value) => (
+                    <Pressable
+                      key={value}
+                      style={[
+                        styles.optionButton,
+                        selectedValue === value && styles.optionButtonSelected,
+                      ]}
+                      onPress={() => handleSelect(value)}
+                    >
+                      <View style={styles.optionTopRow}>
+                        <Text
+                          style={[
+                            styles.optionLabel,
+                            selectedValue === value && styles.optionLabelSelected,
+                          ]}
+                        >
+                          {value}
+                        </Text>
+                        {selectedValue === value && (
+                          <Ionicons name="checkmark-circle" size={18} color="#1976D2" />
+                        )}
+                      </View>
+                      <Text style={styles.optionDescription}>
+                        {value === 0 && "Did not apply to me at all"}
+                        {value === 1 && "Applied to me to some degree, or some of the time"}
+                        {value === 2 &&
+                          "Applied to me to a considerable degree or a good part of the time"}
+                        {value === 3 && "Applied to me very much or most of the time"}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </Animated.View>
+
+              <View style={styles.navigationRow}>
+                <Pressable
+                  onPress={handlePrevious}
+                  disabled={currentIndex === 0}
+                  style={[
+                    styles.navButton,
+                    styles.navButtonSecondary,
+                    currentIndex === 0 && styles.navButtonDisabled,
+                  ]}
+                >
+                  <Text style={[styles.navButtonText, styles.navButtonTextSecondary]}>Previous</Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={handleNext}
+                  disabled={selectedValue === undefined || isSubmitting}
+                  style={[
+                    styles.navButton,
+                    (selectedValue === undefined || isSubmitting) && styles.navButtonDisabled,
+                  ]}
+                >
+                  <Text style={styles.navButtonText}>{isLastQuestion ? "Done" : "Next"}</Text>
+                </Pressable>
               </View>
-            </Animated.View>
-
-            <View style={styles.navigationRow}>
-              <Pressable
-                onPress={handlePrevious}
-                disabled={currentIndex === 0}
-                style={[
-                  styles.navButton,
-                  styles.navButtonSecondary,
-                  currentIndex === 0 && styles.navButtonDisabled,
-                ]}
-              >
-                <Text style={[styles.navButtonText, styles.navButtonTextSecondary]}>Previous</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={handleNext}
-                disabled={selectedValue === undefined || isSubmitting}
-                style={[
-                  styles.navButton,
-                  (selectedValue === undefined || isSubmitting) && styles.navButtonDisabled,
-                ]}
-              >
-                <Text style={styles.navButtonText}>{isLastQuestion ? "Done" : "Next"}</Text>
-              </Pressable>
-            </View>
+            </ScrollView>
           </>
         )}
       </View>

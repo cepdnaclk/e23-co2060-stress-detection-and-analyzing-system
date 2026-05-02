@@ -13,7 +13,6 @@ import QuestionnaireScreen from "../screens/QuestionnaireScreen";
 import LogoutScreen from "../screens/LogoutScreen";
 import ClinicalLocatorScreen from "../screens/ClinicalLocatorScreen";
 import RoutineGeneratorScreen from "../screens/RoutineGeneratorScreen";
-import AdminDashboardScreen from "../screens/AdminDashboardScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import { useAuthStore } from "../../store/authStore";
 import styles from "../../assets/styles/appdrawer.styles";
