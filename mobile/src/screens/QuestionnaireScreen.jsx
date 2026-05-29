@@ -20,6 +20,19 @@ import { API_URL, fetchWithTimeout } from "../../constants/api";
 function getSeverityTheme(rawSeverity) {
   const level = (rawSeverity || "").toLowerCase();
 
+  if (level === "extremely_severe" || level === "extremely severe") {
+    // Map to the same visual style as "severe" to keep theme consistent.
+    return {
+      bubbleBg: "#ffe2e2",
+      bubbleBorder: "#eb8f8f",
+      bubbleText: "#8a1f1f",
+      pillBg: "#ffeceb",
+      pillBorder: "#f1aaaa",
+      pillText: "#8a1f1f",
+      accent: "#d64545",
+    };
+  }
+
   if (level === "normal") {
     return {
       bubbleBg: "#dff8e6",
@@ -79,6 +92,13 @@ function getSeverityTheme(rawSeverity) {
   };
 }
 
+function formatSeverityLabel(rawSeverity) {
+  const value = String(rawSeverity || "").trim();
+  if (!value) return "";
+  const spaced = value.replace(/_/g, " ");
+  return spaced.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default function QuestionnaireScreen() {
   const navigation = useNavigation();
 
@@ -93,6 +113,12 @@ export default function QuestionnaireScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [totalScore, setTotalScore] = useState(null);
   const [severity, setSeverity] = useState(null);
+  const [stressScore, setStressScore] = useState(null);
+  const [stressSeverity, setStressSeverity] = useState(null);
+  const [anxietyScore, setAnxietyScore] = useState(null);
+  const [anxietySeverity, setAnxietySeverity] = useState(null);
+  const [depressionScore, setDepressionScore] = useState(null);
+  const [depressionSeverity, setDepressionSeverity] = useState(null);
   const [showResults, setShowResults] = useState(false);
 
   const instructionsOpacity = useRef(new Animated.Value(0)).current;
@@ -315,7 +341,15 @@ export default function QuestionnaireScreen() {
   const currentQuestion = questions?.[currentIndex];
   const isLastQuestion = questionCount > 0 && currentIndex === questionCount - 1;
   const selectedValue = answers[currentQuestion?.id];
-  const severityTheme = useMemo(() => getSeverityTheme(severity), [severity]);
+  const stressTheme = useMemo(
+    () => getSeverityTheme(stressSeverity || severity),
+    [stressSeverity, severity]
+  );
+  const anxietyTheme = useMemo(() => getSeverityTheme(anxietySeverity), [anxietySeverity]);
+  const depressionTheme = useMemo(
+    () => getSeverityTheme(depressionSeverity),
+    [depressionSeverity]
+  );
   const recommendation = useMemo(() => {
     const level = (severity || "").toLowerCase();
 
@@ -389,6 +423,14 @@ export default function QuestionnaireScreen() {
 
       setTotalScore(data.totalScore);
       setSeverity(data.severity || null);
+      setStressScore(Number.isFinite(Number(data.stressScore)) ? Number(data.stressScore) : null);
+      setStressSeverity(data.stressSeverity || null);
+      setAnxietyScore(Number.isFinite(Number(data.anxietyScore)) ? Number(data.anxietyScore) : null);
+      setAnxietySeverity(data.anxietySeverity || null);
+      setDepressionScore(
+        Number.isFinite(Number(data.depressionScore)) ? Number(data.depressionScore) : null
+      );
+      setDepressionSeverity(data.depressionSeverity || null);
       setShowResults(true);
     } catch (error) {
       Alert.alert("Error", error.message || "Something went wrong");
@@ -511,7 +553,15 @@ export default function QuestionnaireScreen() {
             </Animated.View>
           </View>
         ) : showResults ? (
-          <View style={styles.instructionsContainer}>
+          <ScrollView
+            style={{ flex: 1, width: "100%" }}
+            contentContainerStyle={{
+              alignItems: "center",
+              paddingHorizontal: 12,
+              paddingVertical: 22,
+            }}
+            showsVerticalScrollIndicator={false}
+          >
             <Animated.View
               style={[
                 styles.resultsCard,
@@ -526,14 +576,15 @@ export default function QuestionnaireScreen() {
                 <Text style={styles.resultsHeading}>Your Results</Text>
               </View>
 
-              <Text style={styles.resultsSubText}>Your total score</Text>
+              <Text style={styles.resultsSubText}>Stress score</Text>
 
               <Animated.View
                 style={[
                   styles.scoreBubble,
+                  styles.scoreBubblePrimary,
                   {
-                    backgroundColor: severityTheme.bubbleBg,
-                    borderColor: severityTheme.bubbleBorder,
+                    backgroundColor: stressTheme.bubbleBg,
+                    borderColor: stressTheme.bubbleBorder,
                     transform: [{ scale: scoreScale }],
                   },
                 ]}
@@ -543,7 +594,7 @@ export default function QuestionnaireScreen() {
                   style={[
                     styles.scoreGlow,
                     {
-                      backgroundColor: severityTheme.accent,
+                      backgroundColor: stressTheme.accent,
                       opacity: scoreGlow,
                     },
                   ]}
@@ -559,25 +610,96 @@ export default function QuestionnaireScreen() {
                 >
                   <Ionicons name="star" size={24} color="#ffffff" />
                 </Animated.View>
-                <Text style={[styles.scoreValue, { color: severityTheme.bubbleText }]}>{totalScore}</Text>
+                <Text style={[styles.scoreValue, { color: stressTheme.bubbleText }]}>
+                  {stressScore ?? totalScore ?? "-"}
+                </Text>
               </Animated.View>
 
-              {severity && (
+              {(stressSeverity || severity) && (
                 <View
                   style={[
                     styles.severityPill,
                     {
-                      backgroundColor: severityTheme.pillBg,
-                      borderColor: severityTheme.pillBorder,
+                      backgroundColor: stressTheme.pillBg,
+                      borderColor: stressTheme.pillBorder,
                     },
                   ]}
                 >
-                  <Ionicons name="pulse" size={16} color={severityTheme.pillText} />
-                  <Text style={[styles.severityText, { color: severityTheme.pillText }]}> 
-                    Stress level: {severity.charAt(0).toUpperCase() + severity.slice(1)}
+                  <Ionicons name="pulse" size={16} color={stressTheme.pillText} />
+                  <Text style={[styles.severityText, { color: stressTheme.pillText }]}>
+                    Stress: {formatSeverityLabel(stressSeverity || severity)}
                   </Text>
                 </View>
               )}
+
+              <View style={styles.subScoreRow}>
+                <View
+                  style={[
+                    styles.subScoreCard,
+                    {
+                      backgroundColor: anxietyTheme.pillBg,
+                      borderColor: anxietyTheme.pillBorder,
+                    },
+                  ]}
+                >
+                  <View style={styles.subScoreHeaderRow}>
+                    <Ionicons name="flash-outline" size={16} color={anxietyTheme.pillText} />
+                    <Text style={[styles.subScoreLabel, { color: anxietyTheme.pillText }]}>
+                      Anxiety
+                    </Text>
+                  </View>
+                  <Text style={[styles.subScoreValue, { color: anxietyTheme.bubbleText }]}>
+                    {anxietyScore ?? "-"}
+                  </Text>
+                  {anxietySeverity ? (
+                    <View
+                      style={[
+                        styles.subSeverityPill,
+                        { backgroundColor: anxietyTheme.pillBg, borderColor: anxietyTheme.pillBorder },
+                      ]}
+                    >
+                      <Text style={[styles.subSeverityText, { color: anxietyTheme.pillText }]}>
+                        {formatSeverityLabel(anxietySeverity)}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+
+                <View
+                  style={[
+                    styles.subScoreCard,
+                    {
+                      backgroundColor: depressionTheme.pillBg,
+                      borderColor: depressionTheme.pillBorder,
+                    },
+                  ]}
+                >
+                  <View style={styles.subScoreHeaderRow}>
+                    <Ionicons name="cloud-outline" size={16} color={depressionTheme.pillText} />
+                    <Text style={[styles.subScoreLabel, { color: depressionTheme.pillText }]}>
+                      Depression
+                    </Text>
+                  </View>
+                  <Text style={[styles.subScoreValue, { color: depressionTheme.bubbleText }]}>
+                    {depressionScore ?? "-"}
+                  </Text>
+                  {depressionSeverity ? (
+                    <View
+                      style={[
+                        styles.subSeverityPill,
+                        {
+                          backgroundColor: depressionTheme.pillBg,
+                          borderColor: depressionTheme.pillBorder,
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.subSeverityText, { color: depressionTheme.pillText }]}>
+                        {formatSeverityLabel(depressionSeverity)}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
             </Animated.View>
 
             <Animated.View
@@ -593,6 +715,12 @@ export default function QuestionnaireScreen() {
                   setCurrentIndex(0);
                   setTotalScore(null);
                   setSeverity(null);
+                  setStressScore(null);
+                  setStressSeverity(null);
+                  setAnxietyScore(null);
+                  setAnxietySeverity(null);
+                  setDepressionScore(null);
+                  setDepressionSeverity(null);
                   setShowResults(false);
                   setShowIntro(false);
                   setShowInstructions(true);
@@ -613,7 +741,7 @@ export default function QuestionnaireScreen() {
                     Based on your results, we recommend taking the following next step:
                   </Text>
                   <Pressable
-                    style={[styles.startButton, { marginTop: 0 }]}
+                    style={[styles.startButton, styles.nextStepButton, { marginTop: 0 }]}
                     onPress={() => navigation.navigate(recommendation.routeName)}
                   >
                     <Ionicons name={recommendation.icon} size={16} color="#ffffff" />
@@ -622,7 +750,7 @@ export default function QuestionnaireScreen() {
                 </>
               ) : null}
             </Animated.View>
-          </View>
+          </ScrollView>
         ) : (
           <>
             {isQuestionsLoading || questionsLoadError || !questions ? (
