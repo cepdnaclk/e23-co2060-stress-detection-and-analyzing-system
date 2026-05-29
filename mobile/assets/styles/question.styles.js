@@ -368,6 +368,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
+  nextStepButton: {
+    backgroundColor: COLORS.textDark,
+    borderColor: COLORS.textDark,
+    shadowColor: COLORS.textDark,
+  },
   startButtonText: {
     fontSize: 22,
     fontWeight: "700",
@@ -618,6 +623,11 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 6,
   },
+  scoreBubblePrimary: {
+    width: 172,
+    height: 172,
+    borderRadius: 86,
+  },
   scoreGlow: {
     position: "absolute",
     width: 132,
@@ -652,6 +662,49 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: "#235684",
     fontWeight: "700",
+  },
+  subScoreRow: {
+    width: "100%",
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 18,
+  },
+  subScoreCard: {
+    flex: 1,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  subScoreHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 6,
+  },
+  subScoreLabel: {
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: 0.2,
+  },
+  subScoreValue: {
+    fontSize: 34,
+    fontFamily: "JetBrainsMono-Medium",
+    fontWeight: "800",
+    textAlign: "left",
+  },
+  subSeverityPill: {
+    alignSelf: "flex-start",
+    marginTop: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  subSeverityText: {
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.2,
   },
   progressRow: {
     marginBottom: 14,
