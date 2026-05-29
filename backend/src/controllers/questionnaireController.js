@@ -61,6 +61,32 @@ const normalizeQuestions = (rawQuestions) => {
   return normalized;
 };
 
+// DASS-21 item grouping by question id (1..21)
+// s = stress, a = anxiety, d = depression
+const DASS_21_GROUPS = Object.freeze({
+  stress: Object.freeze([1, 6, 8, 11, 12, 14, 18]),
+  anxiety: Object.freeze([2, 4, 7, 9, 15, 19, 20]),
+  depression: Object.freeze([3, 5, 10, 13, 16, 17, 21]),
+});
+
+const readAnswerValue = (answers, questionId) => {
+  // Answers can arrive with keys as strings or numbers
+  const raw = answers?.[questionId] ?? answers?.[String(questionId)];
+  const num = Number(raw);
+  if (!Number.isFinite(num) || num < 0 || num > 3) return null;
+  return num;
+};
+
+const sumGroup = (answers, ids) => {
+  let sum = 0;
+  for (const id of ids) {
+    const v = readAnswerValue(answers, id);
+    if (v === null) return null;
+    sum += v;
+  }
+  return sum;
+};
+
 export const getQuestionnaireQuestions = async (req, res) => {
   try {
     const slug = "default";
@@ -123,23 +149,25 @@ export const calculateQuestionnaireScore = (req, res) => {
       return res.status(400).json({ message: "Answers payload is required" });
     }
 
-    const values = Object.values(answers);
-
-    if (values.length === 0) {
-      return res.status(400).json({ message: "No answers provided" });
-    }
-
-    let totalScore = 0;
-
-    for (const value of values) {
-      const num = Number(value);
-
-      if (!Number.isFinite(num) || num < 0) {
-        return res.status(400).json({ message: "Invalid answer value detected" });
+    // Validate we can score all 21 items (ids 1..21) with values in [0..3]
+    for (let i = 1; i <= 21; i++) {
+      const v = readAnswerValue(answers, i);
+      if (v === null) {
+        return res.status(400).json({
+          message: `Invalid or missing answer for question ${i}. Expected a number between 0 and 3.`,
+        });
       }
-
-      totalScore += num;
     }
+
+    const stressScore = sumGroup(answers, DASS_21_GROUPS.stress);
+    const anxietyScore = sumGroup(answers, DASS_21_GROUPS.anxiety);
+    const depressionScore = sumGroup(answers, DASS_21_GROUPS.depression);
+
+    if (stressScore === null || anxietyScore === null || depressionScore === null) {
+      return res.status(400).json({ message: "Invalid answer value detected" });
+    }
+
+    const totalScore = stressScore + anxietyScore + depressionScore;
 
     let severity = "normal";
 
@@ -151,7 +179,14 @@ export const calculateQuestionnaireScore = (req, res) => {
       severity = "severe";
     }
 
-    return res.status(200).json({ totalScore, severity });
+    // Keep existing response fields for mobile compatibility, but add sub-scores.
+    return res.status(200).json({
+      totalScore,
+      severity,
+      stressScore,
+      anxietyScore,
+      depressionScore,
+    });
   } catch (error) {
     console.error("Error calculating questionnaire score:", error);
     return res.status(500).json({ message: "Internal Server error" });
