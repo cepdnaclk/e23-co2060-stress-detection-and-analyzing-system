@@ -16,6 +16,7 @@ import RoutineGeneratorScreen from "../screens/RoutineGeneratorScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import AdminDashboardScreen from "../screens/AdminDashboardScreen";
 import EditQuestionnaireScreen from "../screens/EditQuestionnaireScreen";
+import TherapyHubScreen from "../screens/TherapyHubScreen";
 import { useAuthStore } from "../../store/authStore";
 import styles from "../../assets/styles/appdrawer.styles";
 
@@ -159,6 +160,13 @@ export default function AppDrawer() {
             component={RoutineGeneratorScreen}
             options={{
               drawerIcon: ({ focused }) => renderDrawerIcon("calendar-clear-outline", focused),
+            }}
+          />
+          <Drawer.Screen
+            name="Therapy Hub"
+            component={TherapyHubScreen}
+            options={{
+              drawerIcon: ({ focused }) => renderDrawerIcon("medkit-outline", focused),
             }}
           />
           <Drawer.Screen
