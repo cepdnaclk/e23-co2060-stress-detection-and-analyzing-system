@@ -128,6 +128,13 @@ export default function AppDrawer() {
               }}
             />
             <Drawer.Screen
+              name="Therapy Hub"
+              component={TherapyHubScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("medkit-outline", focused),
+              }}
+            />
+            <Drawer.Screen
               name="Logout"
               component={LogoutScreen}
               options={{
@@ -163,6 +170,13 @@ export default function AppDrawer() {
               component={RoutineGeneratorScreen}
               options={{
                 drawerIcon: ({ focused }) => renderDrawerIcon("calendar-clear-outline", focused),
+              }}
+            />
+            <Drawer.Screen
+              name="Therapy Hub"
+              component={TherapyHubScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("medkit-outline", focused),
               }}
             />
             <Drawer.Screen
