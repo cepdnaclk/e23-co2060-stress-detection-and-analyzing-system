@@ -1,6 +1,48 @@
  import mongoose from "mongoose";
  import bcrypt from "bcryptjs";
 
+const questionnaireResultSchema = new mongoose.Schema(
+    {
+        totalScore: {
+            type: Number,
+            required: true,
+        },
+        severity: {
+            type: String,
+            required: true,
+        },
+        stressScore: {
+            type: Number,
+            required: true,
+        },
+        stressSeverity: {
+            type: String,
+            required: true,
+        },
+        anxietyScore: {
+            type: Number,
+            required: true,
+        },
+        anxietySeverity: {
+            type: String,
+            required: true,
+        },
+        depressionScore: {
+            type: Number,
+            required: true,
+        },
+        depressionSeverity: {
+            type: String,
+            required: true,
+        },
+        recordedAt: {
+            type: Date,
+            default: Date.now,
+        },
+    },
+    { timestamps: true }
+);
+
  const userSchema = new mongoose.Schema({
     username:{
         type:String,
@@ -29,6 +71,10 @@
     profileImage:{
         type:String,
         default:""
+    },
+    questionnaireResults: {
+        type: [questionnaireResultSchema],
+        default: [],
     }
  }, {timestamps:true});
 

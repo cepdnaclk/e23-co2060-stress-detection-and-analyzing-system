@@ -16,6 +16,7 @@ import SafeScreen from "../../components/SafeScreen";
 import styles from "../../assets/styles/question.styles";
 import questionnaireBanner from "../../assets/images/questionnaire-banner.png";
 import { API_URL, fetchWithTimeout } from "../../constants/api";
+import { useAuthStore } from "../../store/authStore";
 
 function getSeverityTheme(rawSeverity) {
   const level = (rawSeverity || "").toLowerCase();
@@ -101,6 +102,7 @@ function formatSeverityLabel(rawSeverity) {
 
 export default function QuestionnaireScreen() {
   const navigation = useNavigation();
+  const token = useAuthStore((state) => state.token);
 
   const [questions, setQuestions] = useState(null);
   const [isQuestionsLoading, setIsQuestionsLoading] = useState(true);
@@ -411,6 +413,7 @@ export default function QuestionnaireScreen() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ answers }),
       });

@@ -4,12 +4,12 @@ import {
 	getQuestionnaireQuestions,
 	updateQuestionnaireQuestions,
 } from "../controllers/questionnaireController.js";
-import { authenticate, requireAdmin } from "../middleware/authMiddleware.js";
+import { authenticate, optionalAuthenticate, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // Questionnaire scoring route
-router.post("/score", calculateQuestionnaireScore);
+router.post("/score", optionalAuthenticate, calculateQuestionnaireScore);
 
 // Questionnaire questions
 router.get("/questions", getQuestionnaireQuestions);

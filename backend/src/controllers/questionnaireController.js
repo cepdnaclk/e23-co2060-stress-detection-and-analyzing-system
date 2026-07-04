@@ -1,4 +1,5 @@
 import Questionnaire from "../models/Questionnaire.js";
+import QuestionnaireResult from "../models/QuestionnaireResult.js";
 
 const DEFAULT_QUESTIONS = [
   { id: 1, text: "I found it hard to wind down" },
@@ -111,6 +112,26 @@ const getStressSeverity = (score) => {
   return "normal";
 };
 
+const SEVERITY_RANK = Object.freeze({
+  normal: 0,
+  mild: 1,
+  moderate: 2,
+  severe: 3,
+  extremely_severe: 4,
+});
+
+const getOverallSeverity = (severities) => {
+  let overall = "normal";
+
+  for (const severity of severities) {
+    if (SEVERITY_RANK[severity] > SEVERITY_RANK[overall]) {
+      overall = severity;
+    }
+  }
+
+  return overall;
+};
+
 export const getQuestionnaireQuestions = async (req, res) => {
   try {
     const slug = "default";
@@ -165,7 +186,7 @@ export const updateQuestionnaireQuestions = async (req, res) => {
   }
 };
 
-export const calculateQuestionnaireScore = (req, res) => {
+export const calculateQuestionnaireScore = async (req, res) => {
   try {
     const { answers } = req.body;
 
@@ -202,17 +223,24 @@ export const calculateQuestionnaireScore = (req, res) => {
     const anxietySeverity = getAnxietySeverity(anxietyScore);
     const depressionSeverity = getDepressionSeverity(depressionScore);
 
-    // Preserve the existing totalScore semantics (sum of raw answers across 21 items: 0..63)
+    // Keep the raw total for compatibility, but do not use it for severity classification.
     const totalScore = stressScoreRaw + anxietyScoreRaw + depressionScoreRaw;
 
-    let severity = "normal";
+    const severity = getOverallSeverity([stressSeverity, anxietySeverity, depressionSeverity]);
 
-    if (totalScore >= 15 && totalScore <= 18) {
-      severity = "mild";
-    } else if (totalScore >= 19 && totalScore <= 25) {
-      severity = "moderate";
-    } else if (totalScore > 26) {
-      severity = "severe";
+    if (req.user?._id) {
+      await QuestionnaireResult.create({
+        userId: req.user._id,
+        totalScore,
+        severity,
+        stressScore,
+        stressSeverity,
+        anxietyScore,
+        anxietySeverity,
+        depressionScore,
+        depressionSeverity,
+        recordedAt: new Date(),
+      });
     }
 
     // Keep existing response fields for mobile compatibility, but add sub-scores.
