@@ -18,6 +18,7 @@ import AdminDashboardScreen from "../screens/AdminDashboardScreen";
 import EditQuestionnaireScreen from "../screens/EditQuestionnaireScreen";
 import MoodTrackerPopup from "../../components/MoodTrackerPopup";
 import TherapyHubScreen from "../screens/TherapyHubScreen";
+import MyJourneyScreen from "../screens/MyJourneyScreen";
 import { useAuthStore } from "../../store/authStore";
 import styles from "../../assets/styles/appdrawer.styles";
 
@@ -135,6 +136,13 @@ export default function AppDrawer() {
               }}
             />
             <Drawer.Screen
+              name="My Journey"
+              component={MyJourneyScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("map-outline", focused),
+              }}
+            />
+            <Drawer.Screen
               name="Logout"
               component={LogoutScreen}
               options={{
@@ -177,6 +185,13 @@ export default function AppDrawer() {
               component={TherapyHubScreen}
               options={{
                 drawerIcon: ({ focused }) => renderDrawerIcon("medkit-outline", focused),
+              }}
+            />
+            <Drawer.Screen
+              name="My Journey"
+              component={MyJourneyScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("map-outline", focused),
               }}
             />
             <Drawer.Screen
