@@ -12,6 +12,8 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import COLORS from "../constants/colors";
+import { API_URL } from "../constants/api";
+import { useAuthStore } from "../store/authStore";
 
 const MOODS = [
   { key: "ecstatic", label: "Ecstatic", emoji: "🤩", tint: "#ffd24d" },
@@ -85,8 +87,23 @@ export default function MoodTrackerPopup({ user }) {
   };
 
   const handleSubmit = async () => {
-    await persistToday();
-    setVisible(false);
+    try {
+      const token = useAuthStore.getState().token;
+
+      if (token && selectedMood) {
+        await fetch(`${API_URL}/mood-history`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ mood: selectedMood, date: getTodayKey() }),
+        });
+      }
+    } finally {
+      await persistToday();
+      setVisible(false);
+    }
   };
 
   const handleDismiss = async () => {

@@ -9,6 +9,7 @@ import clinicRoutes from "./routes/clinicRoutes.js";
 import questionnaireRoutes from "./routes/questionnaireRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import moodHistoryRoutes from "./routes/moodHistoryRoutes.js";
 
 import { connectDB } from "./lib/db.js";
 import { seedAdminUser } from "./lib/seedAdmin.js";
@@ -26,6 +27,7 @@ app.use("/api/clinics", clinicRoutes);
 app.use("/api/questionnaire", questionnaireRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/mood-history", moodHistoryRoutes);
 
 app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
