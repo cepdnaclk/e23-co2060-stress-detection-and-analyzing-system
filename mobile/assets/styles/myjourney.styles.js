@@ -1,0 +1,243 @@
+import { StyleSheet } from "react-native";
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  content: {
+    padding: 18,
+    paddingBottom: 28,
+    gap: 16,
+  },
+  heroCard: {
+    borderRadius: 30,
+    padding: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.88)",
+    borderWidth: 1,
+    borderColor: "#cce1f6",
+    shadowColor: "#2a6ca7",
+    shadowOpacity: 0.14,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 4,
+  },
+  eyebrow: {
+    color: "#1976D2",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginBottom: 6,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#0b3a5a",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#3f5d78",
+  },
+  section: {
+    borderRadius: 26,
+    padding: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.84)",
+    borderWidth: 1,
+    borderColor: "#d7e7f7",
+    shadowColor: "#2a6ca7",
+    shadowOpacity: 0.1,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 3,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0b3a5a",
+  },
+  sectionHint: {
+    fontSize: 12,
+    color: "#5d7994",
+  },
+  chartWrap: {
+    borderRadius: 22,
+    overflow: "hidden",
+    backgroundColor: "#f7fbff",
+    borderWidth: 1,
+    borderColor: "#d8e9f8",
+  },
+  chartInner: {
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+  },
+  chartScroll: {
+    alignSelf: "stretch",
+  },
+  chartEmpty: {
+    padding: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chartEmptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0b3a5a",
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  chartEmptyText: {
+    fontSize: 13,
+    color: "#5d7994",
+    textAlign: "center",
+  },
+  chartLabelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  chartAxisLabel: {
+    fontSize: 12,
+    color: "#5d7994",
+  },
+  chartAxisValue: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#1976D2",
+  },
+  timelineList: {
+    gap: 12,
+  },
+  timelineItem: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: 12,
+  },
+  timelineRail: {
+    width: 26,
+    alignItems: "center",
+  },
+  timelineLine: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 3,
+    borderRadius: 99,
+    backgroundColor: "#d8e9f8",
+  },
+  timelineDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginTop: 3,
+    borderWidth: 3,
+    borderColor: "#f7fbff",
+    backgroundColor: "#8fb5ff",
+  },
+  timelineCard: {
+    flex: 1,
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    backgroundColor: "#f7fbff",
+    borderWidth: 1,
+    borderColor: "#d8e9f8",
+  },
+  timelineTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  timelineDate: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#0b3a5a",
+  },
+  timelineMoodRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  timelineEmojiWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e8f3ff",
+  },
+  timelineEmoji: {
+    fontSize: 20,
+  },
+  timelineMoodLabel: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1f4666",
+  },
+  timelineMoodSub: {
+    marginTop: 2,
+    fontSize: 12,
+    color: "#62809d",
+  },
+  emptyState: {
+    padding: 18,
+    borderRadius: 22,
+    backgroundColor: "#f7fbff",
+    borderWidth: 1,
+    borderColor: "#d8e9f8",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyStateTitle: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0b3a5a",
+  },
+  emptyStateText: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#5d7994",
+    textAlign: "center",
+  },
+  errorState: {
+    padding: 18,
+    borderRadius: 22,
+    backgroundColor: "#fff4f4",
+    borderWidth: 1,
+    borderColor: "#f0c3c3",
+  },
+  errorTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#9b2626",
+    marginBottom: 4,
+  },
+  errorText: {
+    fontSize: 13,
+    color: "#a75050",
+  },
+  loadingWrap: {
+    padding: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: "#5d7994",
+  },
+  chartSvg: {
+    overflow: "visible",
+  },
+});
+
+export default styles;
