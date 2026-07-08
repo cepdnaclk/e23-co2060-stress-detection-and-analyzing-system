@@ -61,7 +61,7 @@ export default function AppDrawer() {
 
   return (
     <>
-      <MoodTrackerPopup user={user} />
+      {!isAdmin ? <MoodTrackerPopup user={user} /> : null}
       <Drawer.Navigator
         initialRouteName={isAdmin ? "Admin Dashboard" : "Home"}
         screenOptions={{
@@ -126,20 +126,6 @@ export default function AppDrawer() {
               component={EditQuestionnaireScreen}
               options={{
                 drawerIcon: ({ focused }) => renderDrawerIcon("create-outline", focused),
-              }}
-            />
-            <Drawer.Screen
-              name="Therapy Hub"
-              component={TherapyHubScreen}
-              options={{
-                drawerIcon: ({ focused }) => renderDrawerIcon("medkit-outline", focused),
-              }}
-            />
-            <Drawer.Screen
-              name="My Journey"
-              component={MyJourneyScreen}
-              options={{
-                drawerIcon: ({ focused }) => renderDrawerIcon("map-outline", focused),
               }}
             />
             <Drawer.Screen
