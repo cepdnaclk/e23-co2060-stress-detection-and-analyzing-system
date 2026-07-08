@@ -65,7 +65,7 @@ const questionnaireResultSchema = new mongoose.Schema(
     },
     role: {
         type: String,
-        enum: ["user", "admin"],
+        enum: ["user", "admin", "volunteer_doctor"],
         default: "user",
     },
     profileImage:{
