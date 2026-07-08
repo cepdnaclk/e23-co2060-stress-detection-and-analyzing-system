@@ -40,6 +40,7 @@ export default function DoctorDashboardScreen({ navigation }) {
   }
 
   const stats = dashboard.stats ?? {};
+  const notifications = dashboard.notifications ?? [];
 
   return (
     <SafeScreen>
@@ -93,6 +94,23 @@ export default function DoctorDashboardScreen({ navigation }) {
           <Text style={doctorStyles.cardSubtitle}>{dashboard.doctor?.fullName}</Text>
           <Text style={doctorStyles.cardSubtitle}>{dashboard.doctor?.specialization}</Text>
           <Text style={doctorStyles.cardSubtitle}>{dashboard.doctor?.hospital}</Text>
+        </View>
+
+        <View style={doctorStyles.card}>
+          <Text style={doctorStyles.cardTitle}>Notifications</Text>
+          {notifications.length === 0 ? (
+            <Text style={doctorStyles.cardSubtitle}>No notifications yet.</Text>
+          ) : (
+            notifications.map((notification) => (
+              <View key={notification._id} style={doctorStyles.card}>
+                <Text style={doctorStyles.cardTitle}>{notification.title}</Text>
+                <Text style={doctorStyles.cardSubtitle}>{notification.message}</Text>
+                <Text style={doctorStyles.cardSubtitle}>
+                  {new Date(notification.createdAt).toLocaleString()}
+                </Text>
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeScreen>

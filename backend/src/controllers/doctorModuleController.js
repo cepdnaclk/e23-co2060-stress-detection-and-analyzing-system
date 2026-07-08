@@ -6,6 +6,10 @@ import User from "../models/User.js";
 import DoctorRequest from "../models/DoctorRequest.js";
 import DoctorAssignment from "../models/DoctorAssignment.js";
 import DoctorRating from "../models/DoctorRating.js";
+import Routine from "../models/Routine.js";
+import MoodHistory from "../models/MoodHistory.js";
+import QuestionnaireResult from "../models/QuestionnaireResult.js";
+import Notification from "../models/Notification.js";
 
 export {
   createDoctor,
@@ -21,6 +25,21 @@ export {
 } from "./doctorController.js";
 
 const VALID_REQUEST_LEVELS = ["low", "moderate", "high", "severe"];
+const CONSULTATION_STATUS = Object.freeze({
+  Pending: "Pending",
+  Accepted: "Accepted",
+  Rejected: "Rejected",
+  Completed: "Completed",
+  Cancelled: "Cancelled",
+});
+
+const CONSULTATION_STATUS_ALIASES = Object.freeze({
+  Pending: ["Pending", "pending"],
+  Accepted: ["Accepted", "accepted"],
+  Rejected: ["Rejected", "rejected"],
+  Completed: ["Completed", "completed"],
+  Cancelled: ["Cancelled", "cancelled"],
+});
 
 const generateDoctorToken = (doctorId) => {
   return jwt.sign(
@@ -35,6 +54,59 @@ const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(String(value)
 const toObjectId = (value) => new mongoose.Types.ObjectId(String(value));
 
 const normalizeText = (value) => String(value ?? "").trim();
+
+const statusValues = (status) => CONSULTATION_STATUS_ALIASES[status] || [status];
+
+const isConsultationStatus = (value, status) =>
+  String(value ?? "").toLowerCase() === String(status ?? "").toLowerCase();
+
+const createConsultationNotification = async ({
+  doctorId,
+  userId,
+  requestId,
+  audience,
+  type,
+  title,
+  message,
+}) => {
+  return Notification.create({
+    doctorId: doctorId || null,
+    userId: userId || null,
+    requestId,
+    audience,
+    type,
+    title,
+    message,
+  });
+};
+
+const buildPatientJourney = async (userId) => {
+  const [questionnaireHistory, moodHistory, routines] = await Promise.all([
+    QuestionnaireResult.find({ userId })
+      .sort({ recordedAt: -1, createdAt: -1 })
+      .select("totalScore severity stressScore stressSeverity anxietyScore anxietySeverity depressionScore depressionSeverity recordedAt")
+      .lean(),
+    MoodHistory.find({ user: userId })
+      .sort({ date: -1, createdAt: -1 })
+      .select("date mood createdAt")
+      .limit(30)
+      .lean(),
+    Routine.find({ user: userId })
+      .sort({ date: -1, createdAt: -1 })
+      .select("title date summary alertText blocks createdAt updatedAt")
+      .limit(20)
+      .lean(),
+  ]);
+
+  const latestAssessment = questionnaireHistory[0] ?? null;
+
+  return {
+    latestAssessment,
+    questionnaireHistory,
+    moodHistory,
+    recommendations: routines,
+  };
+};
 
 const normalizeLanguages = (languages) => {
   if (Array.isArray(languages)) {
@@ -99,13 +171,14 @@ const syncDoctorStats = async (doctorId) => {
     },
   ]);
 
-  const uniquePatients = await DoctorAssignment.distinct("userId", {
+  const uniquePatients = await DoctorRequest.distinct("userId", {
     doctorId: doctorObjectId,
+    status: { $in: statusValues("Accepted") },
   });
 
-  const totalConsultations = await DoctorAssignment.countDocuments({
+  const totalConsultations = await DoctorRequest.countDocuments({
     doctorId: doctorObjectId,
-    status: "completed",
+    status: { $in: statusValues("Completed") },
   });
 
   const nextStats = {
@@ -264,7 +337,10 @@ export const getPublicDoctorProfile = async (req, res) => {
     }
 
     const recentReviews = await getRecentReviews(doctorId, 5);
-    const patientCount = await DoctorAssignment.distinct("userId", { doctorId: doctor._id });
+    const patientCount = await DoctorRequest.distinct("userId", {
+      doctorId: doctor._id,
+      status: { $in: statusValues("Accepted") },
+    });
     const reviewCount = await DoctorRating.countDocuments({ doctorId: doctor._id });
 
     return res.status(200).json({
@@ -308,7 +384,7 @@ export const createConsultationRequest = async (req, res) => {
 
     const activeRequest = await DoctorRequest.findOne({
       userId,
-      status: { $in: ["pending", "accepted"] },
+      status: { $in: [...statusValues("Pending"), ...statusValues("Accepted")] },
     });
 
     if (activeRequest) {
@@ -326,8 +402,18 @@ export const createConsultationRequest = async (req, res) => {
       doctorId,
       reason,
       stressLevel,
-      status: "pending",
+      status: CONSULTATION_STATUS.Pending,
       requestedAt: new Date(),
+    });
+
+    await createConsultationNotification({
+      doctorId,
+      userId,
+      requestId: request._id,
+      audience: "doctor",
+      type: "request_submitted",
+      title: "New consultation request",
+      message: `New request from a patient for ${doctor.fullName}.`,
     });
 
     return res.status(201).json({
@@ -345,7 +431,7 @@ export const getMyConsultationRequests = async (req, res) => {
     const userId = req.user?._id;
 
     const requests = await DoctorRequest.find({ userId })
-      .populate("doctorId", "fullName specialization hospital profilePicture availability averageRating totalReviews")
+      .populate("doctorId", "fullName specialization hospital profilePicture availability averageRating totalReviews phoneNumber email")
       .sort({ requestedAt: -1, createdAt: -1 })
       .lean();
 
@@ -361,6 +447,14 @@ export const getMyConsultationRequests = async (req, res) => {
 
     const enrichedRequests = requests.map((request) => ({
       ...request,
+      contactDetails:
+        isConsultationStatus(request.status, CONSULTATION_STATUS.Accepted) ||
+        isConsultationStatus(request.status, CONSULTATION_STATUS.Completed)
+          ? {
+              phoneNumber: request.doctorId?.phoneNumber ?? null,
+              email: request.doctorId?.email ?? null,
+            }
+          : null,
       assignment: assignmentByRequestId.get(String(request._id)) ?? null,
       assignmentId: assignmentByRequestId.get(String(request._id))?._id ?? null,
     }));
@@ -378,11 +472,15 @@ export const getMyConsultationRequests = async (req, res) => {
 export const getDoctorDashboard = async (req, res) => {
   try {
     const doctorId = req.user?._id;
-    const [pendingRequests, activePatients, completedConsultations, reviews] = await Promise.all([
-      DoctorRequest.countDocuments({ doctorId, status: "pending" }),
+    const [pendingRequests, activePatients, completedConsultations, reviews, notifications] = await Promise.all([
+      DoctorRequest.countDocuments({ doctorId, status: { $in: statusValues("Pending") } }),
       DoctorAssignment.countDocuments({ doctorId, status: "active" }),
       DoctorAssignment.countDocuments({ doctorId, status: "completed" }),
       DoctorRating.countDocuments({ doctorId }),
+      Notification.find({ doctorId, audience: "doctor" })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .lean(),
     ]);
 
     const doctor = await Doctor.findById(doctorId).select(
@@ -397,6 +495,7 @@ export const getDoctorDashboard = async (req, res) => {
         completedConsultations,
         reviews,
       },
+      notifications,
     });
   } catch (error) {
     console.error("Error fetching doctor dashboard:", error);
@@ -408,7 +507,7 @@ export const getDoctorPendingRequests = async (req, res) => {
   try {
     const doctorId = req.user?._id;
 
-    const requests = await DoctorRequest.find({ doctorId, status: "pending" })
+    const requests = await DoctorRequest.find({ doctorId, status: { $in: statusValues("Pending") } })
       .populate("userId", "username age gender profileImage")
       .sort({ requestedAt: -1, createdAt: -1 })
       .lean();
@@ -438,7 +537,7 @@ export const acceptConsultationRequest = async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    if (request.status !== "pending") {
+    if (!isConsultationStatus(request.status, CONSULTATION_STATUS.Pending)) {
       return res.status(400).json({ message: "Request is no longer pending" });
     }
 
@@ -451,7 +550,7 @@ export const acceptConsultationRequest = async (req, res) => {
       return res.status(409).json({ message: "User already has an active consultation" });
     }
 
-    request.status = "accepted";
+    request.status = CONSULTATION_STATUS.Accepted;
     request.respondedAt = new Date();
     await request.save();
 
@@ -461,6 +560,16 @@ export const acceptConsultationRequest = async (req, res) => {
       requestId: request._id,
       status: "active",
       assignedAt: new Date(),
+    });
+
+    await createConsultationNotification({
+      doctorId,
+      userId: request.userId,
+      requestId: request._id,
+      audience: "user",
+      type: "request_accepted",
+      title: "Consultation request accepted",
+      message: `Your consultation request with the doctor has been accepted. Please contact the doctor using the details below.`,
     });
 
     await syncDoctorStats(doctorId);
@@ -491,13 +600,23 @@ export const rejectConsultationRequest = async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    if (request.status !== "pending") {
+    if (!isConsultationStatus(request.status, CONSULTATION_STATUS.Pending)) {
       return res.status(400).json({ message: "Request is no longer pending" });
     }
 
-    request.status = "rejected";
+    request.status = CONSULTATION_STATUS.Rejected;
     request.respondedAt = new Date();
     await request.save();
+
+    await createConsultationNotification({
+      doctorId,
+      userId: request.userId,
+      requestId: request._id,
+      audience: "user",
+      type: "request_rejected",
+      title: "Consultation request rejected",
+      message: "Your consultation request was rejected by the doctor.",
+    });
 
     return res.status(200).json({
       message: "Request rejected",
@@ -526,6 +645,97 @@ export const getDoctorCurrentPatients = async (req, res) => {
   } catch (error) {
     console.error("Error fetching current patients:", error);
     return res.status(500).json({ message: "Error fetching current patients", error: error.message });
+  }
+};
+
+export const getDoctorPatientDetails = async (req, res) => {
+  try {
+    const doctorId = req.user?._id;
+    const { patientId } = req.params;
+
+    if (!isValidObjectId(patientId)) {
+      return res.status(400).json({ message: "Invalid patient id" });
+    }
+
+    const consultation = await DoctorRequest.findOne({
+      doctorId,
+      userId: patientId,
+      status: { $in: [...statusValues("Accepted"), ...statusValues("Completed")] },
+    })
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .lean();
+
+    if (!consultation) {
+      return res.status(404).json({ message: "Consultation not found" });
+    }
+
+    const [patient, journey] = await Promise.all([
+      User.findById(patientId).select("username age gender profileImage").lean(),
+      buildPatientJourney(patientId),
+    ]);
+
+    if (!patient) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const latestAssignment = await DoctorAssignment.findOne({
+      requestId: consultation._id,
+    })
+      .select("_id status assignedAt completedAt notes")
+      .lean();
+
+    return res.status(200).json({
+      patient,
+      consultation,
+      assignment: latestAssignment,
+      ...journey,
+    });
+  } catch (error) {
+    console.error("Error fetching patient details:", error);
+    return res.status(500).json({ message: "Error fetching patient details", error: error.message });
+  }
+};
+
+export const addConsultationNote = async (req, res) => {
+  try {
+    const doctorId = req.user?._id;
+    const { requestId } = req.params;
+    const note = normalizeText(req.body.note);
+
+    if (!note) {
+      return res.status(400).json({ message: "Note is required" });
+    }
+
+    const request = await DoctorRequest.findById(requestId);
+
+    if (!request) {
+      return res.status(404).json({ message: "Consultation not found" });
+    }
+
+    if (String(request.doctorId) !== String(doctorId)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    request.doctorNotes.push({ note, createdAt: new Date() });
+    await request.save();
+
+    await createConsultationNotification({
+      doctorId,
+      userId: request.userId,
+      requestId: request._id,
+      audience: "doctor",
+      type: "note_added",
+      title: "Consultation note saved",
+      message: "A private consultation note was added.",
+    });
+
+    return res.status(200).json({
+      message: "Note added",
+      request,
+    });
+  } catch (error) {
+    console.error("Error adding consultation note:", error);
+    return res.status(500).json({ message: "Error adding note", error: error.message });
   }
 };
 
@@ -574,9 +784,19 @@ export const finishConsultation = async (req, res) => {
 
     const request = await DoctorRequest.findById(assignment.requestId);
     if (request) {
-      request.status = "completed";
+      request.status = CONSULTATION_STATUS.Completed;
       request.completedAt = new Date();
       await request.save();
+
+      await createConsultationNotification({
+        doctorId,
+        userId: request.userId,
+        requestId: request._id,
+        audience: "user",
+        type: "request_completed",
+        title: "Consultation completed",
+        message: "Your consultation has been marked as completed.",
+      });
     }
 
     await syncDoctorStats(doctorId);
@@ -666,6 +886,7 @@ export const getDoctorReviews = async (req, res) => {
       .limit(Number.isFinite(limit) && limit > 0 ? limit : 50)
       .populate("userId", "username profileImage")
       .populate("assignmentId", "status assignedAt completedAt")
+      .populate("requestId", "status requestedAt respondedAt completedAt reason stressLevel")
       .lean();
 
     return res.status(200).json({
@@ -694,7 +915,7 @@ export const getDoctorStatistics = async (req, res) => {
 
     const [pendingRequests, activePatients, completedConsultations, totalReviews, recentReviews] =
       await Promise.all([
-        DoctorRequest.countDocuments({ doctorId, status: "pending" }),
+        DoctorRequest.countDocuments({ doctorId, status: { $in: statusValues("Pending") } }),
         DoctorAssignment.countDocuments({ doctorId, status: "active" }),
         DoctorAssignment.countDocuments({ doctorId, status: "completed" }),
         DoctorRating.countDocuments({ doctorId }),
@@ -717,5 +938,24 @@ export const getDoctorStatistics = async (req, res) => {
   } catch (error) {
     console.error("Error fetching doctor statistics:", error);
     return res.status(500).json({ message: "Error fetching doctor statistics", error: error.message });
+  }
+};
+
+export const getDoctorNotifications = async (req, res) => {
+  try {
+    const doctorId = req.user?._id;
+
+    const notifications = await Notification.find({ doctorId, audience: "doctor" })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    return res.status(200).json({
+      total: notifications.length,
+      notifications,
+    });
+  } catch (error) {
+    console.error("Error fetching doctor notifications:", error);
+    return res.status(500).json({ message: "Error fetching notifications", error: error.message });
   }
 };

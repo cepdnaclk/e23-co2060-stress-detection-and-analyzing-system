@@ -41,8 +41,10 @@ export const doctorApi = {
     }),
   getMyRequests: (token) => request("/doctors/my-requests", { token }),
   getDoctorDashboard: (token) => request("/doctors/dashboard", { token }),
+  getDoctorNotifications: (token) => request("/doctors/notifications", { token }),
   getPendingRequests: (token) => request("/doctors/pending-requests", { token }),
   getCurrentPatients: (token) => request("/doctors/current-patients", { token }),
+  getPatientDetails: (patientId, token) => request(`/doctors/patients/${patientId}`, { token }),
   getCompletedConsultations: (token) => request("/doctors/completed-consultations", { token }),
   getDoctorReviews: (token) => request("/doctors/reviews", { token }),
   acceptRequest: (requestId, token) =>
@@ -51,6 +53,12 @@ export const doctorApi = {
     request(`/doctors/requests/${requestId}/reject`, { method: "POST", token }),
   completeConsultation: (assignmentId, token) =>
     request(`/doctors/assignments/${assignmentId}/complete`, { method: "POST", token }),
+  addConsultationNote: (requestId, token, note) =>
+    request(`/doctors/requests/${requestId}/notes`, {
+      method: "POST",
+      token,
+      body: { note },
+    }),
   rateDoctor: (assignmentId, token, stars, review) =>
     request(`/doctors/assignments/${assignmentId}/rating`, {
       method: "POST",

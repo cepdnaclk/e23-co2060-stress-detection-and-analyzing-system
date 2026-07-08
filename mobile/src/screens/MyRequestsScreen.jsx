@@ -90,6 +90,7 @@ export default function MyRequestsScreen() {
           requests.map((request) => {
             const assignmentId = request.assignmentId ?? request.assignment?._id;
             const currentDraft = ratingDrafts[assignmentId] ?? { stars: 5, review: "" };
+            const normalizedStatus = String(request.status ?? "").toLowerCase();
 
             return (
               <View key={request._id} style={doctorStyles.card}>
@@ -102,7 +103,18 @@ export default function MyRequestsScreen() {
                   <Text style={doctorStyles.cardSubtitle}>Stress level: {request.stressLevel}</Text>
                 ) : null}
 
-                {assignmentId && request.status === "completed" ? (
+                {(normalizedStatus === "accepted" || normalizedStatus === "completed") && request.contactDetails ? (
+                  <View style={doctorStyles.card}>
+                    <Text style={doctorStyles.cardTitle}>Consultation Accepted</Text>
+                    <Text style={doctorStyles.cardSubtitle}>
+                      Your consultation request has been accepted. Please contact the doctor using the details below.
+                    </Text>
+                    <Text style={doctorStyles.cardSubtitle}>Phone: {request.contactDetails.phoneNumber ?? "N/A"}</Text>
+                    <Text style={doctorStyles.cardSubtitle}>Email: {request.contactDetails.email ?? "N/A"}</Text>
+                  </View>
+                ) : null}
+
+                {assignmentId && normalizedStatus === "completed" ? (
                   <View style={doctorStyles.card}>
                     <Text style={doctorStyles.cardTitle}>Rate this consultation</Text>
                     <View style={doctorStyles.starRow}>{renderStars(currentDraft.stars)}</View>

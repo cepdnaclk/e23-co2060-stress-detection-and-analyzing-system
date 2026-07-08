@@ -15,7 +15,7 @@ const doctorAssignmentSchema = new mongoose.Schema(
     },
     requestId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "DoctorRequest",
+      ref: "ConsultationRequest",
       required: true,
     },
 

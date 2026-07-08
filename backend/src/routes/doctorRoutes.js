@@ -8,11 +8,14 @@ import {
 import {
   createConsultationRequest,
   createDoctorRating,
+  addConsultationNote,
   finishConsultation,
   getDoctorCompletedConsultations,
   getDoctorCurrentPatients,
   getDoctorDashboard,
   getDoctorPendingRequests,
+  getDoctorNotifications,
+  getDoctorPatientDetails,
   getDoctorReviews,
   getMyConsultationRequests,
   getPublicDoctorProfile,
@@ -27,8 +30,10 @@ import {
 const router = express.Router();
 
 router.get("/dashboard", authenticate, requireVolunteerDoctor, getDoctorDashboard);
+router.get("/notifications", authenticate, requireVolunteerDoctor, getDoctorNotifications);
 router.get("/pending-requests", authenticate, requireVolunteerDoctor, getDoctorPendingRequests);
 router.get("/current-patients", authenticate, requireVolunteerDoctor, getDoctorCurrentPatients);
+router.get("/patients/:patientId", authenticate, requireVolunteerDoctor, getDoctorPatientDetails);
 router.get(
   "/completed-consultations",
   authenticate,
@@ -57,6 +62,7 @@ router.post(
   requireVolunteerDoctor,
   finishConsultation
 );
+router.post("/requests/:requestId/notes", authenticate, requireVolunteerDoctor, addConsultationNote);
 
 router.get("/my-requests", authenticate, requireUser, getMyConsultationRequests);
 router.post("/:doctorId/requests", authenticate, requireUser, createConsultationRequest);
