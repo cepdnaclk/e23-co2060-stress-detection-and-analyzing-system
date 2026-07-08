@@ -19,6 +19,10 @@ import EditQuestionnaireScreen from "../screens/EditQuestionnaireScreen";
 import MoodTrackerPopup from "../../components/MoodTrackerPopup";
 import TherapyHubScreen from "../screens/TherapyHubScreen";
 import MyJourneyScreen from "../screens/MyJourneyScreen";
+import VolunteerDoctorsScreen from "../screens/VolunteerDoctorsScreen";
+import DoctorProfileScreen from "../screens/DoctorProfileScreen";
+import MyRequestsScreen from "../screens/MyRequestsScreen";
+import AdminVolunteerDoctorsScreen from "../screens/AdminVolunteerDoctorsScreen";
 import { useAuthStore } from "../../store/authStore";
 import styles from "../../assets/styles/appdrawer.styles";
 
@@ -129,6 +133,28 @@ export default function AppDrawer() {
               }}
             />
             <Drawer.Screen
+
+              name="Volunteer Doctor Management"
+              component={AdminVolunteerDoctorsScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("people-circle-outline", focused),
+              }}
+            />
+            <Drawer.Screen
+              name="Therapy Hub"
+              component={TherapyHubScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("medkit-outline", focused),
+              }}
+            />
+            <Drawer.Screen
+              name="My Journey"
+              component={MyJourneyScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("map-outline", focused),
+              }}
+            />
+            <Drawer.Screen
               name="Logout"
               component={LogoutScreen}
               options={{
@@ -146,10 +172,24 @@ export default function AppDrawer() {
               }}
             />
             <Drawer.Screen
+              name="Volunteer Doctors"
+              component={VolunteerDoctorsScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("medical-outline", focused),
+              }}
+            />
+            <Drawer.Screen
               name="Questionnaire"
               component={QuestionnaireScreen}
               options={{
                 drawerIcon: ({ focused }) => renderDrawerIcon("reader-outline", focused),
+              }}
+            />
+            <Drawer.Screen
+              name="My Requests"
+              component={MyRequestsScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("chatbubble-ellipses-outline", focused),
               }}
             />
             <Drawer.Screen
@@ -193,6 +233,15 @@ export default function AppDrawer() {
               component={ProfileScreen}
               options={{
                 title: "Profile",
+                drawerItemStyle: { display: "none" },
+                drawerLabel: () => null,
+              }}
+            />
+            <Drawer.Screen
+              name="Doctor Profile"
+              component={DoctorProfileScreen}
+              options={{
+                title: "Doctor Profile",
                 drawerItemStyle: { display: "none" },
                 drawerLabel: () => null,
               }}

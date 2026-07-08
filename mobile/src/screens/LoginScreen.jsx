@@ -129,6 +129,13 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.link}>Sign Up</Text>
               </TouchableOpacity>
             </View>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Volunteer doctor?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Doctor Login")}>
+                <Text style={styles.link}>Doctor Login</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>

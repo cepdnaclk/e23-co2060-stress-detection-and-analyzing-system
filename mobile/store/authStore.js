@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { API_URL } from "../constants/api";
+import { doctorApi } from "../src/lib/doctorApi";
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -56,6 +57,21 @@ export const useAuthStore = create((set, get) => ({
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 
       // Do not persist auth; keep it in memory only
+      set({ token: data.token, user: data.user, isLoading: false });
+
+      return { success: true };
+    } catch (error) {
+      set({ isLoading: false });
+      return { success: false, error: error.message };
+    }
+  },
+
+  doctorLogin: async (email, password) => {
+    set({ isLoading: true });
+
+    try {
+      const data = await doctorApi.login(email, password);
+
       set({ token: data.token, user: data.user, isLoading: false });
 
       return { success: true };

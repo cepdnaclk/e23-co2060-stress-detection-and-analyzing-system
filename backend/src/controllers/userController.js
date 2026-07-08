@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import Notification from "../models/Notification.js";
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -242,6 +243,26 @@ export const updateMe = async (req, res) => {
         });
     } catch (error) {
         console.log("Error in updateMe controller:", error);
+        return res.status(500).json({ message: "Internal Server error" });
+    }
+};
+
+export const getMyNotifications = async (req, res) => {
+    try {
+        const notifications = await Notification.find({
+            userId: req.user._id,
+            audience: "user",
+        })
+            .sort({ createdAt: -1 })
+            .limit(50)
+            .lean();
+
+        return res.status(200).json({
+            total: notifications.length,
+            notifications,
+        });
+    } catch (error) {
+        console.log("Error in getMyNotifications controller:", error);
         return res.status(500).json({ message: "Internal Server error" });
     }
 };
