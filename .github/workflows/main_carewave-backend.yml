@@ -15,6 +15,11 @@ jobs:
     permissions:
       contents: read #This is required for actions/checkout
 
+    # Sets the default working directory for all run scripts in this job
+    defaults:
+      run:
+        working-directory: ./backend
+
     steps:
       - uses: actions/checkout@v4
 
@@ -33,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: ./backend # Tells GitHub to only upload the backend folder content
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,7 +52,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+        
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -61,5 +66,4 @@ jobs:
         with:
           app-name: 'carewave-backend'
           slot-name: 'Production'
-          package: .
-          
+          package: . # Keeps it as dot because download-artifact extracts directly into the root of this job
