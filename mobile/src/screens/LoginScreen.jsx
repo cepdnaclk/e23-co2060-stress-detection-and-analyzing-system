@@ -136,6 +136,13 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.link}>Doctor Login</Text>
               </TouchableOpacity>
             </View>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>System administrator?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Admin Login")}>
+                <Text style={styles.link}>Admin Login</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>

@@ -56,6 +56,43 @@ export const useAuthStore = create((set, get) => ({
 
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 
+      if (data.user?.role === "admin") {
+        throw new Error("Administrators must use the Admin Login screen.");
+      }
+
+      // Do not persist auth; keep it in memory only
+      set({ token: data.token, user: data.user, isLoading: false });
+
+      return { success: true };
+    } catch (error) {
+      set({ isLoading: false });
+      return { success: false, error: error.message };
+    }
+  },
+
+  adminLogin: async (username, password) => {
+    set({ isLoading: true });
+
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Something went wrong");
+
+      if (data.user?.role !== "admin") {
+        throw new Error("Access denied. Only system administrators can log in here.");
+      }
+
       // Do not persist auth; keep it in memory only
       set({ token: data.token, user: data.user, isLoading: false });
 
