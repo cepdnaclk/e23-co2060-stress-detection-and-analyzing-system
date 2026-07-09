@@ -53,11 +53,18 @@ export default function TherapyHubScreen() {
           },
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch therapy hub exercises");
+          let errorMessage = `Failed to fetch exercises (Status ${response.status})`;
+          try {
+            const data = await response.json();
+            errorMessage = data.message || errorMessage;
+          } catch (_) {
+            // Response is not JSON (e.g. HTML error page)
+          }
+          throw new Error(errorMessage);
         }
+
+        const data = await response.json();
 
         if (isMounted) {
           setExercises(data.exercises || []);

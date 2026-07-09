@@ -10,13 +10,18 @@ async function request(path, { method = "GET", token, body } = {}) {
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+    let errorMessage = `Request failed (Status ${response.status})`;
+    try {
+      const data = await response.json();
+      errorMessage = data.message || errorMessage;
+    } catch (_) {
+      // Response is not JSON
+    }
+    throw new Error(errorMessage);
   }
 
-  return data;
+  return await response.json();
 }
 
 export const doctorApi = {
