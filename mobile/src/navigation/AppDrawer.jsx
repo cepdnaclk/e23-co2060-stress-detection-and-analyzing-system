@@ -148,13 +148,6 @@ export default function AppDrawer() {
               }}
             />
             <Drawer.Screen
-              name="My Journey"
-              component={MyJourneyScreen}
-              options={{
-                drawerIcon: ({ focused }) => renderDrawerIcon("map-outline", focused),
-              }}
-            />
-            <Drawer.Screen
               name="Logout"
               component={LogoutScreen}
               options={{
@@ -172,24 +165,10 @@ export default function AppDrawer() {
               }}
             />
             <Drawer.Screen
-              name="Volunteer Doctors"
-              component={VolunteerDoctorsScreen}
-              options={{
-                drawerIcon: ({ focused }) => renderDrawerIcon("medical-outline", focused),
-              }}
-            />
-            <Drawer.Screen
               name="Questionnaire"
               component={QuestionnaireScreen}
               options={{
                 drawerIcon: ({ focused }) => renderDrawerIcon("reader-outline", focused),
-              }}
-            />
-            <Drawer.Screen
-              name="My Requests"
-              component={MyRequestsScreen}
-              options={{
-                drawerIcon: ({ focused }) => renderDrawerIcon("chatbubble-ellipses-outline", focused),
               }}
             />
             <Drawer.Screen
@@ -218,6 +197,20 @@ export default function AppDrawer() {
               component={MyJourneyScreen}
               options={{
                 drawerIcon: ({ focused }) => renderDrawerIcon("map-outline", focused),
+              }}
+            />
+            <Drawer.Screen
+              name="Volunteer Doctors"
+              component={VolunteerDoctorsScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("medical-outline", focused),
+              }}
+            />
+            <Drawer.Screen
+              name="My Requests"
+              component={MyRequestsScreen}
+              options={{
+                drawerIcon: ({ focused }) => renderDrawerIcon("chatbubble-ellipses-outline", focused),
               }}
             />
             <Drawer.Screen
