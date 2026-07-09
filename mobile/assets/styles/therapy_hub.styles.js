@@ -49,6 +49,52 @@ const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 20,
   },
+  searchBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+    borderRadius: 12,
+    marginTop: 16,
+    paddingHorizontal: 12,
+    height: 44,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: COLORS.textDark,
+    height: "100%",
+  },
+  clearButton: {
+    padding: 4,
+  },
+  noResultsContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 60,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  clearSearchBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#e3f2fd",
+    borderRadius: 8,
+  },
+  clearSearchBtnText: {
+    color: "#1976D2",
+    fontWeight: "600",
+    fontSize: 14,
+  },
   scrollContent: {
     paddingBottom: 110, // Extra padding to clear the bottom floating player
   },

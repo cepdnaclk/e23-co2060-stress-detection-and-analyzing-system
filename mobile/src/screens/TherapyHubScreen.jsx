@@ -6,6 +6,7 @@ import {
   ScrollView,
   Text,
   Pressable,
+  TextInput,
   View,
 } from "react-native";
 import { Audio } from "expo-av";
@@ -19,6 +20,7 @@ export default function TherapyHubScreen() {
   const { token } = useAuthStore();
   
   const [exercises, setExercises] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -205,15 +207,25 @@ export default function TherapyHubScreen() {
   }, []);
 
   // Filter exercises by category and display order (Relaxation Sessions must preserve displayOrder)
-  const relaxationSessions = exercises
+  const filteredExercises = exercises.filter((ex) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      (ex.title && ex.title.toLowerCase().includes(query)) ||
+      (ex.category && ex.category.toLowerCase().includes(query)) ||
+      (ex.description && ex.description.toLowerCase().includes(query))
+    );
+  });
+
+  const relaxationSessions = filteredExercises
     .filter((ex) => ex.category === "Relaxation Sessions")
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
-  const calmMusic = exercises
+  const calmMusic = filteredExercises
     .filter((ex) => ex.category === "Calm Music")
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
-  const natureSounds = exercises
+  const natureSounds = filteredExercises
     .filter((ex) => ex.category === "Nature Sounds")
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
@@ -312,51 +324,79 @@ export default function TherapyHubScreen() {
           <Text style={styles.headerSubtitle}>
             Take a breath, listen to guided sessions, and restore your inner peace.
           </Text>
+
+          {/* Modern Search Bar */}
+          <View style={styles.searchBarContainer}>
+            <Ionicons name="search-outline" size={20} color="#767676" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search exercises, categories, descriptions..."
+              placeholderTextColor="#767676"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              clearButtonMode="while-editing"
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery("")} style={styles.clearButton}>
+                <Ionicons name="close-circle" size={18} color="#767676" />
+              </Pressable>
+            )}
+          </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* 🌿 Relaxation Sessions */}
-          {relaxationSessions.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>🌿 Relaxation Sessions</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalScrollContent}
-              >
-                {relaxationSessions.map(renderExerciseCard)}
-              </ScrollView>
-            </View>
-          )}
+        {filteredExercises.length === 0 ? (
+          <View style={styles.noResultsContainer}>
+            <Ionicons name="search-outline" size={48} color="#1976D2" style={{ opacity: 0.4 }} />
+            <Text style={styles.noResultsText}>No sessions match "{searchQuery}"</Text>
+            <Pressable onPress={() => setSearchQuery("")} style={styles.clearSearchBtn}>
+              <Text style={styles.clearSearchBtnText}>Clear Search</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {/* 🌿 Relaxation Sessions */}
+            {relaxationSessions.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>🌿 Relaxation Sessions</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.horizontalScrollContent}
+                >
+                  {relaxationSessions.map(renderExerciseCard)}
+                </ScrollView>
+              </View>
+            )}
 
-          {/* 🎵 Calm Music */}
-          {calmMusic.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>🎵 Calm Music</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalScrollContent}
-              >
-                {calmMusic.map(renderExerciseCard)}
-              </ScrollView>
-            </View>
-          )}
+            {/* 🎵 Calm Music */}
+            {calmMusic.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>🎵 Calm Music</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.horizontalScrollContent}
+                >
+                  {calmMusic.map(renderExerciseCard)}
+                </ScrollView>
+              </View>
+            )}
 
-          {/* 🌧 Nature Sounds */}
-          {natureSounds.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>🌧 Nature Sounds</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalScrollContent}
-              >
-                {natureSounds.map(renderExerciseCard)}
-              </ScrollView>
-            </View>
-          )}
-        </ScrollView>
+            {/* 🌧 Nature Sounds */}
+            {natureSounds.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>🌧 Nature Sounds</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.horizontalScrollContent}
+                >
+                  {natureSounds.map(renderExerciseCard)}
+                </ScrollView>
+              </View>
+            )}
+          </ScrollView>
+        )}
 
         {/* Bottom Floating Player */}
         {currentTrack && (
