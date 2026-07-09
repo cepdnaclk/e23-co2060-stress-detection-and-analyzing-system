@@ -353,7 +353,7 @@ export default function QuestionnaireScreen() {
     [depressionSeverity]
   );
   const recommendation = useMemo(() => {
-    const level = (severity || "").toLowerCase();
+    const level = (stressSeverity || "").toLowerCase();
 
     if (level === "normal") {
       return {
@@ -363,7 +363,15 @@ export default function QuestionnaireScreen() {
       };
     }
 
-    if (level === "moderate" || level === "severe") {
+    if (level === "mild") {
+      return {
+        routeName: "Therapy Hub",
+        label: "Go to Therapy Hub",
+        icon: "sparkles-outline",
+      };
+    }
+
+    if (level === "moderate" || level === "severe" || level === "extremely_severe") {
       return {
         routeName: "Clinical Locator",
         label: "Go to Clinical Locator",
@@ -372,7 +380,7 @@ export default function QuestionnaireScreen() {
     }
 
     return null;
-  }, [severity]);
+  }, [stressSeverity]);
 
   const handleSelect = (value) => {
     if (!currentQuestion) return;
