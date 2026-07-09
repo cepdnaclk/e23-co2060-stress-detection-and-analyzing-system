@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 import SafeScreen from "../../components/SafeScreen";
 import doctorStyles from "../../assets/styles/doctor.styles";
@@ -11,7 +12,7 @@ export default function PendingRequestsScreen() {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     if (!token) return;
 
     setIsLoading(true);
@@ -23,11 +24,13 @@ export default function PendingRequestsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchRequests();
   }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchRequests();
+    }, [fetchRequests])
+  );
 
   const handleAction = async (requestId, action) => {
     try {

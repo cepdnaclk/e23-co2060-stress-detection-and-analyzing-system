@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 
 import SafeScreen from "../../components/SafeScreen";
 import doctorStyles from "../../assets/styles/doctor.styles";
@@ -29,7 +30,7 @@ export default function MyRequestsScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [ratingDrafts, setRatingDrafts] = useState({});
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     if (!token) {
       return;
     }
@@ -43,11 +44,13 @@ export default function MyRequestsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchRequests();
   }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchRequests();
+    }, [fetchRequests])
+  );
 
   const submitRating = async (assignmentId) => {
     const draft = ratingDrafts[assignmentId] ?? { stars: 5, review: "" };
@@ -101,6 +104,24 @@ export default function MyRequestsScreen() {
                 <Text style={doctorStyles.cardSubtitle}>Status: {request.status}</Text>
                 {request.stressLevel ? (
                   <Text style={doctorStyles.cardSubtitle}>Stress level: {request.stressLevel}</Text>
+                ) : null}
+
+                {normalizedStatus === "pending" ? (
+                  <View style={[doctorStyles.card, { borderColor: "#fff3d9" }]}>
+                    <Text style={[doctorStyles.cardTitle, { color: "#8a5a00" }]}>Request Pending</Text>
+                    <Text style={doctorStyles.cardSubtitle}>
+                      Your consultation request is pending review by the doctor.
+                    </Text>
+                  </View>
+                ) : null}
+
+                {normalizedStatus === "rejected" ? (
+                  <View style={[doctorStyles.card, { borderColor: "#fde8e8" }]}>
+                    <Text style={[doctorStyles.cardTitle, { color: "#a23636" }]}>Request Rejected</Text>
+                    <Text style={doctorStyles.cardSubtitle}>
+                      Your consultation request has been rejected by the doctor.
+                    </Text>
+                  </View>
                 ) : null}
 
                 {(normalizedStatus === "accepted" || normalizedStatus === "completed") && request.contactDetails ? (

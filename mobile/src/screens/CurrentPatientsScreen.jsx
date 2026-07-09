@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 import SafeScreen from "../../components/SafeScreen";
 import doctorStyles from "../../assets/styles/doctor.styles";
@@ -15,7 +16,7 @@ export default function CurrentPatientsScreen() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [noteText, setNoteText] = useState("");
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     if (!token) return;
 
     setIsLoading(true);
@@ -27,11 +28,13 @@ export default function CurrentPatientsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchPatients();
   }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPatients();
+    }, [fetchPatients])
+  );
 
   const finishConsultation = async (assignmentId) => {
     try {

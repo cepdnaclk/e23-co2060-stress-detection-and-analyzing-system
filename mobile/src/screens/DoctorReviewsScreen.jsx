@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 
 import SafeScreen from "../../components/SafeScreen";
 import doctorStyles from "../../assets/styles/doctor.styles";
@@ -18,7 +19,7 @@ export default function DoctorReviewsScreen() {
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     if (!token) return;
 
     setIsLoading(true);
@@ -30,11 +31,13 @@ export default function DoctorReviewsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchReviews();
   }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchReviews();
+    }, [fetchReviews])
+  );
 
   if (isLoading) {
     return (
