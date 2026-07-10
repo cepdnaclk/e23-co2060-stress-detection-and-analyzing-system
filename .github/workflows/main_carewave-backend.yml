@@ -52,13 +52,28 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-        
+
+      - name: Detect Azure deployment auth mode
+        id: auth-mode
+        run: |
+          if [ -n "${{ secrets.AZURE_CLIENT_ID || secrets.AZUREAPPSERVICE_CLIENTID_96DF923C99EC481D89DDAB7728BD7204 }}" ] && \
+             [ -n "${{ secrets.AZURE_TENANT_ID || secrets.AZUREAPPSERVICE_TENANTID_B032CBFCB4FE4CF6B3FC7B455A7E314E }}" ] && \
+             [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID || secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_12BDC776AC23431F83ABFBA565AF3406 }}" ]; then
+            echo "mode=oidc" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE || secrets.AZUREAPPSERVICE_PUBLISHPROFILE_96DF923C99EC481D89DDAB7728BD7204 }}" ]; then
+            echo "mode=publish-profile" >> "$GITHUB_OUTPUT"
+          else
+            echo "No Azure credentials found. Configure AZURE_CLIENT_ID/AZURE_TENANT_ID/AZURE_SUBSCRIPTION_ID or AZURE_WEBAPP_PUBLISH_PROFILE repository secrets."
+            exit 1
+          fi
+
       - name: Login to Azure
+        if: steps.auth-mode.outputs.mode == 'oidc'
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_96DF923C99EC481D89DDAB7728BD7204 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B032CBFCB4FE4CF6B3FC7B455A7E314E }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_12BDC776AC23431F83ABFBA565AF3406 }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID || secrets.AZUREAPPSERVICE_CLIENTID_96DF923C99EC481D89DDAB7728BD7204 }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID || secrets.AZUREAPPSERVICE_TENANTID_B032CBFCB4FE4CF6B3FC7B455A7E314E }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID || secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_12BDC776AC23431F83ABFBA565AF3406 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -66,4 +81,5 @@ jobs:
         with:
           app-name: 'carewave-backend'
           slot-name: 'Production'
+          publish-profile: ${{ steps.auth-mode.outputs.mode == 'publish-profile' && (secrets.AZURE_WEBAPP_PUBLISH_PROFILE || secrets.AZUREAPPSERVICE_PUBLISHPROFILE_96DF923C99EC481D89DDAB7728BD7204) || '' }}
           package: . # Keeps it as dot because download-artifact extracts directly into the root of this job
