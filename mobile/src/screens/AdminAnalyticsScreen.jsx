@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, useColorScheme, useWindowDimensions } from "react-native";
 import SafeScreen from "../../components/SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
@@ -55,9 +55,13 @@ export default function AdminAnalyticsScreen() {
   const moodChart = moodDistribution.map(e => ({ ...e, color: MOOD_COLORS[e.label] || "#70a1d7" }));
 
   const trend30d = data?.assessmentTrends?.["30d"] ? normalizeTrend(data.assessmentTrends["30d"]) : { labels: [], values: [] };
+  const userGrowthTrend = Array.isArray(data?.userGrowth?.trend)
+    ? data.userGrowth.trend.map((p) => Number(p.value || 0))
+    : [];
 
   const cWidth = Math.min(width - 32, 1200);
   const split = width >= 900;
+  const chartWidth = Math.max(split ? (cWidth - 16) / 2 - 32 : cWidth - 32, 200);
 
   const ChartCard = ({ title, subtitle, children }) => (
     <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -104,7 +108,7 @@ export default function AdminAnalyticsScreen() {
                 <ChartCard title="Assessment Trends" subtitle="DASS-21 completions (30 days)">
                   {trend30d.values.length === 0 ? <Text style={{color:theme.subText, textAlign:'center'}}>No data</Text> : (
                     <View>
-                      <LineTrendChart values={trend30d.values} width={Math.max(cWidth - 64, 200)} height={200} lineColor={theme.accent} fillStart={theme.accent+"55"} fillEnd={theme.accent+"05"} />
+                      <LineTrendChart values={trend30d.values} width={chartWidth} height={200} lineColor={theme.accent} fillStart={theme.accent+"55"} fillEnd={theme.accent+"05"} />
                     </View>
                   )}
                 </ChartCard>
@@ -126,6 +130,22 @@ export default function AdminAnalyticsScreen() {
                           </View>
                         ))}
                       </View>
+                    </View>
+                  )}
+                </ChartCard>
+
+                <ChartCard title="User Growth Trend" subtitle="Daily registration snapshot over time">
+                  {userGrowthTrend.length === 0 ? <Text style={{color:theme.subText, textAlign:'center'}}>No data</Text> : (
+                    <View>
+                      <LineTrendChart
+                        values={userGrowthTrend}
+                        width={chartWidth}
+                        height={200}
+                        lineColor="#38a873"
+                        fillStart="rgba(56,168,115,0.32)"
+                        fillEnd="rgba(56,168,115,0.04)"
+                        showDots={false}
+                      />
                     </View>
                   )}
                 </ChartCard>
