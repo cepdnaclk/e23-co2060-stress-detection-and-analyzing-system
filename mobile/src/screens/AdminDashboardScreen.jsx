@@ -141,7 +141,6 @@ export default function AdminDashboardScreen({ navigation }) {
   const [loading,    setLoading]    = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [trendRange, setTrendRange] = useState("7d");
-  const [search,     setSearch]     = useState("");
 
   const fadeIn  = useRef(new Animated.Value(0)).current;
   const slideUp = useRef(new Animated.Value(20)).current;
@@ -195,29 +194,23 @@ export default function AdminDashboardScreen({ navigation }) {
   const stressChart = (dashboard?.stressDistribution || []).map((e) => ({ ...e, color: STRESS_COLORS[e.label] || "#70a1d7" }));
   const moodChart   = (dashboard?.moods             || []).map((e) => ({ ...e, color: MOOD_COLORS[e.label]   || "#70a1d7" }));
 
-  const filteredActivity = useMemo(() => {
-    const list = dashboard?.recentActivity || [];
-    if (!search.trim()) return list;
-    const q = search.toLowerCase();
-    return list.filter((item) => item.user.toLowerCase().includes(q) || item.action.toLowerCase().includes(q));
-  }, [dashboard?.recentActivity, search]);
+  const filteredActivity = dashboard?.recentActivity || [];
 
   const onRefresh = useCallback(() => load(true), [load]);
 
   const triggerAction = useCallback((label) => {
     if (label === "Edit DASS-21 Questions") { navigation?.navigate("Edit Questionnaire"); return; }
     if (label === "View Users") { navigation?.navigate("Admin Users"); return; }
+    if (label === "View Doctors") { navigation?.navigate("Volunteer Doctor Management"); return; }
     if (label === "View Analytics") { navigation?.navigate("Admin Analytics"); return; }
-    if (label === "Refresh Dashboard") { onRefresh(); return; }
     Alert.alert("Action", `${label} will be available soon.`);
-  }, [navigation, onRefresh]);
+  }, [navigation]);
 
   const ACTIONS = [
     { label:"Edit DASS-21 Questions", icon:"create-outline" },
     { label:"View Users",             icon:"people-outline" },
+    { label:"View Doctors",           icon:"medical-outline" },
     { label:"View Analytics",         icon:"analytics-outline" },
-    { label:"Export Reports",         icon:"download-outline" },
-    { label:"Refresh Dashboard",      icon:"refresh-outline" },
   ];
 
   // ── Skeleton set ──
@@ -255,39 +248,8 @@ export default function AdminDashboardScreen({ navigation }) {
               >
                 <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={18} color={theme.text} />
               </Pressable>
-              <Pressable 
-                onPress={() => {
-                  const count = dashboard?.notifications || 0;
-                  if (count > 0) {
-                    Alert.alert("Notifications", `You have ${count} new consultation request${count > 1 ? 's' : ''} today.`);
-                  } else {
-                    Alert.alert("Notifications", "No new notifications at the moment.");
-                  }
-                }}
-                style={({ pressed }) => [ss.iconBtn, { backgroundColor: theme.search, borderColor: theme.border, opacity: pressed ? 0.8 : 1 }]}
-              >
-                <Ionicons name="notifications-outline" size={18} color={theme.text} />
-                {(dashboard?.notifications || 0) > 0 && (
-                  <View style={ss.badge}>
-                    <Text style={ss.badgeText}>{dashboard.notifications}</Text>
-                  </View>
-                )}
-              </Pressable>
+
             </View>
-          </View>
-          {/* Search bar */}
-          <View style={[ss.searchBar, { backgroundColor: theme.search, borderColor: theme.border }]}>
-            <Ionicons name="search-outline" size={16} color={theme.subText} />
-            <TextInput
-              value={search}
-              onChangeText={setSearch}
-              placeholder="Search users or activity…"
-              placeholderTextColor={theme.subText}
-              style={[ss.searchInput, { color: theme.text }]}
-            />
-            {search.length > 0 && (
-              <Pressable onPress={() => setSearch("")}><Ionicons name="close-circle" size={16} color={theme.subText} /></Pressable>
-            )}
           </View>
         </View>
 
@@ -296,6 +258,22 @@ export default function AdminDashboardScreen({ navigation }) {
           <Skeleton />
         ) : (
           <Animated.View style={{ opacity: fadeIn, transform: [{ translateY: slideUp }], gap: 14 }}>
+
+            {/* Quick Actions */}
+            <SectionCard title="Quick Actions" theme={theme}>
+              <View style={ss.actionsWrap}>
+                {ACTIONS.map((a) => (
+                  <Pressable
+                    key={a.label}
+                    onPress={() => triggerAction(a.label)}
+                    style={({ pressed }) => [ss.actionBtn, { backgroundColor: theme.search, borderColor: theme.border, opacity: pressed ? 0.8 : 1 }]}
+                  >
+                    <Ionicons name={a.icon} size={15} color={theme.accent} />
+                    <Text style={[ss.actionText, { color: theme.text }]}>{a.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </SectionCard>
 
             {/* ── Stat cards ── */}
             <View style={ss.statsGrid}>
@@ -489,12 +467,11 @@ export default function AdminDashboardScreen({ navigation }) {
                 </SectionCard>
 
                 {/* Therapy Hub */}
-                <SectionCard title="Therapy Hub Analytics" subtitle="Audio content engagement" theme={theme}>
+                <SectionCard title="Therapy Hub Analytics" theme={theme}>
                   <View style={ss.infoList}>
                     {[
                       ["Total Sessions Played",    dashboard?.therapyHub?.totalPlayed],
                       ["Most Played Category",      dashboard?.therapyHub?.mostPlayedCategory],
-                      ["Top Routine Summary",       dashboard?.therapyHub?.mostPlayedAudio],
                       ["Total Listening Sessions",  dashboard?.therapyHub?.totalListeningSessions],
                     ].map(([label, val]) => (
                       <View key={label} style={ss.infoRow}>
@@ -517,22 +494,6 @@ export default function AdminDashboardScreen({ navigation }) {
                         <Text style={[ss.infoLabel, { color: theme.subText }]}>{label}</Text>
                         <Text style={[ss.infoVal,   { color: theme.text }]}>{val ?? "—"}</Text>
                       </View>
-                    ))}
-                  </View>
-                </SectionCard>
-
-                {/* Quick Actions */}
-                <SectionCard title="Quick Actions" subtitle="Common admin shortcuts" theme={theme}>
-                  <View style={ss.actionsWrap}>
-                    {ACTIONS.map((a) => (
-                      <Pressable
-                        key={a.label}
-                        onPress={() => triggerAction(a.label)}
-                        style={({ pressed }) => [ss.actionBtn, { backgroundColor: theme.search, borderColor: theme.border, opacity: pressed ? 0.8 : 1 }]}
-                      >
-                        <Ionicons name={a.icon} size={15} color={theme.accent} />
-                        <Text style={[ss.actionText, { color: theme.text }]}>{a.label}</Text>
-                      </Pressable>
                     ))}
                   </View>
                 </SectionCard>
