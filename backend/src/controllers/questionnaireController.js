@@ -1,5 +1,6 @@
 import Questionnaire from "../models/Questionnaire.js";
 import QuestionnaireResult from "../models/QuestionnaireResult.js";
+import UserActivity from "../models/UserActivity.js";
 
 const DEFAULT_QUESTIONS = [
   { id: 1, text: "I found it hard to wind down" },
@@ -241,6 +242,29 @@ export const calculateQuestionnaireScore = async (req, res) => {
         depressionSeverity,
         recordedAt: new Date(),
       });
+
+      // Upsert a completed activity — promotes any in_progress doc or creates fresh
+      const existingInProgress = await UserActivity.findOne({
+        userId: req.user._id,
+        activityType: "assessment",
+        status: "in_progress",
+      }).sort({ createdAt: -1 });
+
+      if (existingInProgress) {
+        existingInProgress.status = "completed";
+        existingInProgress.progress = 100;
+        existingInProgress.metadata = { stressLevel: severity, score: stressScore };
+        await existingInProgress.save();
+      } else {
+        await UserActivity.create({
+          userId: req.user._id,
+          activityType: "assessment",
+          title: "DASS-21 Assessment",
+          status: "completed",
+          progress: 100,
+          metadata: { stressLevel: severity, score: stressScore },
+        });
+      }
     }
 
     // Keep existing response fields for mobile compatibility, but add sub-scores.

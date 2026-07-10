@@ -1,444 +1,519 @@
-import React, { useEffect, useState, useRef } from "react";
+/**
+ * TherapyHubScreen.jsx
+ *
+ * Full Therapy Hub with:
+ *  - Exercises fetched from GET /api/therapy-hub
+ *  - Search / category filtering
+ *  - expo-av audio player (play, pause, seek, stop)
+ *  - Activity tracking via POST/PUT /api/activities
+ */
+
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
+  FlatList,
   Image,
+  Pressable,
   ScrollView,
   Text,
-  Pressable,
   TextInput,
   View,
 } from "react-native";
 import { Audio } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import SafeScreen from "../../components/SafeScreen";
-import styles from "../../assets/styles/therapy_hub.styles";
 import { API_URL, fetchWithTimeout } from "../../constants/api";
 import { useAuthStore } from "../../store/authStore";
+import styles from "../../assets/styles/therapy_hub.styles";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+const fmtTime = (millis) => {
+  if (!millis && millis !== 0) return "0:00";
+  const totalSec = Math.floor(millis / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Activity tracking helpers (fire-and-forget, non-blocking)
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function trackActivityCreate(token, exercise) {
+  if (!token) return null;
+  try {
+    const res = await fetch(`${API_URL}/activities`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        activityType: "therapy",
+        title: exercise.title,
+        status: "in_progress",
+        progress: 0,
+        metadata: { category: exercise.category },
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.activity?._id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function trackActivityUpdate(token, activityId, status, progress, metadata) {
+  if (!token || !activityId) return;
+  try {
+    await fetch(`${API_URL}/activities/${activityId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status, progress, metadata }),
+    });
+  } catch {
+    // Silently fail — don't disrupt UX
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ExerciseCard
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ExerciseCard({ exercise, isActive, onPress }) {
+  const hasThumb = !!exercise.thumbnail;
+  return (
+    <Pressable
+      style={[styles.card, isActive && styles.activeCard]}
+      onPress={onPress}
+    >
+      <View style={styles.cardImageContainer}>
+        {hasThumb ? (
+          <Image
+            source={{ uri: exercise.thumbnail }}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.cardImagePlaceholder}>
+            <Ionicons name="musical-notes-outline" size={40} color="#90caf9" />
+          </View>
+        )}
+        <View style={styles.playIconOverlay}>
+          <Ionicons
+            name={isActive ? "pause-circle" : "play-circle"}
+            size={42}
+            color="rgba(255,255,255,0.9)"
+          />
+        </View>
+      </View>
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle} numberOfLines={2}>
+          {exercise.title}
+        </Text>
+        <Text style={styles.cardDescription} numberOfLines={2}>
+          {exercise.description}
+        </Text>
+        <View style={styles.badgesWrapper}>
+          <View style={[styles.badge, { backgroundColor: "#e3f2fd" }]}>
+            <Text style={[styles.badgeText, { color: "#1565c0" }]}>
+              {exercise.category}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PlayerBar
+// ─────────────────────────────────────────────────────────────────────────────
+
+function PlayerBar({ exercise, soundStatus, onPlayPause, onStop }) {
+  const position = soundStatus?.positionMillis ?? 0;
+  const duration = soundStatus?.durationMillis ?? 1;
+  const progress = Math.min(position / duration, 1);
+  const isPlaying = soundStatus?.isPlaying ?? false;
+
+  const hasThumb = !!exercise?.thumbnail;
+
+  return (
+    <View style={styles.playerBar}>
+      {/* Slim progress track */}
+      <View style={styles.progressBarBackground}>
+        <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
+      </View>
+
+      <View style={styles.playerContent}>
+        {hasThumb ? (
+          <Image
+            source={{ uri: exercise.thumbnail }}
+            style={styles.playerThumbnail}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.playerThumbnailPlaceholder}>
+            <Ionicons name="musical-notes-outline" size={20} color="#90caf9" />
+          </View>
+        )}
+
+        <View style={styles.playerInfo}>
+          <Text style={styles.playerTitle} numberOfLines={1}>
+            {exercise?.title ?? ""}
+          </Text>
+          <Text style={styles.playerCategory}>
+            {fmtTime(position)} / {fmtTime(duration)}
+          </Text>
+        </View>
+
+        <View style={styles.playerControls}>
+          <Pressable style={styles.playerControlBtn} onPress={onPlayPause}>
+            <Ionicons
+              name={isPlaying ? "pause" : "play"}
+              size={22}
+              color="#1976D2"
+            />
+          </Pressable>
+          <Pressable style={styles.playerControlBtn} onPress={onStop}>
+            <Ionicons name="stop" size={20} color="#78909c" />
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TherapyHubScreen
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function TherapyHubScreen() {
   const { token } = useAuthStore();
-  
+
   const [exercises, setExercises] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAudioLoading, setIsAudioLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [search, setSearch] = useState("");
 
-  // Audio Playback State
+  // Audio state
   const soundRef = useRef(null);
-  const [playingId, setPlayingId] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [currentTrack, setCurrentTrack] = useState(null);
+  const [activeExercise, setActiveExercise] = useState(null);
+  const [soundStatus, setSoundStatus] = useState(null);
 
-  // Fetch exercises from backend
-  useEffect(() => {
-    let isMounted = true;
+  // Activity tracking
+  const activityIdRef = useRef(null);
 
-    const loadExercises = async () => {
-      if (!token) {
-        setIsLoading(false);
-        setError("Please login to view therapy exercises.");
-        return;
-      }
+  // ── Fetch exercises ─────────────────────────────────────────────────────────
 
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const response = await fetchWithTimeout(`${API_URL}/therapy-hub`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+  const loadExercises = useCallback(async () => {
+    if (!token) {
+      setLoading(false);
+      setErrorMsg("Please sign in to access the Therapy Hub.");
+      return;
+    }
 
-        if (!response.ok) {
-          let errorMessage = `Failed to fetch exercises (Status ${response.status})`;
-          try {
-            const data = await response.json();
-            errorMessage = data.message || errorMessage;
-          } catch (_) {
-            // Response is not JSON (e.g. HTML error page)
-          }
-          throw new Error(errorMessage);
-        }
+    setLoading(true);
+    setErrorMsg(null);
 
-        const data = await response.json();
+    try {
+      const res = await fetchWithTimeout(`${API_URL}/therapy-hub`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
 
-        if (isMounted) {
-          setExercises(data.exercises || []);
-        }
-      } catch (err) {
-        console.error("Fetch exercises error:", err);
-        if (isMounted) {
-          setError(err.message || "Something went wrong.");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
+      if (!res.ok) throw new Error(data.message || "Failed to load exercises");
 
-    loadExercises();
-
-    return () => {
-      isMounted = false;
-    };
+      const list = Array.isArray(data) ? data : (data.exercises ?? []);
+      setExercises(list);
+    } catch (err) {
+      setErrorMsg(err.message || "Could not load exercises. Try again.");
+    } finally {
+      setLoading(false);
+    }
   }, [token]);
 
-  // Handle Play/Pause toggling
-  const handlePlayTrack = async (track) => {
-    if (isAudioLoading) return;
+  useFocusEffect(
+    useCallback(() => {
+      loadExercises();
+      return () => {
+        // Pause (don't stop) when navigating away so progress is preserved
+        soundRef.current?.pauseAsync?.().catch(() => {});
+      };
+    }, [loadExercises])
+  );
 
-    try {
-      setIsAudioLoading(true);
+  // ── Cleanup on unmount ──────────────────────────────────────────────────────
 
-      // 1. If another audio is playing (or same audio is loaded), stop and unload it
-      if (soundRef.current) {
-        try {
-          await soundRef.current.stopAsync();
-          await soundRef.current.unloadAsync();
-        } catch (err) {
-          console.warn("Unloading error:", err);
-        }
-        soundRef.current = null;
-      }
-
-      // 2. If the user clicked the currently active and playing track, we toggle it to off
-      if (playingId === track._id && isPlaying) {
-        setPlayingId(null);
-        setIsPlaying(false);
-        setCurrentTrack(null);
-        setIsAudioLoading(false);
-        return;
-      }
-
-      // Configure Expo audio to play in silent mode and background
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        allowsRecordingIOS: false,
-        staysActiveInBackground: true,
-        shouldRouteThroughEarpieceIOS: false,
-      });
-
-      // Construct absolute URL for playback
-      const backendBaseUrl = API_URL.replace("/api", "");
-      const fullAudioUrl = `${backendBaseUrl}${track.audioUrl}`;
-
-      // Load and play track
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: fullAudioUrl },
-        { shouldPlay: true },
-        (status) => {
-          if (status.isLoaded) {
-            setIsPlaying(status.isPlaying);
-            setPosition(status.positionMillis);
-            setDuration(status.durationMillis || 0);
-
-            if (status.didJustFinish) {
-              setPlayingId(null);
-              setIsPlaying(false);
-              setCurrentTrack(null);
-              if (soundRef.current) {
-                soundRef.current.unloadAsync().catch(() => {});
-                soundRef.current = null;
-              }
-            }
-          }
-        }
-      );
-
-      soundRef.current = newSound;
-      setPlayingId(track._id);
-      setCurrentTrack(track);
-    } catch (err) {
-      console.error("Playback error:", err);
-      Alert.alert("Playback Error", "Unable to load and play this audio file.");
-    } finally {
-      setIsAudioLoading(false);
-    }
-  };
-
-  // Toggle current track play/pause from bottom player
-  const togglePlayPause = async () => {
-    if (!soundRef.current) return;
-    try {
-      if (isPlaying) {
-        await soundRef.current.pauseAsync();
-      } else {
-        await soundRef.current.playAsync();
-      }
-    } catch (err) {
-      console.error("Toggle playback error:", err);
-    }
-  };
-
-  // Close / Stop playback entirely
-  const stopPlayback = async () => {
-    if (soundRef.current) {
-      try {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-      } catch (err) {
-        console.warn("Unloading error:", err);
-      }
-      soundRef.current = null;
-    }
-    setPlayingId(null);
-    setIsPlaying(false);
-    setCurrentTrack(null);
-    setPosition(0);
-    setDuration(0);
-  };
-
-  // Cleanup audio on component unmount
   useEffect(() => {
     return () => {
-      if (soundRef.current) {
-        soundRef.current.unloadAsync().catch((err) => {
-          console.warn("Unmount cleanup error:", err);
-        });
-      }
+      soundRef.current?.unloadAsync?.().catch(() => {});
     };
   }, []);
 
-  // Filter exercises by category and display order (Relaxation Sessions must preserve displayOrder)
-  const filteredExercises = exercises.filter((ex) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      (ex.title && ex.title.toLowerCase().includes(query)) ||
-      (ex.category && ex.category.toLowerCase().includes(query)) ||
-      (ex.description && ex.description.toLowerCase().includes(query))
-    );
-  });
+  // ── Audio controls ──────────────────────────────────────────────────────────
 
-  const relaxationSessions = filteredExercises
-    .filter((ex) => ex.category === "Relaxation Sessions")
-    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+  const stopAndUnload = useCallback(async () => {
+    if (soundRef.current) {
+      const status = await soundRef.current.getStatusAsync().catch(() => null);
+      if (status?.isLoaded) {
+        const pos = status.positionMillis ?? 0;
+        const dur = status.durationMillis ?? 1;
+        const pct = Math.round((pos / dur) * 100);
 
-  const calmMusic = filteredExercises
-    .filter((ex) => ex.category === "Calm Music")
-    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        // Save paused state
+        if (activityIdRef.current) {
+          await trackActivityUpdate(token, activityIdRef.current, "in_progress", pct, {
+            totalDurationSeconds: Math.round(dur / 1000),
+          });
+        }
 
-  const natureSounds = filteredExercises
-    .filter((ex) => ex.category === "Nature Sounds")
-    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        await soundRef.current.unloadAsync().catch(() => {});
+      }
+    }
+    soundRef.current = null;
+    setSoundStatus(null);
+    setActiveExercise(null);
+    activityIdRef.current = null;
+  }, [token]);
 
-  // Render loading indicator
-  if (isLoading) {
+  const handleSelectExercise = useCallback(
+    async (exercise) => {
+      // If tapping the currently active exercise → toggle play/pause
+      if (activeExercise?._id === exercise._id && soundRef.current) {
+        const status = await soundRef.current.getStatusAsync().catch(() => null);
+        if (status?.isLoaded) {
+          if (status.isPlaying) {
+            await soundRef.current.pauseAsync().catch(() => {});
+            // Update activity to paused state
+            const pos = status.positionMillis ?? 0;
+            const dur = status.durationMillis ?? 1;
+            const pct = Math.round((pos / dur) * 100);
+            if (activityIdRef.current) {
+              await trackActivityUpdate(token, activityIdRef.current, "in_progress", pct, {
+                totalDurationSeconds: Math.round(dur / 1000),
+              });
+            }
+          } else {
+            await soundRef.current.playAsync().catch(() => {});
+          }
+        }
+        return;
+      }
+
+      // Stop any current audio
+      await stopAndUnload();
+
+      // Build audio URL
+      const base = API_URL.replace("/api", "");
+      const audioUri = exercise.audioUrl.startsWith("http")
+        ? exercise.audioUrl
+        : `${base}${exercise.audioUrl}`;
+
+      setActiveExercise(exercise);
+
+      // Create activity record immediately (fire-and-forget)
+      trackActivityCreate(token, exercise).then((id) => {
+        activityIdRef.current = id;
+      });
+
+      try {
+        await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: audioUri },
+          { shouldPlay: true },
+          (status) => {
+            setSoundStatus(status);
+
+            // Finished playing
+            if (status?.didJustFinish) {
+              const dur = status.durationMillis ?? 0;
+              trackActivityUpdate(token, activityIdRef.current, "completed", 100, {
+                durationSeconds: Math.round(dur / 1000),
+                totalDurationSeconds: Math.round(dur / 1000),
+              });
+              soundRef.current?.unloadAsync().catch(() => {});
+              soundRef.current = null;
+              setSoundStatus(null);
+              setActiveExercise(null);
+              activityIdRef.current = null;
+            }
+          }
+        );
+
+        soundRef.current = sound;
+      } catch {
+        setActiveExercise(null);
+        activityIdRef.current = null;
+      }
+    },
+    [activeExercise, stopAndUnload, token]
+  );
+
+  const handlePlayPause = useCallback(async () => {
+    if (!soundRef.current) return;
+    const status = await soundRef.current.getStatusAsync().catch(() => null);
+    if (!status?.isLoaded) return;
+
+    if (status.isPlaying) {
+      await soundRef.current.pauseAsync().catch(() => {});
+      const pos = status.positionMillis ?? 0;
+      const dur = status.durationMillis ?? 1;
+      const pct = Math.round((pos / dur) * 100);
+      if (activityIdRef.current) {
+        trackActivityUpdate(token, activityIdRef.current, "in_progress", pct, {
+          totalDurationSeconds: Math.round(dur / 1000),
+        });
+      }
+    } else {
+      await soundRef.current.playAsync().catch(() => {});
+    }
+  }, [token]);
+
+  const handleStop = useCallback(async () => {
+    await stopAndUnload();
+  }, [stopAndUnload]);
+
+  // ── Filtering ───────────────────────────────────────────────────────────────
+
+  const categories = [...new Set(exercises.map((e) => e.category))];
+
+  const filtered = exercises.filter(
+    (e) =>
+      !search ||
+      e.title.toLowerCase().includes(search.toLowerCase()) ||
+      e.category.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const grouped = categories.reduce((acc, cat) => {
+    const items = filtered.filter((e) => e.category === cat);
+    if (items.length > 0) acc[cat] = items;
+    return acc;
+  }, {});
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  if (loading) {
     return (
       <SafeScreen>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1976D2" />
-          <Text style={styles.loadingText}>Discovering calming exercises...</Text>
+          <Text style={styles.loadingText}>Loading Therapy Hub…</Text>
         </View>
       </SafeScreen>
     );
   }
 
-  // Render error message
-  if (error) {
+  if (errorMsg) {
     return (
       <SafeScreen>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={60} color="#e53935" />
-          <Text style={styles.errorText}>{error}</Text>
+          <Ionicons name="warning-outline" size={40} color="#ef9a9a" />
+          <Text style={styles.errorText}>{errorMsg}</Text>
+          <Pressable onPress={loadExercises} style={{ marginTop: 8 }}>
+            <Text style={{ color: "#1976D2", fontWeight: "700" }}>Retry</Text>
+          </Pressable>
         </View>
       </SafeScreen>
     );
   }
-
-  const renderExerciseCard = (item) => {
-    const isCurrent = playingId === item._id;
-    return (
-      <Pressable
-        key={item._id}
-        onPress={() => handlePlayTrack(item)}
-        style={[styles.card, isCurrent && styles.activeCard]}
-      >
-        <View style={styles.cardImageContainer}>
-          {item.thumbnail ? (
-            <Image source={{ uri: item.thumbnail }} style={styles.cardImage} />
-          ) : (
-            <View style={styles.cardImagePlaceholder}>
-              <Ionicons
-                name={item.category === "Relaxation Sessions" ? "leaf-outline" : item.category === "Calm Music" ? "musical-notes-outline" : "water-outline"}
-                size={36}
-                color="#bbdefb"
-              />
-            </View>
-          )}
-          <View style={styles.playIconOverlay}>
-            <Ionicons
-              name={isCurrent && isPlaying ? "pause-circle" : "play-circle"}
-              size={48}
-              color="#ffffff"
-            />
-          </View>
-        </View>
-
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={styles.cardDescription} numberOfLines={2}>
-            {item.description}
-          </Text>
-          
-          <View style={styles.badgesWrapper}>
-            {item.recommendedStressLevels && item.recommendedStressLevels.map((lvl) => {
-              let badgeColor = "#e3f2fd";
-              let textColor = "#1976D2";
-              if (lvl === "Severe" || lvl === "Extremely Severe") {
-                badgeColor = "#ffebee";
-                textColor = "#c62828";
-              } else if (lvl === "Moderate") {
-                badgeColor = "#fff3e0";
-                textColor = "#ef6c00";
-              }
-              return (
-                <View key={lvl} style={[styles.badge, { backgroundColor: badgeColor }]}>
-                  <Text style={[styles.badgeText, { color: textColor }]}>{lvl}</Text>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-      </Pressable>
-    );
-  };
-
-  const progress = duration > 0 ? position / duration : 0;
 
   return (
     <SafeScreen>
       <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Therapy Hub</Text>
-          <Text style={styles.headerSubtitle}>
-            Take a breath, listen to guided sessions, and restore your inner peace.
-          </Text>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            activeExercise && { paddingBottom: 120 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Therapy Hub 🎧</Text>
+            <Text style={styles.headerSubtitle}>
+              Audio sessions to calm your mind, ease anxiety, and restore balance.
+            </Text>
+            {/* Search */}
+            <View style={styles.searchBarContainer}>
+              <Ionicons
+                name="search-outline"
+                size={18}
+                color="#78909c"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search exercises…"
+                placeholderTextColor="#9e9e9e"
+                value={search}
+                onChangeText={setSearch}
+                returnKeyType="search"
+              />
+              {search.length > 0 ? (
+                <Pressable
+                  style={styles.clearButton}
+                  onPress={() => setSearch("")}
+                >
+                  <Ionicons name="close-circle" size={18} color="#78909c" />
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
 
-          {/* Modern Search Bar */}
-          <View style={styles.searchBarContainer}>
-            <Ionicons name="search-outline" size={20} color="#767676" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search exercises, categories, descriptions..."
-              placeholderTextColor="#767676"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              clearButtonMode="while-editing"
-            />
-            {searchQuery.length > 0 && (
-              <Pressable onPress={() => setSearchQuery("")} style={styles.clearButton}>
-                <Ionicons name="close-circle" size={18} color="#767676" />
+          {/* No results */}
+          {Object.keys(grouped).length === 0 ? (
+            <View style={styles.noResultsContainer}>
+              <Ionicons name="search-outline" size={36} color="#90caf9" />
+              <Text style={styles.noResultsText}>No exercises found</Text>
+              <Pressable
+                style={styles.clearSearchBtn}
+                onPress={() => setSearch("")}
+              >
+                <Text style={styles.clearSearchBtnText}>Clear search</Text>
               </Pressable>
-            )}
-          </View>
-        </View>
-
-        {filteredExercises.length === 0 ? (
-          <View style={styles.noResultsContainer}>
-            <Ionicons name="search-outline" size={48} color="#1976D2" style={{ opacity: 0.4 }} />
-            <Text style={styles.noResultsText}>No sessions match "{searchQuery}"</Text>
-            <Pressable onPress={() => setSearchQuery("")} style={styles.clearSearchBtn}>
-              <Text style={styles.clearSearchBtnText}>Clear Search</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            {/* 🌿 Relaxation Sessions */}
-            {relaxationSessions.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>🌿 Relaxation Sessions</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalScrollContent}
-                >
-                  {relaxationSessions.map(renderExerciseCard)}
-                </ScrollView>
-              </View>
-            )}
-
-            {/* 🎵 Calm Music */}
-            {calmMusic.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>🎵 Calm Music</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalScrollContent}
-                >
-                  {calmMusic.map(renderExerciseCard)}
-                </ScrollView>
-              </View>
-            )}
-
-            {/* 🌧 Nature Sounds */}
-            {natureSounds.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>🌧 Nature Sounds</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalScrollContent}
-                >
-                  {natureSounds.map(renderExerciseCard)}
-                </ScrollView>
-              </View>
-            )}
-          </ScrollView>
-        )}
-
-        {/* Bottom Floating Player */}
-        {currentTrack && (
-          <View style={styles.playerBar}>
-            {/* Progress Bar Line */}
-            <View style={styles.progressBarBackground}>
-              <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
             </View>
-
-            <View style={styles.playerContent}>
-              {currentTrack.thumbnail ? (
-                <Image source={{ uri: currentTrack.thumbnail }} style={styles.playerThumbnail} />
-              ) : (
-                <View style={styles.playerThumbnailPlaceholder}>
-                  <Ionicons name="musical-note" size={18} color="#1976D2" />
-                </View>
-              )}
-              
-              <View style={styles.playerInfo}>
-                <Text style={styles.playerTitle} numberOfLines={1}>
-                  {currentTrack.title}
-                </Text>
-                <Text style={styles.playerCategory} numberOfLines={1}>
-                  {currentTrack.category}
-                </Text>
+          ) : (
+            Object.entries(grouped).map(([cat, items]) => (
+              <View key={cat} style={styles.section}>
+                <Text style={styles.sectionTitle}>{cat}</Text>
+                <FlatList
+                  horizontal
+                  data={items}
+                  keyExtractor={(item) => item._id}
+                  renderItem={({ item }) => (
+                    <ExerciseCard
+                      exercise={item}
+                      isActive={activeExercise?._id === item._id}
+                      onPress={() => handleSelectExercise(item)}
+                    />
+                  )}
+                  contentContainerStyle={styles.horizontalScrollContent}
+                  showsHorizontalScrollIndicator={false}
+                />
               </View>
+            ))
+          )}
+        </ScrollView>
 
-              <View style={styles.playerControls}>
-                <Pressable onPress={togglePlayPause} style={styles.playerControlBtn}>
-                  <Ionicons
-                    name={isPlaying ? "pause" : "play"}
-                    size={24}
-                    color="#1976D2"
-                  />
-                </Pressable>
-                
-                <Pressable onPress={stopPlayback} style={styles.playerControlBtn}>
-                  <Ionicons name="close" size={24} color="#555555" />
-                </Pressable>
-              </View>
-            </View>
-          </View>
+        {/* Floating player bar */}
+        {activeExercise && soundStatus && (
+          <PlayerBar
+            exercise={activeExercise}
+            soundStatus={soundStatus}
+            onPlayPause={handlePlayPause}
+            onStop={handleStop}
+          />
         )}
       </View>
     </SafeScreen>

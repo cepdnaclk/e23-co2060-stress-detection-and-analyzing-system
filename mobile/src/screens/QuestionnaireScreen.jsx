@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import SafeScreen from "../../components/SafeScreen";
 import styles from "../../assets/styles/question.styles";
@@ -178,6 +179,39 @@ export default function QuestionnaireScreen() {
   useEffect(() => {
     loadQuestions();
   }, [loadQuestions]);
+
+  /**
+   * When the user leaves the questionnaire screen mid-session (without completing),
+   * save an in_progress activity so the timeline shows the partial attempt.
+   * The cleanup fn runs when the screen loses focus.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        const answeredCount = Object.keys(answers).length;
+        // Only save if they started (answered at least 1 Q) but haven’t finished
+        if (!token || answeredCount === 0 || showResults) return;
+
+        fetch(`${API_URL}/activities`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            activityType: "assessment",
+            title: "DASS-21 Assessment",
+            status: "in_progress",
+            progress: Math.round((answeredCount / 21) * 100),
+            metadata: { answeredCount, lastIndex: currentIndex },
+          }),
+        }).catch(() => {
+          // Silently ignore network errors on cleanup
+        });
+      };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, answers, currentIndex, showResults])
+  );
 
   useEffect(() => {
     if (!showInstructions) return;

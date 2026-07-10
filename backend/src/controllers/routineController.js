@@ -1,4 +1,5 @@
 import Routine from "../models/Routine.js";
+import UserActivity from "../models/UserActivity.js";
 
 function normalizeBlocks(blocks) {
   if (!Array.isArray(blocks)) {
@@ -43,6 +44,15 @@ export const saveRoutine = async (req, res) => {
       user: req.user._id,
       ...payload,
     });
+
+    // Record routine activity for the wellness timeline
+    await UserActivity.create({
+      userId: req.user._id,
+      activityType: "routine",
+      title: routine.title || "Daily Routine",
+      status: "completed",
+      metadata: { totalBlocks: routine.blocks.length, date: routine.date },
+    }).catch((err) => console.error("Activity write failed (routine):", err));
 
     return res.status(201).json({
       message: "Routine saved",

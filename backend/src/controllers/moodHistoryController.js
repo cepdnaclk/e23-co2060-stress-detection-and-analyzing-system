@@ -1,4 +1,5 @@
 import MoodHistory from "../models/MoodHistory.js";
+import UserActivity from "../models/UserActivity.js";
 
 export const createMoodHistoryEntry = async (req, res) => {
     try {
@@ -15,6 +16,15 @@ export const createMoodHistoryEntry = async (req, res) => {
             user: req.user._id,
             mood: nextMood,
             date: nextDate,
+        });
+
+        // Record mood activity for the wellness timeline
+        await UserActivity.create({
+            userId: req.user._id,
+            activityType: "mood",
+            title: "Mood Updated",
+            status: "completed",
+            metadata: { mood: nextMood },
         });
 
         return res.status(201).json({ moodHistory });

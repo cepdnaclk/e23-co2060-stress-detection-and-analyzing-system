@@ -5,6 +5,7 @@ import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } 
 import { Ionicons } from "@expo/vector-icons";
 
 import SafeScreen from "../../components/SafeScreen";
+import WellnessTimeline from "../../components/WellnessTimeline";
 import { API_URL, fetchWithTimeout } from "../../constants/api";
 import { DEFAULT_MOOD, MOODS } from "../../constants/moods";
 import { useAuthStore } from "../../store/authStore";
@@ -445,6 +446,12 @@ export default function MyJourneyScreen() {
             </View>
           </>
         )}
+
+        {/* ── Wellness Journey Timeline (new section) ───────────────────── */}
+        {!loading && !error ? (
+          <WellnessTimeline token={token} />
+        ) : null}
+
       </ScrollView>
     </SafeScreen>
   );
