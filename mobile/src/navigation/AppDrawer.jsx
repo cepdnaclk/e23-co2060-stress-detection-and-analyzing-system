@@ -23,6 +23,8 @@ import VolunteerDoctorsScreen from "../screens/VolunteerDoctorsScreen";
 import DoctorProfileScreen from "../screens/DoctorProfileScreen";
 import MyRequestsScreen from "../screens/MyRequestsScreen";
 import AdminVolunteerDoctorsScreen from "../screens/AdminVolunteerDoctorsScreen";
+import AdminUsersScreen from "../screens/AdminUsersScreen";
+import AdminAnalyticsScreen from "../screens/AdminAnalyticsScreen";
 import { useAuthStore } from "../../store/authStore";
 import styles from "../../assets/styles/appdrawer.styles";
 
@@ -152,6 +154,22 @@ export default function AppDrawer() {
               component={LogoutScreen}
               options={{
                 drawerIcon: ({ focused }) => renderDrawerIcon("log-out-outline", focused),
+              }}
+            />
+            <Drawer.Screen
+              name="Admin Users"
+              component={AdminUsersScreen}
+              options={{
+                title: "User Management",
+                drawerItemStyle: { display: "none" },
+              }}
+            />
+            <Drawer.Screen
+              name="Admin Analytics"
+              component={AdminAnalyticsScreen}
+              options={{
+                title: "Platform Analytics",
+                drawerItemStyle: { display: "none" },
               }}
             />
           </>
