@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import SafeScreen from "../../components/SafeScreen";
+import BubbleBackground from "../../components/BubbleBackground";
 import { API_URL } from "../../constants/api";
 import DonutChart from "../../components/admin/DonutChart";
 import LineTrendChart from "../../components/admin/LineTrendChart";
@@ -228,8 +229,10 @@ export default function AdminDashboardScreen({ navigation }) {
 
   return (
     <SafeScreen>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.page }]} />
+      <BubbleBackground />
       <ScrollView
-        style={[ss.page, { backgroundColor: theme.page }]}
+        style={[ss.page, { backgroundColor: "transparent" }]}
         contentContainerStyle={{ paddingHorizontal: hPad, paddingBottom: 40, gap: 14 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />}
       >

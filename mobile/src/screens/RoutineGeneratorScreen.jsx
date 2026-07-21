@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import styles from "../../assets/styles/routine.styles";
+import BubbleBackground from "../../components/BubbleBackground";
 import { API_URL, fetchWithTimeout } from "../../constants/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -22,6 +23,7 @@ export default function RoutineGeneratorScreen() {
   const [generatedRoutineText, setGeneratedRoutineText] = useState("");
   const [savedRoutines, setSavedRoutines] = useState([]);
   const [showSavedModal, setShowSavedModal] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const { token } = useAuthStore();
 
@@ -189,13 +191,15 @@ export default function RoutineGeneratorScreen() {
 
   return (
     <View style={styles.container}>
+      <BubbleBackground />
       <ImageBackground
         source={require("../../assets/images/routine-generator-reference.png")}
         style={styles.cardBackground}
         imageStyle={styles.cardImage}
         resizeMode="contain"
+        onLoad={() => setImageLoaded(true)}
       >
-        <View style={styles.overlayLayer}>
+        <View style={[styles.overlayLayer, { opacity: imageLoaded ? 1 : 0 }]}>
           <TextInput
             style={styles.input}
             placeholder="Describe your daily tasks to generate a routine..."

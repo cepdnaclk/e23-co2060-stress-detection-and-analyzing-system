@@ -148,6 +148,27 @@ const styles = StyleSheet.create({
     height: 28,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
+  backdropBubbleMidRight: {
+    top: "40%",
+    right: -10,
+    width: 64,
+    height: 64,
+    backgroundColor: "rgba(255, 255, 255, 0.23)",
+  },
+  backdropBubbleMidLeft: {
+    top: "55%",
+    left: -15,
+    width: 80,
+    height: 80,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+  },
+  backdropBubbleMidCenter: {
+    top: "48%",
+    left: "45%",
+    width: 50,
+    height: 50,
+    backgroundColor: "rgba(255, 255, 255, 0.26)",
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
