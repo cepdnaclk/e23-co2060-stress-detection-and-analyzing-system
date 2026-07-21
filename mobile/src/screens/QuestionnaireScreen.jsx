@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import SafeScreen from "../../components/SafeScreen";
+import BubbleBackground from "../../components/BubbleBackground";
 import styles from "../../assets/styles/question.styles";
 import questionnaireBanner from "../../assets/images/questionnaire-banner.png";
 import { API_URL, fetchWithTimeout } from "../../constants/api";
@@ -492,25 +493,7 @@ export default function QuestionnaireScreen() {
   return (
     <SafeScreen>
       <View style={styles.container}>
-        <View pointerEvents="none" style={styles.questionBackdrop}>
-          <View style={styles.backdropLayerA} />
-          <View style={styles.backdropLayerB} />
-          <View style={[styles.backdropColorBlob, styles.backdropColorBlobPink]} />
-          <View style={[styles.backdropColorBlob, styles.backdropColorBlobTeal]} />
-          <View style={[styles.backdropColorBlob, styles.backdropColorBlobGold]} />
-          <View style={[styles.backdropSpark, styles.backdropSparkOne]} />
-          <View style={[styles.backdropSpark, styles.backdropSparkTwo]} />
-          <View style={[styles.backdropSpark, styles.backdropSparkThree]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleTopRight]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleTopLeft]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleUpperMid]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleBottomLeft]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleBottomRight]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleCenter]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleLowerMid]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleTinyTop]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleTinyBottom]} />
-        </View>
+        <BubbleBackground />
 
         {showIntro ? (
           <Pressable

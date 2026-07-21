@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, useColorScheme, useWindowDimensions } from "react-native";
 import SafeScreen from "../../components/SafeScreen";
+import BubbleBackground from "../../components/BubbleBackground";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../../constants/api";
 import { useAuthStore } from "../../store/authStore";
@@ -73,7 +74,9 @@ export default function AdminAnalyticsScreen() {
 
   return (
     <SafeScreen>
-      <View style={[styles.container, { backgroundColor: theme.page }]}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.page }]} />
+      <BubbleBackground />
+      <View style={[styles.container, { backgroundColor: "transparent" }]}>
         <View style={[styles.header, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Platform Analytics</Text>
           <Text style={[styles.headerSub, { color: theme.subText }]}>Comprehensive data overview</Text>

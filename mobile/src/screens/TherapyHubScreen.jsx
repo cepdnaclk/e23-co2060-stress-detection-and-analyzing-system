@@ -25,6 +25,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import SafeScreen from "../../components/SafeScreen";
 import { API_URL, fetchWithTimeout } from "../../constants/api";
 import { useAuthStore } from "../../store/authStore";
+import BubbleBackground from "../../components/BubbleBackground";
 import styles from "../../assets/styles/therapy_hub.styles";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -430,6 +431,7 @@ export default function TherapyHubScreen() {
   return (
     <SafeScreen>
       <View style={styles.container}>
+        <BubbleBackground variant="subtle" />
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
