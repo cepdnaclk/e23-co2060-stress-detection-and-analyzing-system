@@ -180,6 +180,11 @@ export default function QuestionnaireScreen() {
     loadQuestions();
   }, [loadQuestions]);
 
+  const latestProgress = useRef({ answers: {}, currentIndex: 0, showResults: false });
+  useEffect(() => {
+    latestProgress.current = { answers, currentIndex, showResults };
+  }, [answers, currentIndex, showResults]);
+
   /**
    * When the user leaves the questionnaire screen mid-session (without completing),
    * save an in_progress activity so the timeline shows the partial attempt.
@@ -188,9 +193,10 @@ export default function QuestionnaireScreen() {
   useFocusEffect(
     useCallback(() => {
       return () => {
-        const answeredCount = Object.keys(answers).length;
+        const { answers: curAnswers, currentIndex: curIdx, showResults: isFinished } = latestProgress.current;
+        const answeredCount = Object.keys(curAnswers).length;
         // Only save if they started (answered at least 1 Q) but haven’t finished
-        if (!token || answeredCount === 0 || showResults) return;
+        if (!token || answeredCount === 0 || isFinished) return;
 
         fetch(`${API_URL}/activities`, {
           method: "POST",
@@ -203,14 +209,13 @@ export default function QuestionnaireScreen() {
             title: "DASS-21 Assessment",
             status: "in_progress",
             progress: Math.round((answeredCount / 21) * 100),
-            metadata: { answeredCount, lastIndex: currentIndex },
+            metadata: { answeredCount, lastIndex: curIdx },
           }),
         }).catch(() => {
           // Silently ignore network errors on cleanup
         });
       };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, answers, currentIndex, showResults])
+    }, [token])
   );
 
   useEffect(() => {
