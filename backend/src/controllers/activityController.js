@@ -81,8 +81,15 @@ export const getActivities = async (req, res) => {
   try {
     const userId = req.user._id;
 
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    twoWeeksAgo.setHours(0, 0, 0, 0);
+
     const [activities, todaySummary] = await Promise.all([
-      UserActivity.find({ userId }).sort({ createdAt: -1 }).lean(),
+      UserActivity.find({ 
+        userId,
+        updatedAt: { $gte: twoWeeksAgo }
+      }).sort({ updatedAt: -1 }).lean(),
       buildTodaySummary(userId),
     ]);
 
@@ -120,6 +127,23 @@ export const createActivity = async (req, res) => {
 
     if (!activityType || !title) {
       return res.status(400).json({ message: "activityType and title are required" });
+    }
+
+    if (status === "in_progress") {
+      const existing = await UserActivity.findOne({
+        userId,
+        activityType,
+        status: "in_progress"
+      });
+
+      if (existing) {
+        existing.progress = progress ?? existing.progress;
+        existing.metadata = metadata || existing.metadata;
+        existing.title = title;
+        existing.updatedAt = new Date();
+        await existing.save();
+        return res.status(200).json({ activity: existing });
+      }
     }
 
     const activity = await UserActivity.create({
