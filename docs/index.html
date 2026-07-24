@@ -3,146 +3,343 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stress Management Application</title>
+  <title>CareWave — Stress Detection &amp; Analysing System</title>
   <style>
     :root {
-      --bg: #f4f5f7;
+      --bg: #f0f4f9;
       --card: #ffffff;
-      --text: #2f3640;
-      --muted: #616b76;
-      --border: #e5e7eb;
-      --shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
-      --link: #2563eb;
+      --text: #1e2a3b;
+      --muted: #5a6a7e;
+      --border: #dde5ef;
+      --shadow: 0 20px 50px rgba(15, 40, 80, 0.10);
+      --link: #1565C0;
+      --accent: #1976D2;
+      --accent-soft: #e8f0fe;
+      --pill-bg: #eef3fb;
+      --pill-text: #1565C0;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
     }
 
-    a {
-      color: var(--link);
-      text-decoration: none;
-    }
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
     .page {
-      width: min(820px, calc(100% - 24px));
+      width: min(860px, calc(100% - 24px));
       margin: 0 auto;
-      padding: 18px 0 40px;
+      padding: 24px 0 52px;
     }
 
+    /* ── Hero Banner ── */
+    .hero-banner {
+      background: linear-gradient(135deg, #0d47a1 0%, #1976D2 50%, #42a5f5 100%);
+      border-radius: 22px;
+      padding: 0;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(13, 71, 161, 0.28);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .hero-banner::before {
+      content: "";
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+      top: -90px;
+      right: -60px;
+      pointer-events: none;
+    }
+
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+      bottom: -60px;
+      left: -40px;
+      pointer-events: none;
+    }
+
+    .logo-wrap {
+      padding: 40px 20px 10px;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-wrap img {
+      width: 160px;
+      height: 160px;
+      object-fit: contain;
+      border-radius: 32px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.22);
+    }
+
+    .hero-text {
+      text-align: center;
+      padding: 16px 32px 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-text h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .hero-tagline {
+      margin: 0 0 18px;
+      color: rgba(255,255,255,0.80);
+      font-size: 1.05rem;
+      font-style: italic;
+      letter-spacing: 0.01em;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .badge {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.28);
+      color: #ffffff;
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Main card ── */
     .showcase {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 18px;
       box-shadow: var(--shadow);
-      padding: 20px 18px 24px;
+      padding: 28px 26px 32px;
     }
 
-    .title {
-      margin: 0 0 8px;
-      font-size: 1.7rem;
-      line-height: 1.18;
-      letter-spacing: -0.02em;
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .last-edit {
-      margin: 0 0 10px;
+      margin: 0;
       color: var(--muted);
-      font-size: 0.96rem;
+      font-size: 0.88rem;
     }
 
     .translate {
-      display: inline-block;
-      margin: 0 0 16px;
       color: var(--link);
-      font-size: 0.95rem;
-      margin-left: auto;
-      float: right;
+      font-size: 0.88rem;
+      font-weight: 600;
     }
 
-    .section {
-      margin-top: 18px;
+    /* ── Sections ── */
+    .section { margin-top: 26px; }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .section-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      flex-shrink: 0;
     }
 
     .section h2 {
-      margin: 0 0 10px;
+      margin: 0;
       font-size: 1.05rem;
       font-weight: 700;
-    }
-
-    .section h2::before {
-      content: "🌿 ";
-    }
-
-    .section p,
-    .section li {
       color: var(--text);
-      font-size: 1rem;
-      line-height: 1.7;
     }
 
     .section p {
-      margin: 0;
-      padding-left: 22px;
-      max-width: 56ch;
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.97rem;
+      line-height: 1.75;
+      padding-left: 40px;
+      max-width: 72ch;
     }
 
+    .section p:last-child { margin-bottom: 0; }
+
+    /* ── Contributors ── */
     .contrib-list {
       margin: 0;
-      padding-left: 46px;
+      padding-left: 40px;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .link-block {
+    .contrib-list li {
+      font-size: 0.97rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .contrib-list li::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ── Feature grid ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 12px;
+      padding-left: 40px;
+      margin-top: 2px;
+    }
+
+    .feature-card {
+      background: var(--pill-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .feature-card-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0 0 4px;
+    }
+
+    .feature-card-desc {
+      font-size: 0.84rem;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.55;
+    }
+
+    /* ── Tech pills ── */
+    .pill-list {
+      padding-left: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-top: 4px;
-      padding-left: 22px;
+    }
+
+    .pill {
+      background: var(--pill-bg);
+      color: var(--pill-text);
+      border: 1px solid #c3d4f0;
+      border-radius: 100px;
+      padding: 4px 14px;
+      font-size: 0.83rem;
+      font-weight: 600;
+    }
+
+    /* ── Links ── */
+    .link-block {
+      padding-left: 40px;
+      margin-top: 4px;
       word-break: break-word;
       font-weight: 700;
+      font-size: 0.95rem;
     }
 
-    .label {
-      font-weight: 700;
-      color: var(--text);
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0 0;
     }
 
+    /* ── Responsive ── */
     @media (max-width: 640px) {
-      .page {
-        width: min(100% - 16px, 820px);
-      }
-
-      .showcase {
-        padding: 18px 14px 20px;
-      }
-
-      .title {
-        font-size: 1.5rem;
-      }
-
-      .section p {
-        padding-left: 18px;
-      }
-
-      .contrib-list {
-        padding-left: 38px;
-      }
+      .hero-text h1 { font-size: 1.55rem; }
+      .logo-wrap img { width: 120px; height: 120px; }
+      .section p, .feature-grid, .pill-list, .contrib-list, .link-block { padding-left: 20px; }
+      .showcase { padding: 20px 16px 24px; }
     }
   </style>
 </head>
 <body>
   <main class="page">
-    <section class="showcase">
-      <h1 class="title">Stress Management Application</h1>
-      <p class="last-edit">Last Edit: <span id="last-edit-date"></span></p>
-      <a class="translate" href="#">Translate</a>
 
+    <!-- ── Hero Banner ── -->
+    <div class="hero-banner">
+      <div class="logo-wrap">
+        <img src="images/WhatsApp Image 2026-02-13 at 10.29.40 PM.jpeg" alt="CareWave Logo" />
+      </div>
+      <div class="hero-text">
+        <h1>CareWave</h1>
+        <p class="hero-tagline">— Let Calm Flow —</p>
+        <div class="badge-row">
+          <span class="badge">Stress Detection</span>
+          <span class="badge">Mood Tracking</span>
+          <span class="badge">DASS-21 Assessment</span>
+          <span class="badge">AI Routine Generator</span>
+          <span class="badge">Therapy Hub</span>
+          <span class="badge">Doctor Module</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Main Card ── -->
+    <section class="showcase">
+
+      <div class="meta-row">
+        <p class="last-edit">Last updated: <span id="last-edit-date"></span></p>
+        <a class="translate" href="#">Translate</a>
+      </div>
+
+      <!-- Contributors -->
       <section class="section">
-        <h2>Contributors:</h2>
+        <div class="section-head">
+          <div class="section-icon">👥</div>
+          <h2>Contributors</h2>
+        </div>
         <ul class="contrib-list">
           <li>W.G.R.P. Gamage</li>
           <li>W.R.A.D.N. Gunathilake</li>
@@ -151,66 +348,155 @@
         </ul>
       </section>
 
+      <hr class="divider">
+
+      <!-- Introduction -->
       <section class="section">
-        <h2>Introduction</h2>
+        <div class="section-head">
+          <div class="section-icon">📖</div>
+          <h2>Introduction</h2>
+        </div>
         <p>
-          The Stress Management Application is a web and mobile friendly platform designed to help users understand and track stress related indicators in one place. It turns a simple questionnaire into a guided experience that helps users reflect on their current state, receive relaxation methods based on their stress level and move through the app with clarity.
+          CareWave is a cross-platform mobile application built with React Native and Expo, designed to help university students and working professionals detect, track, and manage stress and emotional wellbeing. The app provides a structured, clinically informed workflow that guides users from self-assessment through personalised recommendations and ongoing daily tracking.
         </p>
         <p>
-          Our goal is to make stress awareness easier to access and easier to present. The project combines a practical user flow, a clean interface, and a clear project story so it can support both real users and reviewers who want to understand the problem and the solution quickly.
+          Mental health awareness is a growing concern in academic environments. CareWave bridges the gap between professional clinical tools and everyday accessibility by combining validated psychological assessments, AI-generated personalised wellness routines, daily mood logging, a doctor consultation module, and a therapy resource hub — all within a single, beautifully designed mobile experience.
         </p>
       </section>
 
+      <hr class="divider">
+
+      <!-- Solution -->
       <section class="section">
-        <h2>Solution</h2>
+        <div class="section-head">
+          <div class="section-icon">💡</div>
+          <h2>Solution</h2>
+        </div>
         <p>
-          The solution brings together questionnaire based stress screening, relaxation recommendations matched to different stress levels and daily mood tracking in a single application. Users can sign in, complete assessments, record their mood each day, and view clear trend displays that help them understand how stress changes over time.
+          CareWave solves the problem of fragmented mental health tools by unifying all the key pillars of stress management into one cohesive platform. Rather than switching between separate apps for assessments, journaling, and resource discovery, users experience a seamless loop: assess their current state, receive actionable recommendations, log their daily mood, track their progress over time, and connect with professional support when needed.
         </p>
         <p>
-          By connecting the frontend, backend, and mobile experience, the project creates a simple workflow that is easy to use and easy to expand. The ML based final stress trend display adds a smarter summary of the user’s overall pattern, making the application suitable for demonstrating a real stress monitoring concept while still remaining straightforward for end users.
+          The system is backed by a secure Node.js and Express REST API with a MongoDB database, protected by JWT-based authentication. A Python-based ML service provides intelligent stress trend analysis. The architecture separates concerns cleanly across models, controllers, and routes, making the platform robust, maintainable, and easy to scale.
         </p>
       </section>
 
+      <hr class="divider">
+
+      <!-- Features -->
       <section class="section">
-        <h2>GitHub Repository:</h2>
+        <div class="section-head">
+          <div class="section-icon">✨</div>
+          <h2>Key Features</h2>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <p class="feature-card-title">DASS-21 Assessment</p>
+            <p class="feature-card-desc">A clinically validated 21-question questionnaire that screens for Depression, Anxiety, and Stress. Results are scored and saved to produce a personalised stress profile and historical trend chart.</p>
+          </div>
+          <div class="feature-card">
+            <p class="feature-card-title">Daily Mood Tracker</p>
+            <p class="feature-card-desc">A once-a-day pop-up check-in that prompts the user to log their current emotional state using expressive emojis. Mood data is stored per user and visualised as a 7-day timeline graph on the My Journey screen.</p>
+          </div>
+          <div class="feature-card">
+            <p class="feature-card-title">AI Routine Generator</p>
+            <p class="feature-card-desc">Uses the user's latest stress score to generate a personalised daily wellness routine via a Gemini AI integration. The generated schedule is displayed with time blocks and actionable activity suggestions.</p>
+          </div>
+          <div class="feature-card">
+            <p class="feature-card-title">Therapy Hub</p>
+            <p class="feature-card-desc">A curated resource centre offering guided breathing exercises, mindfulness techniques, stress management articles, and self-help materials categorised by topic and difficulty level.</p>
+          </div>
+          <div class="feature-card">
+            <p class="feature-card-title">My Journey Screen</p>
+            <p class="feature-card-desc">A personal progress dashboard showing the user's Stress Score Curve across all DASS-21 attempts, a 7-day Mood Timeline Graph, and a chronological Wellness Activity Timeline feed.</p>
+          </div>
+          <div class="feature-card">
+            <p class="feature-card-title">Doctor Module</p>
+            <p class="feature-card-desc">Allows registered doctors to view their assigned patients' stress history, mood trends, and questionnaire results. Doctors can add clinical notes and monitor patient progress over time.</p>
+          </div>
+          <div class="feature-card">
+            <p class="feature-card-title">Admin Dashboard</p>
+            <p class="feature-card-desc">A dedicated admin panel for platform management, including user oversight, doctor verification, system analytics, and the ability to manage platform-wide content and configurations.</p>
+          </div>
+          <div class="feature-card">
+            <p class="feature-card-title">Clinical Locator</p>
+            <p class="feature-card-desc">Helps users find nearby mental health clinics, hospitals, and counsellors using location-based search, providing essential support pathways when professional help is required.</p>
+          </div>
+          <div class="feature-card">
+            <p class="feature-card-title">Wellness Timeline</p>
+            <p class="feature-card-desc">A unified activity feed that logs every meaningful action — mood check-ins, completed assessments, routine generations, and therapy sessions — into a single scrollable chronological story.</p>
+          </div>
+          <div class="feature-card">
+            <p class="feature-card-title">Secure Authentication</p>
+            <p class="feature-card-desc">Full user registration, login, and session management powered by JWT tokens, with role-based access control distinguishing patients, doctors, and administrators.</p>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider">
+
+      <!-- Tech Stack -->
+      <section class="section">
+        <div class="section-head">
+          <div class="section-icon">🛠</div>
+          <h2>Technology Stack</h2>
+        </div>
+        <div class="pill-list">
+          <span class="pill">React Native</span>
+          <span class="pill">Expo</span>
+          <span class="pill">Node.js</span>
+          <span class="pill">Express.js</span>
+          <span class="pill">MongoDB</span>
+          <span class="pill">Mongoose</span>
+          <span class="pill">JWT Auth</span>
+          <span class="pill">Python</span>
+          <span class="pill">Gemini AI</span>
+          <span class="pill">React Navigation</span>
+          <span class="pill">Zustand</span>
+          <span class="pill">AsyncStorage</span>
+          <span class="pill">react-native-svg</span>
+        </div>
+      </section>
+
+      <hr class="divider">
+
+      <!-- GitHub Repository -->
+      <section class="section">
+        <div class="section-head">
+          <div class="section-icon">🔗</div>
+          <h2>GitHub Repository</h2>
+        </div>
         <div class="link-block">
           <a href="https://github.com/cepdnaclk/e23-co2060-stress-detection-and-analyzing-system" target="_blank" rel="noreferrer">
-            https://github.com/cepdnaclk/e23-co2060-stress-detection-and-analyzing-system
+            github.com/cepdnaclk/e23-co2060-stress-detection-and-analyzing-system
           </a>
         </div>
       </section>
 
       <section class="section">
-        <h2>Github Page:</h2>
+        <div class="section-head">
+          <div class="section-icon">🌐</div>
+          <h2>GitHub Page</h2>
+        </div>
         <div class="link-block">
           <a href="https://cepdnaclk.github.io/e23-co2060-stress-detection-and-analyzing-system/" target="_blank" rel="noreferrer">
-            https://cepdnaclk.github.io/e23-co2060-stress-detection-and-analyzing-system/
+            cepdnaclk.github.io/e23-co2060-stress-detection-and-analyzing-system
           </a>
         </div>
       </section>
 
     </section>
   </main>
+
   <script>
     (function () {
       var lastEdited = new Date(document.lastModified);
       var output = document.getElementById('last-edit-date');
-
-      if (!output) {
-        return;
-      }
-
-      if (isNaN(lastEdited.getTime())) {
-        output.textContent = 'Unknown';
-        return;
-      }
-
+      if (!output) return;
+      if (isNaN(lastEdited.getTime())) { output.textContent = 'Unknown'; return; }
       output.textContent = lastEdited.toLocaleString('en-US', {
-        month: 'short',
-        day: '2-digit',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
+        month: 'short', day: '2-digit', year: 'numeric',
+        hour: 'numeric', minute: '2-digit',
       });
     }());
   </script>
