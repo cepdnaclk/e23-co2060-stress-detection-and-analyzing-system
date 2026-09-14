@@ -306,6 +306,7 @@ export default function MyJourneyScreen() {
   const [error, setError] = useState(null);
   const [questionnaireHistory, setQuestionnaireHistory] = useState([]);
   const [moodTimeline, setMoodTimeline] = useState([]);
+  const [checkInHistory, setCheckInHistory] = useState([]);
 
   const loadJourneyData = useCallback(async () => {
     if (!token) {
@@ -320,20 +321,29 @@ export default function MyJourneyScreen() {
     setError(null);
 
     try {
-      const response = await fetchWithTimeout(`${API_URL}/journey/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const [journeyRes, checkInRes] = await Promise.all([
+        fetchWithTimeout(`${API_URL}/journey/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetchWithTimeout(`${API_URL}/checkins/history`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      const data = await response.json();
+      const data = await journeyRes.json();
+      
+      let checkInData = [];
+      if (checkInRes.ok) {
+        checkInData = await checkInRes.json();
+      }
 
-      if (!response.ok) {
+      if (!journeyRes.ok) {
         throw new Error(data.message || "Failed to load journey data");
       }
 
       setQuestionnaireHistory(Array.isArray(data.questionnaireHistory) ? data.questionnaireHistory : []);
       setMoodTimeline(Array.isArray(data.moodTimeline) ? data.moodTimeline : []);
+      setCheckInHistory(Array.isArray(checkInData) ? checkInData : []);
     } catch (fetchError) {
       setError(fetchError.message || "Could not load journey data");
     } finally {
@@ -376,6 +386,34 @@ export default function MyJourneyScreen() {
             Track how your stress has changed over time and review the mood you logged across the last 7 days.
           </Text>
         </View>
+
+        {!loading && checkInHistory.length > 0 && (
+          <View style={[styles.section, { backgroundColor: '#f2f8ff', borderRadius: 20, padding: 16 }]}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Dynamic Stress Risk</Text>
+              <Text style={styles.sectionHint}>Past 14 Days</Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View>
+                <Text style={{ fontSize: 14, color: '#5d7994', marginBottom: 4 }}>Risk Level</Text>
+                <Text style={{ fontSize: 22, fontWeight: 'bold', color: checkInHistory[0].riskLevel === 'HIGH' ? '#d97a63' : '#1976D2' }}>
+                  {checkInHistory[0].riskLevel} ({checkInHistory[0].riskScore})
+                </Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={{ fontSize: 14, color: '#5d7994', marginBottom: 4 }}>Trend</Text>
+                <Text style={{ fontSize: 16, fontWeight: 'bold', color: checkInHistory[0].stressTrend === 'INCREASING' ? '#d97a63' : '#2f9e88' }}>
+                  {checkInHistory[0].stressTrend}
+                </Text>
+              </View>
+            </View>
+            {checkInHistory[0].contributingFactors?.length > 0 && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={{ fontSize: 13, color: '#5d7994' }}>Contributing Factors: {checkInHistory[0].contributingFactors.join(', ').replace(/_/g, ' ')}</Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {loading ? (
           <View style={styles.section}>

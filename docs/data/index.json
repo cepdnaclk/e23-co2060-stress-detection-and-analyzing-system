@@ -31,7 +31,11 @@
             "email": "email@eng.pdn.ac.lk"
         }
     ],
-    "tags": ["Web", "Software Systems", "CO2060"],
-    "image":"cover_page.jpg",
-    "thumbnail":"docs/images/WhatsApp Image 2026-02-13 at 10.29.40 PM.jpeg"
+    "tags": [
+        "Web",
+        "Software Systems",
+        "CO2060"
+    ],
+    "image": "cover_page.jpg",
+    "thumbnail": "thumbnail.jpeg"
 }
