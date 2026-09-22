@@ -1,11 +1,45 @@
-﻿import User from "../models/User.js";
+import { execSync } from "child_process";
+import User from "../models/User.js";
 import QuestionnaireResult from "../models/QuestionnaireResult.js";
 import MoodHistory from "../models/MoodHistory.js";
 import Routine from "../models/Routine.js";
 import ConsultationRequest from "../models/ConsultationRequest.js";
+import TherapyHubExercise from "../models/TherapyHubExercise.js";
 
 const SEVERITY_ORDER = ["normal", "mild", "moderate", "severe", "extremely_severe"];
 const MOOD_PALETTE   = ["Happy", "Calm", "Neutral", "Sad", "Stressed", "Anxious"];
+
+const getStorageUsagePercentage = () => {
+  try {
+    if (process.platform === "win32") {
+      const driveLetter = (process.cwd().match(/^[a-zA-Z]:/) || ["C:"])[0].toUpperCase();
+      const output = execSync(`wmic logicaldisk where "DeviceID='${driveLetter}'" get FreeSpace,Size /value`, { encoding: "utf8" });
+      const freeMatch = output.match(/FreeSpace=(\d+)/i);
+      const sizeMatch = output.match(/Size=(\d+)/i);
+      if (freeMatch && sizeMatch) {
+        const free = parseInt(freeMatch[1], 10);
+        const size = parseInt(sizeMatch[1], 10);
+        if (size > 0) {
+          const used = size - free;
+          return Math.round((used / size) * 100);
+        }
+      }
+    } else {
+      const output = execSync("df -k .", { encoding: "utf8" });
+      const lines = output.trim().split("\n");
+      if (lines.length > 1) {
+        const parts = lines[1].replace(/\s+/g, " ").split(" ");
+        const pctCol = parts.find(p => p.includes("%"));
+        if (pctCol) {
+          return parseInt(pctCol.replace("%", ""), 10);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error retrieving storage usage:", err);
+  }
+  return 0;
+};
 
 const startOfDay = (d = new Date()) => { const r = new Date(d); r.setHours(0,0,0,0); return r; };
 const startOfWeek = (d = new Date()) => { const r = startOfDay(d); const day = r.getDay(); r.setDate(r.getDate() - day + (day === 0 ? -6 : 1)); return r; };
@@ -65,6 +99,7 @@ export const getAdminOverview = async (req, res) => {
       newUsersToday, newUsersWeek, newUsersMonth, locatorToday, locatorWeek,
       questionnaireRecent, moodRecent, routineRecent, requestRecent, userRecent,
       stressResults, moodResults, routineResults, requestResults, userResults,
+      totalTherapyExercises, therapyExercises,
     ] = await Promise.all([
       User.countDocuments(),
       QuestionnaireResult.countDocuments(),
@@ -90,6 +125,8 @@ export const getAdminOverview = async (req, res) => {
       Routine.find({ createdAt: { $gte: sYear } }).select("title summary createdAt").lean(),
       ConsultationRequest.find({ requestedAt: { $gte: sYear } }).select("status requestedAt createdAt").lean(),
       User.find({ createdAt: { $gte: sYear } }).select("createdAt").lean(),
+      TherapyHubExercise.countDocuments(),
+      TherapyHubExercise.find({}).select("category").lean(),
     ]);
 
     const stressCounts = countByKey(stressResults, (e) => String(e.stressSeverity || "").toLowerCase());
@@ -109,16 +146,17 @@ export const getAdminOverview = async (req, res) => {
       "12m": mapToSeries(buildSeries("12m"), countByKey(stressResults, aKeyMon)),
     };
 
+    const therapyCategoryCounts = countByKey(therapyExercises, (e) => String(e.category || "").trim());
+    const mostCommonCategory = topEntry(therapyCategoryCounts) || "No data";
+
     const userGrowthTrend = mapToSeries(buildSeries("7d"), countByKey(userResults, (e) => dayKey(new Date(e.createdAt))));
-    const routineTitleCounts   = countByKey(routineResults, (e) => String(e.title || "Routine").trim());
-    const routineSummaryCounts = countByKey(routineResults, (e) => String(e.summary || e.title || "No data").trim());
     const requestStatusCounts  = countByKey(requestResults, (e) => String(e.status || "Pending").trim());
 
     const recentActivity = [
       ...userRecent.map((e) => ({ user: e.username||"Unknown", activity:"New user registered", timestamp: e.createdAt, icon:"person-add-outline" })),
       ...questionnaireRecent.map((e) => ({ user: e.userId?.username||"Unknown", activity:`DASS-21 completed (${String(e.stressSeverity||"normal").replace(/_/g," ")})`, timestamp: e.recordedAt||e.createdAt, icon:"checkbox-outline" })),
       ...moodRecent.map((e) => ({ user: e.user?.username||"Unknown", activity:`Mood recorded: ${e.mood}`, timestamp: e.createdAt, icon:"happy-outline" })),
-      ...routineRecent.map((e) => ({ user: e.user?.username||"Unknown", activity:`Therapy routine: ${e.title||"Routine"}`, timestamp: e.createdAt, icon:"play-circle-outline" })),
+      ...routineRecent.map((e) => ({ user: e.user?.username||"Unknown", activity:`Generated routine: ${e.title||"Routine"}`, timestamp: e.createdAt, icon:"play-circle-outline" })),
       ...requestRecent.map((e) => ({ user: e.userId?.username||"Unknown", activity:`Clinical locator request ${String(e.status||"submitted").toLowerCase()}`, timestamp: e.requestedAt||e.createdAt, icon:"location-outline" })),
     ]
       .filter((item) => item.timestamp)
@@ -132,17 +170,17 @@ export const getAdminOverview = async (req, res) => {
         { title:"Total DASS-21 Assessments",   value: totalAssessments,  delta: assessmentsToday },
         { title:"Assessments Completed Today", value: assessmentsToday,  delta: 0 },
         { title:"Total Mood Entries",          value: totalMoodEntries,  delta: 0 },
-        { title:"Therapy Hub Sessions",        value: totalRoutines,     delta: 0 },
+        { title:"Therapy Hub Sessions",        value: totalTherapyExercises, delta: 0 },
         { title:"Clinical Locator Usage",      value: totalLocatorUsage, delta: 0 },
       ],
       stressDistribution,
       assessmentTrends,
       moodDistribution,
       userGrowth: { today: newUsersToday, week: newUsersWeek, month: newUsersMonth, trend: userGrowthTrend },
-      therapyHub: { totalPlayed: totalRoutines, mostPlayedCategory: topEntry(routineTitleCounts)||"No data", mostPlayedAudio: topEntry(routineSummaryCounts)||"No data", totalListeningSessions: totalRoutines },
+      therapyHub: { totalPlayed: totalTherapyExercises, mostPlayedCategory: mostCommonCategory, mostPlayedAudio: "No data", totalListeningSessions: totalTherapyExercises },
       clinicalLocator: { totalSearches: totalLocatorUsage, searchesToday: locatorToday, searchesThisWeek: locatorWeek, topStatus: topEntry(requestStatusCounts)||"Pending" },
       recentActivity,
-      systemStatus: { api:"healthy", database:"healthy", server:"healthy", storage:0 },
+      systemStatus: { api:"healthy", database:"healthy", server:"healthy", storage: getStorageUsagePercentage() },
       trends: { mostCommonMood: topEntry(moodCounts)||"No data", mostCommonStress: topEntry(stressCounts)||"No data", completedConsultations: totalCompletedConsultations, totalDoctors, totalNotifications },
     });
   } catch (error) {

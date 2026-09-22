@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 
 import SafeScreen from "../../components/SafeScreen";
+import BubbleBackground from "../../components/BubbleBackground";
 import doctorStyles from "../../assets/styles/doctor.styles";
 import { useAuthStore } from "../../store/authStore";
 import { doctorApi } from "../lib/doctorApi";
@@ -76,6 +77,7 @@ export default function MyRequestsScreen() {
 
   return (
     <SafeScreen>
+      <BubbleBackground variant="subtle" />
       <ScrollView contentContainerStyle={doctorStyles.scrollContent}>
         <View style={doctorStyles.heroCard}>
           <Text style={doctorStyles.pageTitle}>My Requests</Text>

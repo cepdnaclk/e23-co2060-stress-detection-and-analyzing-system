@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import SafeScreen from "../../components/SafeScreen";
+import BubbleBackground from "../../components/BubbleBackground";
 import styles from "../../assets/styles/question.styles";
 import questionnaireBanner from "../../assets/images/questionnaire-banner.png";
 import { API_URL, fetchWithTimeout } from "../../constants/api";
@@ -180,6 +181,11 @@ export default function QuestionnaireScreen() {
     loadQuestions();
   }, [loadQuestions]);
 
+  const latestProgress = useRef({ answers: {}, currentIndex: 0, showResults: false });
+  useEffect(() => {
+    latestProgress.current = { answers, currentIndex, showResults };
+  }, [answers, currentIndex, showResults]);
+
   /**
    * When the user leaves the questionnaire screen mid-session (without completing),
    * save an in_progress activity so the timeline shows the partial attempt.
@@ -188,9 +194,10 @@ export default function QuestionnaireScreen() {
   useFocusEffect(
     useCallback(() => {
       return () => {
-        const answeredCount = Object.keys(answers).length;
+        const { answers: curAnswers, currentIndex: curIdx, showResults: isFinished } = latestProgress.current;
+        const answeredCount = Object.keys(curAnswers).length;
         // Only save if they started (answered at least 1 Q) but haven’t finished
-        if (!token || answeredCount === 0 || showResults) return;
+        if (!token || answeredCount === 0 || isFinished) return;
 
         fetch(`${API_URL}/activities`, {
           method: "POST",
@@ -203,14 +210,13 @@ export default function QuestionnaireScreen() {
             title: "DASS-21 Assessment",
             status: "in_progress",
             progress: Math.round((answeredCount / 21) * 100),
-            metadata: { answeredCount, lastIndex: currentIndex },
+            metadata: { answeredCount, lastIndex: curIdx },
           }),
         }).catch(() => {
           // Silently ignore network errors on cleanup
         });
       };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, answers, currentIndex, showResults])
+    }, [token])
   );
 
   useEffect(() => {
@@ -487,25 +493,7 @@ export default function QuestionnaireScreen() {
   return (
     <SafeScreen>
       <View style={styles.container}>
-        <View pointerEvents="none" style={styles.questionBackdrop}>
-          <View style={styles.backdropLayerA} />
-          <View style={styles.backdropLayerB} />
-          <View style={[styles.backdropColorBlob, styles.backdropColorBlobPink]} />
-          <View style={[styles.backdropColorBlob, styles.backdropColorBlobTeal]} />
-          <View style={[styles.backdropColorBlob, styles.backdropColorBlobGold]} />
-          <View style={[styles.backdropSpark, styles.backdropSparkOne]} />
-          <View style={[styles.backdropSpark, styles.backdropSparkTwo]} />
-          <View style={[styles.backdropSpark, styles.backdropSparkThree]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleTopRight]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleTopLeft]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleUpperMid]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleBottomLeft]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleBottomRight]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleCenter]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleLowerMid]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleTinyTop]} />
-          <View style={[styles.backdropBubble, styles.backdropBubbleTinyBottom]} />
-        </View>
+        <BubbleBackground />
 
         {showIntro ? (
           <Pressable

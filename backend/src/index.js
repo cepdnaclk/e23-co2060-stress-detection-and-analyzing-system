@@ -18,6 +18,7 @@ import doctorRoutes from "./routes/doctorRoutes.js";
 import doctorAuthRoutes from "./routes/doctorAuthRoutes.js";
 import therapyHubRoutes from "./routes/therapyHubRoutes.js";
 import activityRoutes from "./routes/activityRoutes.js";
+import dailyCheckInRoutes from "./routes/dailyCheckInRoutes.js";
 
 import { connectDB } from "./lib/db.js";
 import { seedAdminUser } from "./lib/seedAdmin.js";
@@ -49,6 +50,7 @@ app.use("/api/doctors", doctorRoutes);
 app.use("/api/doctor-auth", doctorAuthRoutes);
 app.use("/api/therapy-hub", therapyHubRoutes);
 app.use("/api/activities", activityRoutes);
+app.use("/api/checkins", dailyCheckInRoutes);
 
 app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);

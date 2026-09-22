@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import SafeScreen from "../../components/SafeScreen";
+import BubbleBackground from "../../components/BubbleBackground";
 import doctorStyles from "../../assets/styles/doctor.styles";
 import { useAuthStore } from "../../store/authStore";
 import { doctorApi } from "../lib/doctorApi";
@@ -184,6 +185,7 @@ export default function AdminVolunteerDoctorsScreen() {
 
   return (
     <SafeScreen>
+      <BubbleBackground />
       <ScrollView contentContainerStyle={doctorStyles.scrollContent}>
         <View style={doctorStyles.heroCard}>
           <Text style={doctorStyles.pageTitle}>Volunteer Doctor Management</Text>

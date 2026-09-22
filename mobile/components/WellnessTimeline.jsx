@@ -65,7 +65,7 @@ const groupByDate = (activities) => {
   const buckets = new Map();
 
   for (const act of activities) {
-    const d = new Date(act.createdAt);
+    const d = new Date(act.updatedAt || act.createdAt);
     const dayStart = new Date(d);
     dayStart.setHours(0, 0, 0, 0);
 
@@ -85,7 +85,16 @@ const groupByDate = (activities) => {
     buckets.get(key).items.push(act);
   }
 
-  return [...buckets.values()].sort((a, b) => b.key - a.key);
+  const sortedBuckets = [...buckets.values()].sort((a, b) => b.key - a.key);
+  for (const bucket of sortedBuckets) {
+    bucket.items.sort((a, b) => {
+      const timeA = new Date(a.updatedAt || a.createdAt).getTime();
+      const timeB = new Date(b.updatedAt || b.createdAt).getTime();
+      return timeB - timeA;
+    });
+  }
+  
+  return sortedBuckets;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -189,13 +198,14 @@ function ActivityCard({ item, onResume, isLast }) {
   ];
 
   const renderContent = () => {
-    const { activityType, status, metadata, progress, title, createdAt } = item;
+    const { activityType, status, metadata, progress, title, createdAt, updatedAt } = item;
+    const displayTime = updatedAt || createdAt;
 
     if (activityType === "assessment") {
       if (status === "completed") {
         return (
           <>
-            <Text style={WTS.activityTitle}>✅ {title}</Text>
+            <Text style={WTS.activityTitle}>✅ Completed: {title}</Text>
             {metadata?.stressLevel ? (
               <Text style={WTS.activityMeta}>
                 Stress Level:{" "}
@@ -204,7 +214,7 @@ function ActivityCard({ item, onResume, isLast }) {
                 </Text>
               </Text>
             ) : null}
-            <Text style={WTS.activityTime}>{fmtTime(createdAt)}</Text>
+            <Text style={WTS.activityTime}>{fmtTime(displayTime)}</Text>
           </>
         );
       }
@@ -216,7 +226,7 @@ function ActivityCard({ item, onResume, isLast }) {
             <Text style={WTS.activityMeta}>
               <Text style={WTS.activityMetaHighlight}>{answered}/21</Text> questions answered
             </Text>
-            <Text style={WTS.activityTime}>{fmtTime(createdAt)}</Text>
+            <Text style={WTS.activityTime}>{fmtTime(displayTime)}</Text>
             <Pressable style={WTS.resumeBtn} onPress={() => onResume("Questionnaire")}>
               <Ionicons name="arrow-forward-circle-outline" size={14} color="#1565c0" />
               <Text style={WTS.resumeBtnText}>Continue →</Text>
@@ -239,7 +249,7 @@ function ActivityCard({ item, onResume, isLast }) {
                 Duration: <Text style={WTS.activityMetaHighlight}>{dur}</Text>
               </Text>
             ) : null}
-            <Text style={WTS.activityTime}>{fmtTime(createdAt)}</Text>
+            <Text style={WTS.activityTime}>{fmtTime(displayTime)}</Text>
           </>
         );
       }
@@ -255,7 +265,7 @@ function ActivityCard({ item, onResume, isLast }) {
                 ? `Stopped at ${fmtSeconds(playedSec)} / ${fmtSeconds(totalSec)}`
                 : `${pct}% listened`}
             </Text>
-            <Text style={WTS.activityTime}>{fmtTime(createdAt)}</Text>
+            <Text style={WTS.activityTime}>{fmtTime(displayTime)}</Text>
             <Pressable style={WTS.resumeBtn} onPress={() => onResume("Therapy Hub")}>
               <Ionicons name="play-circle-outline" size={14} color="#1565c0" />
               <Text style={WTS.resumeBtnText}>Resume →</Text>
@@ -279,7 +289,7 @@ function ActivityCard({ item, onResume, isLast }) {
               </Text>
             </Text>
           ) : null}
-          <Text style={WTS.activityTime}>{fmtTime(createdAt)}</Text>
+          <Text style={WTS.activityTime}>{fmtTime(displayTime)}</Text>
         </>
       );
     }
@@ -294,7 +304,7 @@ function ActivityCard({ item, onResume, isLast }) {
               <Text style={WTS.activityMetaHighlight}>{blocks}</Text> activities scheduled
             </Text>
           ) : null}
-          <Text style={WTS.activityTime}>{fmtTime(createdAt)}</Text>
+          <Text style={WTS.activityTime}>{fmtTime(displayTime)}</Text>
         </>
       );
     }
@@ -303,7 +313,7 @@ function ActivityCard({ item, onResume, isLast }) {
     return (
       <>
         <Text style={WTS.activityTitle}>{title}</Text>
-        <Text style={WTS.activityTime}>{fmtTime(createdAt)}</Text>
+        <Text style={WTS.activityTime}>{fmtTime(displayTime)}</Text>
       </>
     );
   };
@@ -322,7 +332,14 @@ function ActivityCard({ item, onResume, isLast }) {
         <View style={[WTS.railDot, { backgroundColor: dotColor(item.status) }]} />
         {!isLast && <View style={WTS.railLine} />}
       </View>
-      <View style={cardStyle}>{renderContent()}</View>
+      <View style={cardStyle}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <View style={{ flex: 1, paddingRight: 8 }}>
+            {renderContent()}
+          </View>
+          <StatusBadge status={item.status} />
+        </View>
+      </View>
     </Animated.View>
   );
 }

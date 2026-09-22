@@ -17,7 +17,7 @@ const notificationSchema = new mongoose.Schema(
     requestId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ConsultationRequest",
-      required: true,
+      required: false, // Made optional for system alerts
       index: true,
     },
     audience: {
@@ -35,6 +35,7 @@ const notificationSchema = new mongoose.Schema(
         "request_completed",
         "request_cancelled",
         "note_added",
+        "stress_alert", // Added for Dynamic Stress Monitoring
       ],
       required: true,
     },

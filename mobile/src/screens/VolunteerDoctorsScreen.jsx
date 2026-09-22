@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import SafeScreen from "../../components/SafeScreen";
+import BubbleBackground from "../../components/BubbleBackground";
 import doctorStyles from "../../assets/styles/doctor.styles";
 import { doctorApi } from "../lib/doctorApi";
 
@@ -106,6 +107,7 @@ export default function VolunteerDoctorsScreen({ navigation }) {
 
   return (
     <SafeScreen>
+      <BubbleBackground variant="subtle" />
       <ScrollView contentContainerStyle={doctorStyles.scrollContent}>
         <View style={doctorStyles.heroCard}>
           <Text style={doctorStyles.pageTitle}>Volunteer Doctors</Text>

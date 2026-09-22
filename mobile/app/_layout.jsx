@@ -1,3 +1,4 @@
+import { NavigationContainer, NavigationIndependentTree } from "@react-navigation/native";
 import { SplashScreen } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import SafeScreen from "../components/SafeScreen";
@@ -41,7 +42,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <SafeScreen>
-        <RootNavigator />
+        <NavigationIndependentTree>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </NavigationIndependentTree>
       </SafeScreen>
       <StatusBar style="dark" />
     </SafeAreaProvider>

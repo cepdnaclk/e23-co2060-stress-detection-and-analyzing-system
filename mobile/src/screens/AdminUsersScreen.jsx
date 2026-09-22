@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TextInput, useColorScheme } from "react-native";
 import SafeScreen from "../../components/SafeScreen";
+import BubbleBackground from "../../components/BubbleBackground";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../../constants/api";
 import { useAuthStore } from "../../store/authStore";
@@ -74,7 +75,9 @@ export default function AdminUsersScreen() {
 
   return (
     <SafeScreen>
-      <View style={[styles.container, { backgroundColor: theme.page }]}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.page }]} />
+      <BubbleBackground />
+      <View style={[styles.container, { backgroundColor: "transparent" }]}>
         <View style={[styles.header, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.headerTitle, { color: theme.text }]}>User Management</Text>
           <Text style={[styles.headerSub, { color: theme.subText }]}>Total Users: {users.length}</Text>

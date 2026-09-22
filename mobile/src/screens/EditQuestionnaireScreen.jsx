@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import SafeScreen from "../../components/SafeScreen";
+import BubbleBackground from "../../components/BubbleBackground";
 import COLORS from "../../constants/colors";
 import { API_URL, fetchWithTimeout } from "../../constants/api";
 import { useAuthStore } from "../../store/authStore";
@@ -112,7 +113,9 @@ export default function EditQuestionnaireScreen() {
 
   return (
     <SafeScreen>
-      <View style={styles.container}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: COLORS.background }]} />
+      <BubbleBackground />
+      <View style={[styles.container, { backgroundColor: "transparent" }]}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Edit Questionnaire</Text>
           <View style={styles.badge}>
