@@ -7,6 +7,7 @@ import { useFonts } from "expo-font";
 import { useAuthStore } from "../store/authStore";
 import { useEffect } from "react";
 
+import { NavigationContainer, NavigationIndependentTree } from "@react-navigation/native";
 import RootNavigator from "../src/navigation/RootNavigator";
 
 SplashScreen.preventAutoHideAsync();
@@ -41,7 +42,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <SafeScreen>
-        <RootNavigator />
+        <NavigationIndependentTree>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </NavigationIndependentTree>
       </SafeScreen>
       <StatusBar style="dark" />
     </SafeAreaProvider>
