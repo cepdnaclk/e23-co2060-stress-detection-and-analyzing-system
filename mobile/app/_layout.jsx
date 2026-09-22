@@ -1,3 +1,4 @@
+import { NavigationContainer, NavigationIndependentTree } from "@react-navigation/native";
 import { SplashScreen } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import SafeScreen from "../components/SafeScreen";

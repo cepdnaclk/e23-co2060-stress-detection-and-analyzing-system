@@ -324,7 +324,7 @@ export default function TherapyHubScreen() {
       });
 
       try {
-        await setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
+        await setAudioModeAsync({ playsInSilentMode: true }).catch(() => { });
 
         const player = createAudioPlayer(audioUri);
         player.addListener("playbackStatusUpdate", (status) => {

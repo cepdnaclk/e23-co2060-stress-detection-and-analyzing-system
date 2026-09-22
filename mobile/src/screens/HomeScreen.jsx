@@ -5,6 +5,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 import SafeScreen from "../../components/SafeScreen";
 import { useAuthStore } from "../../store/authStore";
+import { API_URL } from "../../constants/api";
+import DailyCheckInCard from "../../components/DailyCheckInCard";
 import styles from "../../assets/styles/home.styles";
 
 const QUICK_ACTIONS = [
@@ -186,6 +188,53 @@ export default function HomeScreen() {
   const dailyTip = useMemo(() => pickDailyItem(WELLNESS_TIPS, dateKey, 1), [dateKey]);
   const dailyQuote = useMemo(() => pickDailyItem(MOTIVATIONAL_QUOTES, dateKey, 7), [dateKey]);
   const displayName = user?.username || user?.name || "friend";
+  
+  const [showCheckInModal, setShowCheckInModal] = React.useState(false);
+
+  useEffect(() => {
+    async function checkDailySubmission() {
+      if (!user) return;
+      try {
+        const token = useAuthStore.getState().token;
+        const res = await fetch(`${API_URL}/checkins/today`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (!data.submitted) {
+            setShowCheckInModal(true);
+          }
+        }
+      } catch (err) {
+        console.error("Error checking daily submission", err);
+      }
+    }
+    checkDailySubmission();
+  }, [user]);
+
+  const [systemAlert, setSystemAlert] = React.useState(null);
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      if (!user) return;
+      try {
+        const token = useAuthStore.getState().token;
+        const res = await fetch(`${API_URL}/users/notifications`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const unreadAlert = data.notifications.find(n => n.type === "stress_alert" && !n.isRead);
+          if (unreadAlert) {
+            setSystemAlert(unreadAlert);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching notifications", err);
+      }
+    }
+    fetchNotifications();
+  }, [user]);
 
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const contentLift = useRef(new Animated.Value(18)).current;
@@ -316,6 +365,21 @@ export default function HomeScreen() {
           </Animated.View>
         </Animated.View>
 
+        {systemAlert && (
+          <View style={[styles.tipCard, { backgroundColor: '#fff3ef', borderColor: '#ffc1a1', borderWidth: 1, marginBottom: 20 }]}>
+            <View style={[styles.tipIconWrap, { backgroundColor: '#ffc1a1' }]}>
+              <Ionicons name="warning-outline" size={24} color="#d97a63" />
+            </View>
+            <View style={[styles.cardTextBlock, { flex: 1 }]}>
+              <Text style={[styles.cardKicker, { color: '#d97a63' }]}>{systemAlert.title}</Text>
+              <Text style={styles.tipText}>{systemAlert.message}</Text>
+            </View>
+            <Pressable onPress={() => setSystemAlert(null)} style={{ padding: 4 }}>
+              <Ionicons name="close" size={20} color="#d97a63" />
+            </Pressable>
+          </View>
+        )}
+
         <View style={styles.sectionBlock}>
           <SectionHeading eyebrow="Explore" title="Quick Actions" hint="Tap to continue" />
           <View style={styles.quickGrid}>
@@ -366,6 +430,11 @@ export default function HomeScreen() {
           <Text style={styles.quoteSource}>{dailyQuote?.source}</Text>
         </Animated.View>
       </ScrollView>
+      <DailyCheckInCard
+        visible={showCheckInModal}
+        onClose={() => setShowCheckInModal(false)}
+        onSuccess={() => setShowCheckInModal(false)}
+      />
     </SafeScreen>
   );
 }
