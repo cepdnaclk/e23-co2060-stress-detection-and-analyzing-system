@@ -14,7 +14,7 @@ const therapyHubExerciseSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ["Relaxation Sessions", "Calm Music", "Nature Sounds"],
+      // No enum restriction — categories are managed dynamically by the admin
     },
     audioUrl: {
       type: String,
