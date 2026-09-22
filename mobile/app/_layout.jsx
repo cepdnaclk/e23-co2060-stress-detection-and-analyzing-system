@@ -7,8 +7,6 @@ import { useFonts } from "expo-font";
 
 import { useAuthStore } from "../store/authStore";
 import { useEffect } from "react";
-
-import { NavigationContainer, NavigationIndependentTree } from "@react-navigation/native";
 import RootNavigator from "../src/navigation/RootNavigator";
 
 SplashScreen.preventAutoHideAsync();
