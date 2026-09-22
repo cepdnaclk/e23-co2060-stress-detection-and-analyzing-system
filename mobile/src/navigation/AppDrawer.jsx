@@ -25,6 +25,7 @@ import MyRequestsScreen from "../screens/MyRequestsScreen";
 import AdminVolunteerDoctorsScreen from "../screens/AdminVolunteerDoctorsScreen";
 import AdminUsersScreen from "../screens/AdminUsersScreen";
 import AdminAnalyticsScreen from "../screens/AdminAnalyticsScreen";
+import AdminTherapyHubScreen from "../screens/AdminTherapyHubScreen";
 import { useAuthStore } from "../../store/authStore";
 import styles from "../../assets/styles/appdrawer.styles";
 
@@ -143,10 +144,11 @@ export default function AppDrawer() {
               }}
             />
             <Drawer.Screen
-              name="Therapy Hub"
-              component={TherapyHubScreen}
+              name="Therapy Hub Management"
+              component={AdminTherapyHubScreen}
               options={{
-                drawerIcon: ({ focused }) => renderDrawerIcon("medkit-outline", focused),
+                title: "Therapy Hub",
+                drawerIcon: ({ focused }) => renderDrawerIcon("headset-outline", focused),
               }}
             />
             <Drawer.Screen

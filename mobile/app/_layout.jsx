@@ -7,7 +7,6 @@ import { useFonts } from "expo-font";
 
 import { useAuthStore } from "../store/authStore";
 import { useEffect } from "react";
-
 import RootNavigator from "../src/navigation/RootNavigator";
 
 SplashScreen.preventAutoHideAsync();

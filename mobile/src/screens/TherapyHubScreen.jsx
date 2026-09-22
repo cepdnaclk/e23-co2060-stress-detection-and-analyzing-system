@@ -19,21 +19,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-// import { Audio } from "expo-av";
-// Mocked Audio object to prevent crash in Expo Go SDK 57 where expo-av is removed
-const Audio = {
-  setAudioModeAsync: async () => {},
-  Sound: {
-    createAsync: async () => ({
-      sound: {
-        getStatusAsync: async () => ({ isLoaded: true, isPlaying: false, positionMillis: 0, durationMillis: 100 }),
-        playAsync: async () => {},
-        pauseAsync: async () => {},
-        unloadAsync: async () => {}
-      }
-    })
-  }
-};
+import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import SafeScreen from "../../components/SafeScreen";
@@ -261,7 +247,7 @@ export default function TherapyHubScreen() {
       loadExercises();
       return () => {
         // Pause (don't stop) when navigating away so progress is preserved
-        soundRef.current?.pauseAsync?.().catch(() => {});
+        soundRef.current?.pause?.();
       };
     }, [loadExercises])
   );
@@ -270,7 +256,7 @@ export default function TherapyHubScreen() {
 
   useEffect(() => {
     return () => {
-      soundRef.current?.unloadAsync?.().catch(() => {});
+      soundRef.current?.remove?.();
     };
   }, []);
 
@@ -278,21 +264,19 @@ export default function TherapyHubScreen() {
 
   const stopAndUnload = useCallback(async () => {
     if (soundRef.current) {
-      const status = await soundRef.current.getStatusAsync().catch(() => null);
-      if (status?.isLoaded) {
-        const pos = status.positionMillis ?? 0;
-        const dur = status.durationMillis ?? 1;
-        const pct = Math.round((pos / dur) * 100);
+      const player = soundRef.current;
+      const pos = Math.round((player.currentTime || 0) * 1000);
+      const dur = Math.max(1, Math.round((player.duration || 1) * 1000));
+      const pct = Math.round((pos / dur) * 100);
 
-        // Save paused state
-        if (activityIdRef.current) {
-          await trackActivityUpdate(token, activityIdRef.current, "in_progress", pct, {
-            totalDurationSeconds: Math.round(dur / 1000),
-          });
-        }
-
-        await soundRef.current.unloadAsync().catch(() => {});
+      // Save paused state
+      if (activityIdRef.current) {
+        await trackActivityUpdate(token, activityIdRef.current, "in_progress", pct, {
+          totalDurationSeconds: Math.round(dur / 1000),
+        });
       }
+
+      player.remove?.();
     }
     soundRef.current = null;
     setSoundStatus(null);
@@ -304,22 +288,21 @@ export default function TherapyHubScreen() {
     async (exercise) => {
       // If tapping the currently active exercise → toggle play/pause
       if (activeExercise?._id === exercise._id && soundRef.current) {
-        const status = await soundRef.current.getStatusAsync().catch(() => null);
-        if (status?.isLoaded) {
-          if (status.isPlaying) {
-            await soundRef.current.pauseAsync().catch(() => {});
-            // Update activity to paused state
-            const pos = status.positionMillis ?? 0;
-            const dur = status.durationMillis ?? 1;
-            const pct = Math.round((pos / dur) * 100);
-            if (activityIdRef.current) {
-              await trackActivityUpdate(token, activityIdRef.current, "in_progress", pct, {
-                totalDurationSeconds: Math.round(dur / 1000),
-              });
-            }
-          } else {
-            await soundRef.current.playAsync().catch(() => {});
+        const player = soundRef.current;
+        if (player.playing) {
+          player.pause();
+          const pos = Math.round((player.currentTime || 0) * 1000);
+          const dur = Math.max(1, Math.round((player.duration || 1) * 1000));
+          const pct = Math.round((pos / dur) * 100);
+          if (activityIdRef.current) {
+            await trackActivityUpdate(token, activityIdRef.current, "in_progress", pct, {
+              totalDurationSeconds: Math.round(dur / 1000),
+            });
           }
+          setSoundStatus((prev) => (prev ? { ...prev, isPlaying: false } : null));
+        } else {
+          player.play();
+          setSoundStatus((prev) => (prev ? { ...prev, isPlaying: true } : null));
         }
         return;
       }
@@ -341,31 +324,32 @@ export default function TherapyHubScreen() {
       });
 
       try {
-        await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+        await setAudioModeAsync({ playsInSilentMode: true }).catch(() => { });
 
-        const { sound } = await Audio.Sound.createAsync(
-          { uri: audioUri },
-          { shouldPlay: true },
-          (status) => {
-            setSoundStatus(status);
+        const player = createAudioPlayer(audioUri);
+        player.addListener("playbackStatusUpdate", (status) => {
+          const positionMillis = Math.round((status.currentTime || 0) * 1000);
+          const durationMillis = Math.max(1, Math.round((status.duration || 1) * 1000));
+          const isPlaying = !!status.playing;
+          setSoundStatus({ positionMillis, durationMillis, isPlaying });
 
-            // Finished playing
-            if (status?.didJustFinish) {
-              const dur = status.durationMillis ?? 0;
-              trackActivityUpdate(token, activityIdRef.current, "completed", 100, {
-                durationSeconds: Math.round(dur / 1000),
-                totalDurationSeconds: Math.round(dur / 1000),
-              });
-              soundRef.current?.unloadAsync().catch(() => {});
-              soundRef.current = null;
-              setSoundStatus(null);
-              setActiveExercise(null);
-              activityIdRef.current = null;
-            }
+          // Finished playing
+          if (status.didJustFinish) {
+            const dur = Math.round(status.duration || 0);
+            trackActivityUpdate(token, activityIdRef.current, "completed", 100, {
+              durationSeconds: dur,
+              totalDurationSeconds: dur,
+            });
+            player.remove?.();
+            soundRef.current = null;
+            setSoundStatus(null);
+            setActiveExercise(null);
+            activityIdRef.current = null;
           }
-        );
+        });
 
-        soundRef.current = sound;
+        player.play();
+        soundRef.current = player;
       } catch {
         setActiveExercise(null);
         activityIdRef.current = null;
@@ -376,21 +360,21 @@ export default function TherapyHubScreen() {
 
   const handlePlayPause = useCallback(async () => {
     if (!soundRef.current) return;
-    const status = await soundRef.current.getStatusAsync().catch(() => null);
-    if (!status?.isLoaded) return;
-
-    if (status.isPlaying) {
-      await soundRef.current.pauseAsync().catch(() => {});
-      const pos = status.positionMillis ?? 0;
-      const dur = status.durationMillis ?? 1;
+    const player = soundRef.current;
+    if (player.playing) {
+      player.pause();
+      const pos = Math.round((player.currentTime || 0) * 1000);
+      const dur = Math.max(1, Math.round((player.duration || 1) * 1000));
       const pct = Math.round((pos / dur) * 100);
       if (activityIdRef.current) {
         trackActivityUpdate(token, activityIdRef.current, "in_progress", pct, {
           totalDurationSeconds: Math.round(dur / 1000),
         });
       }
+      setSoundStatus((prev) => (prev ? { ...prev, isPlaying: false } : null));
     } else {
-      await soundRef.current.playAsync().catch(() => {});
+      player.play();
+      setSoundStatus((prev) => (prev ? { ...prev, isPlaying: true } : null));
     }
   }, [token]);
 
