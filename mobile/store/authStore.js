@@ -52,7 +52,18 @@ export const useAuthStore = create((set, get) => ({
         }),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data;
+
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        throw new Error(
+          response.status >= 500
+            ? "The backend server is currently unavailable. Please try again later."
+            : `Unexpected response from the server (${response.status}).`
+        );
+      }
 
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 

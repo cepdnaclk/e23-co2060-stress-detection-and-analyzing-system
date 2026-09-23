@@ -34,11 +34,7 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-    // On success, reset navigation to the App (drawer) stack -> Home
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "App" }],
-    });
+    // RootNavigator switches to the app stack when auth state updates.
   };
 
   if (isCheckingAuth) return null;
