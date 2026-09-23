@@ -70,3 +70,4 @@ jobs:
           app-name: 'carewave-backend'
           slot-name: 'Production'
           package: .
+          startup-command: 'npm install --production && npm start'
