@@ -2,6 +2,8 @@ import TherapyHubExercise from "../models/TherapyHubExercise.js";
 
 export const seedTherapyHubExercises = async () => {
   try {
+    // Always clear existing exercises to ensure updated URLs from this file are applied
+    await TherapyHubExercise.deleteMany({});
     const count = await TherapyHubExercise.countDocuments();
     if (count === 0) {
       console.log("Seeding Therapy Hub Exercises...");
