@@ -42,7 +42,6 @@ jobs:
             !backend/uploads.zip
             !backend/uploads/
             !backend/*.zip
-            !backend/node_modules/
 
   deploy:
     runs-on: ubuntu-latest
