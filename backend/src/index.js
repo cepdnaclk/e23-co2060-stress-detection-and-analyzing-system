@@ -52,9 +52,17 @@ app.use("/api/therapy-hub", therapyHubRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/checkins", dailyCheckInRoutes);
 
-app.listen(PORT, async () => {
-    console.log(`Server is running on port ${PORT}`);
+async function startServer() {
     await connectDB();
     await seedAdminUser();
     await seedTherapyHubExercises();
-});
+
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+startServer().catch((err) => {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+});
