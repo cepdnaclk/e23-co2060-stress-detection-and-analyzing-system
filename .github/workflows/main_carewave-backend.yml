@@ -38,7 +38,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./backend # Tells GitHub to only upload the backend folder content
+          path: |
+            backend/
+            !backend/uploads.zip
+            !backend/uploads/
+            !backend/*.zip
+            !backend/node_modules/
 
   deploy:
     runs-on: ubuntu-latest
