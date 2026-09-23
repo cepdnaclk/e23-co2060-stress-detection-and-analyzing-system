@@ -33,15 +33,16 @@ jobs:
           npm run build --if-present
           npm run test --if-present
 
+      - name: Zip backend directory
+        run: |
+          cd backend
+          zip -r ../backend-deploy.zip . -x "uploads.zip" -x "uploads/*" -x "*.zip"
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            backend/
-            !backend/uploads.zip
-            !backend/uploads/
-            !backend/*.zip
+          path: backend-deploy.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -69,5 +70,4 @@ jobs:
         with:
           app-name: 'carewave-backend'
           slot-name: 'Production'
-          package: .
-          startup-command: 'npm install --production && npm start'
+          package: backend-deploy.zip
