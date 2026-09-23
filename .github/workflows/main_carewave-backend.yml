@@ -1,5 +1,5 @@
-# Docs for the Azure Web Apps Deploy action:
-# https://github.com/Azure/webapps-deploy
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
 
 name: Build and deploy Node.js app to Azure Web App - carewave-backend
 
@@ -12,86 +12,54 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     permissions:
-      contents: read
-
-    defaults:
-      run:
-        working-directory: ./backend
+      contents: read #This is required for actions/checkout
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
         with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
+          node-version: '22.x'
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build application
-        run: npm run build --if-present
-
-      - name: Run tests
-        run: npm test --if-present
-
-      - name: Show backend contents
+      - name: npm install, build, and test
         run: |
-          echo "Current directory:"
-          pwd
-          echo ""
-          echo "Backend size:"
-          du -sh .
-          echo ""
-          echo "Largest folders:"
-          du -sh * | sort -hr | head -20
+          npm install
+          npm run build --if-present
+          npm run test --if-present
 
-      - name: Remove node_modules before packaging
-        run: rm -rf node_modules
-
-      - name: Upload backend artifact
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: backend
-          if-no-files-found: error
+          path: .
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-
     permissions:
-      id-token: write
-      contents: read
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
-      - name: Download artifact
+      - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
-
-      - name: Show downloaded files
-        run: |
-          pwd
-          ls -la
-          du -sh .
-
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_96DF923C99EC481D89DDAB7728BD7204 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B032CBFCB4FE4CF6B3FC7B455A7E314E }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_12BDC776AC23431F83ABFBA565AF3406 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_BA24A4BAAE484F7AAB67C02C3EFDCA35 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_81B5452A023D494C9FF5FCB543064995 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0202506848304A9EB7DBB17F29920443 }}
 
-      - name: Deploy to Azure Web App
-        id: deploy
+      - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: carewave-backend
-          slot-name: Production
+          app-name: 'carewave-backend'
+          slot-name: 'Production'
           package: .
+          
