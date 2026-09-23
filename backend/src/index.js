@@ -19,10 +19,12 @@ import doctorAuthRoutes from "./routes/doctorAuthRoutes.js";
 import therapyHubRoutes from "./routes/therapyHubRoutes.js";
 import activityRoutes from "./routes/activityRoutes.js";
 import dailyCheckInRoutes from "./routes/dailyCheckInRoutes.js";
+import emergencyServicesRoutes from "./routes/emergencyServicesRoutes.js";
 
 import { connectDB } from "./lib/db.js";
 import { seedAdminUser } from "./lib/seedAdmin.js";
 import { seedTherapyHubExercises } from "./lib/seedTherapyHub.js";
+import { seedEmergencyServices } from "./lib/seedEmergencyServices.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,11 +53,13 @@ app.use("/api/doctor-auth", doctorAuthRoutes);
 app.use("/api/therapy-hub", therapyHubRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/checkins", dailyCheckInRoutes);
+app.use("/api/emergency-services", emergencyServicesRoutes);
 
 async function startServer() {
     await connectDB();
     await seedAdminUser();
     await seedTherapyHubExercises();
+    await seedEmergencyServices();
 
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);

@@ -26,6 +26,8 @@ import AdminVolunteerDoctorsScreen from "../screens/AdminVolunteerDoctorsScreen"
 import AdminUsersScreen from "../screens/AdminUsersScreen";
 import AdminAnalyticsScreen from "../screens/AdminAnalyticsScreen";
 import AdminTherapyHubScreen from "../screens/AdminTherapyHubScreen";
+import EmergencyServicesScreen from "../screens/EmergencyServicesScreen";
+import AdminEmergencyServicesScreen from "../screens/AdminEmergencyServicesScreen";
 import { useAuthStore } from "../../store/authStore";
 import styles from "../../assets/styles/appdrawer.styles";
 
@@ -152,6 +154,14 @@ export default function AppDrawer() {
               }}
             />
             <Drawer.Screen
+              name="Admin Emergency Services"
+              component={AdminEmergencyServicesScreen}
+              options={{
+                title: "Emergency Services",
+                drawerIcon: ({ focused }) => renderDrawerIcon("alert-circle-outline", focused),
+              }}
+            />
+            <Drawer.Screen
               name="Logout"
               component={LogoutScreen}
               options={{
@@ -231,6 +241,14 @@ export default function AppDrawer() {
               component={MyRequestsScreen}
               options={{
                 drawerIcon: ({ focused }) => renderDrawerIcon("chatbubble-ellipses-outline", focused),
+              }}
+            />
+            <Drawer.Screen
+              name="Emergency Services"
+              component={EmergencyServicesScreen}
+              options={{
+                title: "Emergency Services",
+                drawerIcon: ({ focused }) => renderDrawerIcon("alert-circle-outline", focused),
               }}
             />
             <Drawer.Screen
