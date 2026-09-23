@@ -35,7 +35,6 @@ jobs:
 
       - name: Zip backend directory
         run: |
-          cd backend
           zip -r ../backend-deploy.zip . -x "uploads.zip" -x "uploads/*" -x "*.zip"
 
       - name: Upload artifact for deployment job
