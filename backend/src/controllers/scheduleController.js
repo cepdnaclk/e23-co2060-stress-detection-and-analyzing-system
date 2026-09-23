@@ -64,6 +64,6 @@ export const parseSchedule = async (req, res) => {
       });
     }
 
-    res.status(500).json({ error: "Processing failed" });
+    res.status(500).json({ error: err?.message || "Processing failed" });
   }
 };

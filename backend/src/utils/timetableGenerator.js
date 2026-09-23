@@ -296,11 +296,42 @@ function buildClientConfig() {
   const provider = (process.env.LLM_PROVIDER || "").toLowerCase();
   const openaiKey = (process.env.OPENAI_API_KEY || "").trim();
   const groqKey = (process.env.GROQ_API_KEY || "").trim();
+  const geminiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "").trim();
+  const openrouterKey = (process.env.OPENROUTER_API_KEY || "").trim();
 
   if (openaiKey && openaiKey.startsWith("AIza")) {
     throw new Error(
-      "OPENAI_API_KEY looks like a Google API key (AIza...). Use an OpenAI key (sk-...) or set LLM_PROVIDER=groq with GROQ_API_KEY (gsk_...)."
+      "OPENAI_API_KEY looks like a Google API key (AIza...). Set GEMINI_API_KEY or LLM_PROVIDER=gemini."
     );
+  }
+
+  // Gemini provider
+  if (provider === "gemini" || (provider === "" && geminiKey)) {
+    const apiKey = geminiKey;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY (or GOOGLE_API_KEY) is not set.");
+    }
+    return {
+      client: new OpenAI({
+        apiKey,
+        baseURL: process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai/"
+      }),
+      model: process.env.GEMINI_MODEL || "gemini-1.5-flash"
+    };
+  }
+
+  // OpenRouter provider
+  if (provider === "openrouter" || (provider === "" && openrouterKey)) {
+    if (!openrouterKey) {
+      throw new Error("OPENROUTER_API_KEY is not set.");
+    }
+    return {
+      client: new OpenAI({
+        apiKey: openrouterKey,
+        baseURL: process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1"
+      }),
+      model: process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-lite-001:free"
+    };
   }
 
   const useGroq =
@@ -320,12 +351,12 @@ function buildClientConfig() {
         apiKey,
         baseURL: process.env.GROQ_BASE_URL || "https://api.groq.com/openai/v1"
       }),
-      model: process.env.GROQ_MODEL || "llama-3.1-8b-instant"
+      model: process.env.GROQ_MODEL || "qwen/qwen3.8-27b"
     };
   }
 
   if (!openaiKey) {
-    throw new Error("OPENAI_API_KEY is not set. Add it to your .env file.");
+    throw new Error("No LLM API key configured. Set GROQ_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY in .env.");
   }
 
   return {
