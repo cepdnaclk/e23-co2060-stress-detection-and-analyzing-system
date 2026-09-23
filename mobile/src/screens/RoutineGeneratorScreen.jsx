@@ -162,13 +162,17 @@ export default function RoutineGeneratorScreen() {
     setIsGenerating(true);
 
     try {
-      const response = await fetchWithTimeout(`${API_URL}/schedule/parse`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchWithTimeout(
+        `${API_URL}/schedule/parse`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: tasks.trim() }),
         },
-        body: JSON.stringify({ text: tasks.trim() }),
-      });
+        25000
+      );
 
       const data = await response.json();
 
