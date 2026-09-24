@@ -1,0 +1,1069 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`HomeScreen Component matches snapshot 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    {
+      "gap": 18,
+      "paddingBottom": 28,
+      "paddingHorizontal": 20,
+      "paddingTop": 18,
+    }
+  }
+  showsVerticalScrollIndicator={false}
+>
+  <View>
+    <View
+      pointerEvents="none"
+      style={{}}
+    >
+      <View
+        style={
+          [
+            {
+              "borderRadius": 999,
+              "opacity": 0.55,
+              "position": "absolute",
+            },
+            {
+              "backgroundColor": "rgba(25, 118, 210, 0.12)",
+              "height": 220,
+              "right": -70,
+              "top": -90,
+              "width": 220,
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          [
+            {
+              "borderRadius": 999,
+              "opacity": 0.55,
+              "position": "absolute",
+            },
+            {
+              "backgroundColor": "rgba(73, 177, 140, 0.12)",
+              "height": 160,
+              "left": -60,
+              "top": 170,
+              "width": 160,
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          [
+            {
+              "borderRadius": 999,
+              "opacity": 0.55,
+              "position": "absolute",
+            },
+            {
+              "backgroundColor": "rgba(143, 101, 235, 0.1)",
+              "bottom": 120,
+              "height": 140,
+              "right": 12,
+              "width": 140,
+            },
+          ]
+        }
+      />
+    </View>
+    <View
+      collapsable={false}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "rgba(255, 255, 255, 0.9)",
+          "borderColor": "#dce9f7",
+          "borderRadius": 28,
+          "borderWidth": 1,
+          "elevation": 4,
+          "flexDirection": "row",
+          "gap": 16,
+          "justifyContent": "space-between",
+          "opacity": 0,
+          "padding": 18,
+          "shadowColor": "#2a6ca7",
+          "shadowOffset": {
+            "height": 10,
+            "width": 0,
+          },
+          "shadowOpacity": 0.12,
+          "shadowRadius": 18,
+          "transform": [
+            {
+              "translateY": 18,
+            },
+          ],
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+            "gap": 6,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#5b83a4",
+              "fontSize": 13,
+              "fontWeight": "700",
+              "letterSpacing": 0.4,
+            }
+          }
+        >
+          Welcome back, 
+          Alex
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#0b3a5a",
+              "fontSize": 30,
+              "fontWeight": "900",
+              "lineHeight": 36,
+            }
+          }
+        >
+          Good Evening 🌙
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#1976D2",
+              "fontSize": 16,
+              "fontWeight": "700",
+            }
+          }
+        >
+          Take a moment for yourself today.
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#4d6a84",
+              "fontSize": 14,
+              "lineHeight": 21,
+              "marginTop": 2,
+            }
+          }
+        >
+          A calmer day can begin with one mindful action.
+        </Text>
+      </View>
+      <View
+        collapsable={false}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "rgba(25, 118, 210, 0.08)",
+            "borderRadius": 37,
+            "height": 74,
+            "justifyContent": "center",
+            "transform": [
+              {
+                "translateY": 0,
+              },
+              {
+                "rotate": "-4deg",
+              },
+            ],
+            "width": 74,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "rgba(255, 255, 255, 0.92)",
+              "borderRadius": 29,
+              "height": 58,
+              "justifyContent": "center",
+              "width": 58,
+            }
+          }
+        >
+          <Text
+            color="#1976D2"
+            name="leaf-outline"
+            size={34}
+          >
+            Icon
+          </Text>
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "gap": 12,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "flex-end",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#5b83a4",
+                "fontSize": 12,
+                "fontWeight": "800",
+                "letterSpacing": 1.1,
+                "textTransform": "uppercase",
+              }
+            }
+          >
+            Explore
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#0b3a5a",
+                "fontSize": 20,
+                "fontWeight": "900",
+              }
+            }
+          >
+            Quick Actions
+          </Text>
+        </View>
+        <Text
+          style={
+            {
+              "color": "#6f86a8",
+              "fontSize": 12,
+              "fontWeight": "700",
+            }
+          }
+        >
+          Tap to continue
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "flexWrap": "wrap",
+            "gap": 14,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <View
+          accessibilityLabel="DASS-21 Assessment"
+          accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            [
+              {
+                "borderColor": "rgba(255,255,255,0.75)",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "elevation": 3,
+                "gap": 10,
+                "minHeight": 162,
+                "overflow": "hidden",
+                "padding": 16,
+                "shadowColor": "#2a6ca7",
+                "shadowOffset": {
+                  "height": 10,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.1,
+                "shadowRadius": 16,
+              },
+              {
+                "backgroundColor": "#eef6ff",
+                "width": 348,
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              [
+                {
+                  "borderRadius": 60,
+                  "height": 120,
+                  "position": "absolute",
+                  "right": -34,
+                  "top": -48,
+                  "width": 120,
+                },
+                {
+                  "backgroundColor": "rgba(25, 118, 210, 0.14)",
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 18,
+                  "height": 46,
+                  "justifyContent": "center",
+                  "width": 46,
+                },
+                {
+                  "backgroundColor": "rgba(25, 118, 210, 0.12)",
+                },
+              ]
+            }
+          >
+            <Text
+              color="#1976D2"
+              name="clipboard-outline"
+              size={24}
+            >
+              Icon
+            </Text>
+          </View>
+          <Text
+            style={
+              {
+                "color": "#0b3a5a",
+                "fontSize": 16,
+                "fontWeight": "900",
+                "lineHeight": 20,
+              }
+            }
+          >
+            DASS-21 Assessment
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#4d6a84",
+                "flex": 1,
+                "fontSize": 12.5,
+                "lineHeight": 18,
+              }
+            }
+          >
+            Check in with your stress, anxiety, and mood.
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#1976D2",
+                  "fontSize": 12,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                }
+              }
+            >
+              Open
+            </Text>
+            <Text
+              color="#1976D2"
+              name="arrow-forward"
+              size={16}
+            >
+              Icon
+            </Text>
+          </View>
+        </View>
+        <View
+          accessibilityLabel="Routine Generator"
+          accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            [
+              {
+                "borderColor": "rgba(255,255,255,0.75)",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "elevation": 3,
+                "gap": 10,
+                "minHeight": 162,
+                "overflow": "hidden",
+                "padding": 16,
+                "shadowColor": "#2a6ca7",
+                "shadowOffset": {
+                  "height": 10,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.1,
+                "shadowRadius": 16,
+              },
+              {
+                "backgroundColor": "#f0fbf7",
+                "width": 348,
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              [
+                {
+                  "borderRadius": 60,
+                  "height": 120,
+                  "position": "absolute",
+                  "right": -34,
+                  "top": -48,
+                  "width": 120,
+                },
+                {
+                  "backgroundColor": "rgba(73, 177, 140, 0.14)",
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 18,
+                  "height": 46,
+                  "justifyContent": "center",
+                  "width": 46,
+                },
+                {
+                  "backgroundColor": "rgba(73, 177, 140, 0.12)",
+                },
+              ]
+            }
+          >
+            <Text
+              color="#2c8d6f"
+              name="calendar-outline"
+              size={24}
+            >
+              Icon
+            </Text>
+          </View>
+          <Text
+            style={
+              {
+                "color": "#0b3a5a",
+                "fontSize": 16,
+                "fontWeight": "900",
+                "lineHeight": 20,
+              }
+            }
+          >
+            Routine Generator
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#4d6a84",
+                "flex": 1,
+                "fontSize": 12.5,
+                "lineHeight": 18,
+              }
+            }
+          >
+            Build a calmer, more balanced day.
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#1976D2",
+                  "fontSize": 12,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                }
+              }
+            >
+              Open
+            </Text>
+            <Text
+              color="#2c8d6f"
+              name="arrow-forward"
+              size={16}
+            >
+              Icon
+            </Text>
+          </View>
+        </View>
+        <View
+          accessibilityLabel="Therapy Hub"
+          accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            [
+              {
+                "borderColor": "rgba(255,255,255,0.75)",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "elevation": 3,
+                "gap": 10,
+                "minHeight": 162,
+                "overflow": "hidden",
+                "padding": 16,
+                "shadowColor": "#2a6ca7",
+                "shadowOffset": {
+                  "height": 10,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.1,
+                "shadowRadius": 16,
+              },
+              {
+                "backgroundColor": "#fff6ee",
+                "width": 348,
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              [
+                {
+                  "borderRadius": 60,
+                  "height": 120,
+                  "position": "absolute",
+                  "right": -34,
+                  "top": -48,
+                  "width": 120,
+                },
+                {
+                  "backgroundColor": "rgba(232, 147, 74, 0.14)",
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 18,
+                  "height": 46,
+                  "justifyContent": "center",
+                  "width": 46,
+                },
+                {
+                  "backgroundColor": "rgba(232, 147, 74, 0.14)",
+                },
+              ]
+            }
+          >
+            <Text
+              color="#d96c18"
+              name="heart-outline"
+              size={24}
+            >
+              Icon
+            </Text>
+          </View>
+          <Text
+            style={
+              {
+                "color": "#0b3a5a",
+                "fontSize": 16,
+                "fontWeight": "900",
+                "lineHeight": 20,
+              }
+            }
+          >
+            Therapy Hub
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#4d6a84",
+                "flex": 1,
+                "fontSize": 12.5,
+                "lineHeight": 18,
+              }
+            }
+          >
+            Explore support tools and wellness resources.
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#1976D2",
+                  "fontSize": 12,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                }
+              }
+            >
+              Open
+            </Text>
+            <Text
+              color="#d96c18"
+              name="arrow-forward"
+              size={16}
+            >
+              Icon
+            </Text>
+          </View>
+        </View>
+        <View
+          accessibilityLabel="Clinical Locator"
+          accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            [
+              {
+                "borderColor": "rgba(255,255,255,0.75)",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "elevation": 3,
+                "gap": 10,
+                "minHeight": 162,
+                "overflow": "hidden",
+                "padding": 16,
+                "shadowColor": "#2a6ca7",
+                "shadowOffset": {
+                  "height": 10,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.1,
+                "shadowRadius": 16,
+              },
+              {
+                "backgroundColor": "#f7f1ff",
+                "width": 348,
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              [
+                {
+                  "borderRadius": 60,
+                  "height": 120,
+                  "position": "absolute",
+                  "right": -34,
+                  "top": -48,
+                  "width": 120,
+                },
+                {
+                  "backgroundColor": "rgba(143, 101, 235, 0.14)",
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 18,
+                  "height": 46,
+                  "justifyContent": "center",
+                  "width": 46,
+                },
+                {
+                  "backgroundColor": "rgba(143, 101, 235, 0.12)",
+                },
+              ]
+            }
+          >
+            <Text
+              color="#7d59de"
+              name="location-outline"
+              size={24}
+            >
+              Icon
+            </Text>
+          </View>
+          <Text
+            style={
+              {
+                "color": "#0b3a5a",
+                "fontSize": 16,
+                "fontWeight": "900",
+                "lineHeight": 20,
+              }
+            }
+          >
+            Clinical Locator
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#4d6a84",
+                "flex": 1,
+                "fontSize": 12.5,
+                "lineHeight": 18,
+              }
+            }
+          >
+            Find nearby care and support when needed.
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#1976D2",
+                  "fontSize": 12,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                }
+              }
+            >
+              Open
+            </Text>
+            <Text
+              color="#7d59de"
+              name="arrow-forward"
+              size={16}
+            >
+              Icon
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+    <View
+      collapsable={false}
+      style={
+        {
+          "alignItems": "flex-start",
+          "backgroundColor": "#eefaf6",
+          "borderColor": "rgba(255,255,255,0.8)",
+          "borderRadius": 26,
+          "borderWidth": 1,
+          "elevation": 3,
+          "flexDirection": "row",
+          "gap": 14,
+          "opacity": 0,
+          "padding": 18,
+          "shadowColor": "#2a6ca7",
+          "shadowOffset": {
+            "height": 8,
+            "width": 0,
+          },
+          "shadowOpacity": 0.09,
+          "shadowRadius": 16,
+          "transform": [
+            {
+              "translateY": 16,
+            },
+          ],
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 18,
+              "height": 52,
+              "justifyContent": "center",
+              "width": 52,
+            },
+            {
+              "backgroundColor": "#2f9e8818",
+            },
+          ]
+        }
+      >
+        <Text
+          color="#2f9e88"
+          name="leaf-outline"
+          size={24}
+        >
+          Icon
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "gap": 6,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#5b83a4",
+              "fontSize": 12,
+              "fontWeight": "800",
+              "letterSpacing": 0.9,
+              "textTransform": "uppercase",
+            }
+          }
+        >
+          Today's Wellness Tip
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#16364d",
+              "fontSize": 18,
+              "fontWeight": "800",
+              "lineHeight": 26,
+            }
+          }
+        >
+          Take a five-minute breathing break.
+        </Text>
+      </View>
+    </View>
+    <View
+      collapsable={false}
+      style={
+        {
+          "backgroundColor": "rgba(255, 255, 255, 0.9)",
+          "borderColor": "#dbe6f3",
+          "borderRadius": 28,
+          "borderWidth": 1,
+          "elevation": 3,
+          "gap": 10,
+          "opacity": 0,
+          "padding": 20,
+          "shadowColor": "#2a6ca7",
+          "shadowOffset": {
+            "height": 10,
+            "width": 0,
+          },
+          "shadowOpacity": 0.08,
+          "shadowRadius": 18,
+          "transform": [
+            {
+              "translateY": 16,
+            },
+          ],
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          color="#6f86a8"
+          name="open-outline"
+          size={20}
+        >
+          Icon
+        </Text>
+        <Text
+          color="#6f86a8"
+          name="close-outline"
+          size={20}
+        >
+          Icon
+        </Text>
+      </View>
+      <Text
+        style={
+          {
+            "color": "#102f46",
+            "fontSize": 19,
+            "fontStyle": "italic",
+            "fontWeight": "800",
+            "lineHeight": 28,
+          }
+        }
+      >
+        Your mental health is just as important as your physical health.
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#6f86a8",
+            "fontSize": 12,
+            "fontWeight": "700",
+          }
+        }
+      >
+        Self-care truth
+      </Text>
+    </View>
+  </View>
+</RCTScrollView>
+`;

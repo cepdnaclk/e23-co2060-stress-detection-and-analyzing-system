@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1790260902009" clover="3.2.0">
+  <project timestamp="1790260902009" name="All files">
+    <metrics statements="138" coveredstatements="106" conditionals="84" coveredconditionals="35" methods="46" coveredmethods="29" elements="268" coveredelements="170" complexity="0" loc="138" ncloc="138" packages="4" files="6" classes="6"/>
+    <package name="assets.styles">
+      <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="home.styles.js" path="D:\CareWave\e23-co2060-stress-detection-and-analyzing-system\mobile\assets\styles\home.styles.js">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="5" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="components">
+      <metrics statements="39" coveredstatements="22" conditionals="32" coveredconditionals="13" methods="16" coveredmethods="5"/>
+      <file name="DailyCheckInCard.jsx" path="D:\CareWave\e23-co2060-stress-detection-and-analyzing-system\mobile\components\DailyCheckInCard.jsx">
+        <metrics statements="37" coveredstatements="20" conditionals="32" coveredconditionals="13" methods="15" coveredmethods="4"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="20" count="13" type="stmt"/>
+        <line num="21" count="13" type="stmt"/>
+        <line num="22" count="13" type="stmt"/>
+        <line num="24" count="13" type="stmt"/>
+        <line num="34" count="13" type="stmt"/>
+        <line num="35" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="36" count="4" type="stmt"/>
+        <line num="37" count="4" type="stmt"/>
+        <line num="48" count="13" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="52" count="13" type="stmt"/>
+        <line num="53" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="56" count="13" type="stmt"/>
+        <line num="57" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="60" count="13" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="72" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="86" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="88" count="8" type="stmt"/>
+        <line num="89" count="16" type="stmt"/>
+        <line num="93" count="80" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="119" count="8" type="cond" truecount="0" falsecount="2"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="142" count="8" type="stmt"/>
+        <line num="215" count="2" type="stmt"/>
+      </file>
+      <file name="SafeScreen.jsx" path="D:\CareWave\e23-co2060-stress-detection-and-analyzing-system\mobile\components\SafeScreen.jsx">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="5" count="4" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="constants">
+      <metrics statements="17" coveredstatements="9" conditionals="12" coveredconditionals="4" methods="3" coveredmethods="1"/>
+      <file name="api.js" path="D:\CareWave\e23-co2060-stress-detection-and-analyzing-system\mobile\constants\api.js">
+        <metrics statements="16" coveredstatements="8" conditionals="12" coveredconditionals="4" methods="3" coveredmethods="1"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="9" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="15" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="16" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+      </file>
+      <file name="colors.js" path="D:\CareWave\e23-co2060-stress-detection-and-analyzing-system\mobile\constants\colors.js">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="34" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.screens">
+      <metrics statements="81" coveredstatements="74" conditionals="40" coveredconditionals="18" methods="27" coveredmethods="23"/>
+      <file name="HomeScreen.jsx" path="D:\CareWave\e23-co2060-stress-detection-and-analyzing-system\mobile\src\screens\HomeScreen.jsx">
+        <metrics statements="81" coveredstatements="74" conditionals="40" coveredconditionals="18" methods="27" coveredmethods="23"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="55" count="1" type="stmt"/>
+        <line num="88" count="1" type="stmt"/>
+        <line num="112" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="113" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="114" count="4" type="stmt"/>
+        <line num="118" count="4" type="stmt"/>
+        <line num="119" count="4" type="stmt"/>
+        <line num="120" count="4" type="stmt"/>
+        <line num="121" count="4" type="stmt"/>
+        <line num="125" count="8" type="stmt"/>
+        <line num="127" count="8" type="stmt"/>
+        <line num="128" count="96" type="stmt"/>
+        <line num="131" count="8" type="stmt"/>
+        <line num="135" count="8" type="cond" truecount="1" falsecount="1"/>
+        <line num="136" count="8" type="stmt"/>
+        <line num="137" count="8" type="stmt"/>
+        <line num="141" count="4" type="stmt"/>
+        <line num="153" count="16" type="stmt"/>
+        <line num="158" count="16" type="stmt"/>
+        <line num="182" count="4" type="stmt"/>
+        <line num="183" count="4" type="stmt"/>
+        <line num="184" count="4" type="stmt"/>
+        <line num="186" count="4" type="stmt"/>
+        <line num="187" count="4" type="stmt"/>
+        <line num="188" count="4" type="stmt"/>
+        <line num="189" count="4" type="stmt"/>
+        <line num="190" count="4" type="cond" truecount="1" falsecount="2"/>
+        <line num="192" count="4" type="stmt"/>
+        <line num="194" count="4" type="stmt"/>
+        <line num="196" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="197" count="4" type="stmt"/>
+        <line num="198" count="4" type="stmt"/>
+        <line num="199" count="4" type="stmt"/>
+        <line num="202" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="203" count="4" type="stmt"/>
+        <line num="204" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="205" count="0" type="stmt"/>
+        <line num="209" count="0" type="stmt"/>
+        <line num="212" count="4" type="stmt"/>
+        <line num="215" count="4" type="stmt"/>
+        <line num="217" count="4" type="stmt"/>
+        <line num="219" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="220" count="4" type="stmt"/>
+        <line num="221" count="4" type="stmt"/>
+        <line num="222" count="4" type="stmt"/>
+        <line num="225" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="226" count="4" type="stmt"/>
+        <line num="227" count="4" type="cond" truecount="0" falsecount="2"/>
+        <line num="228" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="229" count="0" type="stmt"/>
+        <line num="233" count="0" type="stmt"/>
+        <line num="236" count="4" type="stmt"/>
+        <line num="239" count="4" type="stmt"/>
+        <line num="240" count="4" type="stmt"/>
+        <line num="241" count="4" type="stmt"/>
+        <line num="242" count="4" type="stmt"/>
+        <line num="243" count="4" type="stmt"/>
+        <line num="245" count="4" type="stmt"/>
+        <line num="246" count="4" type="stmt"/>
+        <line num="261" count="4" type="stmt"/>
+        <line num="278" count="4" type="stmt"/>
+        <line num="280" count="4" type="stmt"/>
+        <line num="281" count="4" type="stmt"/>
+        <line num="285" count="4" type="stmt"/>
+        <line num="286" count="4" type="stmt"/>
+        <line num="287" count="4" type="stmt"/>
+        <line num="295" count="4" type="stmt"/>
+        <line num="296" count="4" type="stmt"/>
+        <line num="297" count="4" type="stmt"/>
+        <line num="305" count="4" type="stmt"/>
+        <line num="307" count="4" type="stmt"/>
+        <line num="312" count="4" type="stmt"/>
+        <line num="317" count="4" type="stmt"/>
+        <line num="322" count="4" type="stmt"/>
+        <line num="327" count="4" type="stmt"/>
+        <line num="377" count="0" type="stmt"/>
+        <line num="387" count="16" type="stmt"/>
+        <line num="391" count="1" type="stmt"/>
+        <line num="435" count="0" type="stmt"/>
+        <line num="436" count="0" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
