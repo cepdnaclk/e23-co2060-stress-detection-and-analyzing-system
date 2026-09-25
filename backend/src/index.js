@@ -20,6 +20,7 @@ import therapyHubRoutes from "./routes/therapyHubRoutes.js";
 import activityRoutes from "./routes/activityRoutes.js";
 import dailyCheckInRoutes from "./routes/dailyCheckInRoutes.js";
 import emergencyServicesRoutes from "./routes/emergencyServicesRoutes.js";
+import calendarRoutes from "./routes/calendarRoutes.js";
 
 import { connectDB } from "./lib/db.js";
 import { seedAdminUser } from "./lib/seedAdmin.js";
@@ -54,6 +55,7 @@ app.use("/api/therapy-hub", therapyHubRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/checkins", dailyCheckInRoutes);
 app.use("/api/emergency-services", emergencyServicesRoutes);
+app.use("/api/calendar", calendarRoutes);
 
 async function startServer() {
     await connectDB();
@@ -61,7 +63,7 @@ async function startServer() {
     await seedTherapyHubExercises();
     await seedEmergencyServices();
 
-    app.listen(PORT, () => {
+    app.listen(PORT, "0.0.0.0", () => {
         console.log(`Server is running on port ${PORT}`);
     });
 }

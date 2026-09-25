@@ -38,9 +38,9 @@ const LIGHT = {
   border: "#d6e5f3",
   accent: "#1f7ed0",       // blue — general UI accent
   accentSoft: "#e3f2fd",
-  phone: "#c0392b",        // red — only for emergency call button
-  phoneBg: "#fdecea",
-  badge: "#c0392b",        // red — only for primary helpline badge
+  phone: "#429a8a",        // calm pastel teal for call button
+  phoneBg: "#eef9f6",
+  badge: "#50ad9c",        // calm pastel teal for primary helpline badge
   badgeText: "#ffffff",
   headerBg: "#0b5ea8",     // matches AppDrawer header blue
   headerText: "#ffffff",
@@ -58,9 +58,9 @@ const DARK = {
   border: "#25425f",
   accent: "#5ab0ff",
   accentSoft: "#0f2a44",
-  phone: "#ff7070",        // red — only for emergency call button
-  phoneBg: "#3a1515",
-  badge: "#e74c3c",        // red — only for primary helpline badge
+  phone: "#6bd1be",        // calm pastel teal for call button
+  phoneBg: "#13372f",
+  badge: "#5fbfac",        // calm pastel teal for primary helpline badge
   badgeText: "#ffffff",
   headerBg: "#0a2a50",
   headerText: "#eaf2ff",
@@ -131,7 +131,7 @@ function ServiceCard({ service, isFirst, theme }) {
         accessibilityLabel={`Call ${service.contact}`}
         style={({ pressed }) => [
           styles.contactRow,
-          { backgroundColor: pressed ? theme.accentSoft : theme.phoneBg },
+          { backgroundColor: pressed ? theme.accentSoft : 'transparent' },
         ]}
       >
         <View style={[styles.phoneIconWrap, { backgroundColor: theme.phone }]}>

@@ -75,6 +75,14 @@ const questionnaireResultSchema = new mongoose.Schema(
     questionnaireResults: {
         type: [questionnaireResultSchema],
         default: [],
+    },
+    googleRefreshToken: {
+        type: String,
+        default: null,
+    },
+    googleCalendarConnected: {
+        type: Boolean,
+        default: false,
     }
  }, {timestamps:true});
 
