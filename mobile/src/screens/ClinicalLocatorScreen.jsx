@@ -70,7 +70,7 @@ export default function ClinicalLocatorScreen() {
   const mapHtml = useMemo(() => {
     if (!userLocation) return "";
 
-    const clinicsJson = JSON.stringify(clinics);
+    const clinicsJson = JSON.stringify(clinics).replace(/</g, '\\u003c');
     const userLat = userLocation.latitude;
     const userLng = userLocation.longitude;
 
@@ -109,10 +109,9 @@ export default function ClinicalLocatorScreen() {
             zoomControl: false
           });
 
-          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CartoDB &copy; OpenStreetMap',
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19,
-            subdomains: 'abcd'
           }).addTo(map);
 
           // User Location Pin

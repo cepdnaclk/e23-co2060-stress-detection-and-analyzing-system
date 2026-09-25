@@ -19,8 +19,8 @@ function resolveApiHost() {
   return "https://carewave-backend-caapeae6hecqcbbw.centralindia-01.azurewebsites.net/api";
 }
 
-export const API_URL = "https://carewave-backend-caapeae6hecqcbbw.centralindia-01.azurewebsites.net/api";
-// export const API_URL = resolveApiHost();
+// export const API_URL = "https://carewave-backend-caapeae6hecqcbbw.centralindia-01.azurewebsites.net/api";
+export const API_URL = resolveApiHost();
 
 export async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
   const controller = new AbortController();
