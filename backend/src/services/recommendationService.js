@@ -14,11 +14,19 @@ export const getRecommendation = (riskAnalysis) => {
     };
   }
 
-  if (contributingFactors.includes("poor_sleep") || contributingFactors.includes("reduced_sleep")) {
+  if (contributingFactors.includes("reduced_sleep")) {
     return {
       feature: "TherapyHub",
       title: "Sleep Optimization",
-      message: "We noticed you reported less sleep than usual. Try a relaxation exercise in the Therapy Hub before bed.",
+      message: "We noticed you reported less sleep than usual. Try a relaxation exercise in the Therapy Hub before bed to help you get more rest.",
+    };
+  }
+
+  if (contributingFactors.includes("poor_sleep")) {
+    return {
+      feature: "TherapyHub",
+      title: "Sleep Quality",
+      message: "Your sleep quality was lower than ideal. Consider checking the Therapy Hub for guided sleep meditations to improve how you rest.",
     };
   }
 
@@ -27,6 +35,14 @@ export const getRecommendation = (riskAnalysis) => {
       feature: "RoutineGenerator",
       title: "Workload Management",
       message: "Your workload has been high recently. Consider using the Routine Generator to balance your schedule.",
+    };
+  }
+
+  if (contributingFactors.includes("low_physical_activity")) {
+    return {
+      feature: "RoutineGenerator",
+      title: "Physical Activity",
+      message: "We noticed your physical activity is low today. A short 15-minute walk can significantly boost your mood and lower stress.",
     };
   }
 
