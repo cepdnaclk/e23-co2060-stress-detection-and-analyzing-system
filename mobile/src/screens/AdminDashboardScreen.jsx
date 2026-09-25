@@ -136,6 +136,7 @@ export default function AdminDashboardScreen({ navigation }) {
   const scheme   = useColorScheme();
   const { width } = useWindowDimensions();
   const token    = useAuthStore((s) => s.token);
+  const userRole = useAuthStore((s) => s.user?.role);
 
   const [manualDark, setManualDark] = useState(null);
   const [dashboard,  setDashboard]  = useState(null);
@@ -204,6 +205,7 @@ export default function AdminDashboardScreen({ navigation }) {
     if (label === "View Users") { navigation?.navigate("Admin Users"); return; }
     if (label === "View Doctors") { navigation?.navigate("Volunteer Doctor Management"); return; }
     if (label === "View Analytics") { navigation?.navigate("Admin Analytics"); return; }
+    if (label === "Manage Admins") { navigation?.navigate("Admin Management"); return; }
     Alert.alert("Action", `${label} will be available soon.`);
   }, [navigation]);
 
@@ -212,6 +214,7 @@ export default function AdminDashboardScreen({ navigation }) {
     { label:"View Users",             icon:"people-outline" },
     { label:"View Doctors",           icon:"medical-outline" },
     { label:"View Analytics",         icon:"analytics-outline" },
+    ...(userRole === "super_admin" ? [{ label:"Manage Admins", icon:"shield-checkmark-outline" }] : []),
   ];
 
   // ── Skeleton set ──

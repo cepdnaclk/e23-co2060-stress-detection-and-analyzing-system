@@ -114,6 +114,12 @@ export const loginUser = async (req, res) => {
             });
         }
 
+        if (user.status === "inactive") {
+            return res.status(403).json({
+                message: "Account is inactive",
+            });
+        }
+
         // Check password
         const isPasswordCorrect = await user.comparePassword(password);
 

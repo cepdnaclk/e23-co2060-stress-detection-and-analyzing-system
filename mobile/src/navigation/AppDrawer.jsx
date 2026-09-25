@@ -16,14 +16,17 @@ import RoutineGeneratorScreen from "../screens/RoutineGeneratorScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import AdminDashboardScreen from "../screens/AdminDashboardScreen";
 import EditQuestionnaireScreen from "../screens/EditQuestionnaireScreen";
+import MyAppointmentsScreen from "../screens/MyAppointmentsScreen";
 import MoodTrackerPopup from "../../components/MoodTrackerPopup";
 import TherapyHubScreen from "../screens/TherapyHubScreen";
 import MyJourneyScreen from "../screens/MyJourneyScreen";
 import VolunteerDoctorsScreen from "../screens/VolunteerDoctorsScreen";
 import DoctorProfileScreen from "../screens/DoctorProfileScreen";
-import MyRequestsScreen from "../screens/MyRequestsScreen";
+import AppointmentBookingScreen from "../screens/AppointmentBookingScreen";
+
 import AdminVolunteerDoctorsScreen from "../screens/AdminVolunteerDoctorsScreen";
 import AdminUsersScreen from "../screens/AdminUsersScreen";
+import AdminManagementScreen from "../screens/AdminManagementScreen";
 import AdminAnalyticsScreen from "../screens/AdminAnalyticsScreen";
 import AdminTherapyHubScreen from "../screens/AdminTherapyHubScreen";
 import EmergencyServicesScreen from "../screens/EmergencyServicesScreen";
@@ -66,7 +69,8 @@ function CustomDrawerContent(props) {
 export default function AppDrawer() {
   const { user } = useAuthStore();
   const insets = useSafeAreaInsets();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+  const isSuperAdmin = user?.role === "super_admin";
 
   return (
     <>
@@ -184,6 +188,16 @@ export default function AppDrawer() {
                 drawerItemStyle: { display: "none" },
               }}
             />
+            {isSuperAdmin && (
+              <Drawer.Screen
+                name="Admin Management"
+                component={AdminManagementScreen}
+                options={{
+                  title: "Admin Management",
+                  drawerItemStyle: { display: "none" },
+                }}
+              />
+            )}
           </>
         ) : (
           <>
@@ -236,11 +250,12 @@ export default function AppDrawer() {
                 drawerIcon: ({ focused }) => renderDrawerIcon("medical-outline", focused),
               }}
             />
+
             <Drawer.Screen
-              name="My Requests"
-              component={MyRequestsScreen}
+              name="My Appointments"
+              component={MyAppointmentsScreen}
               options={{
-                drawerIcon: ({ focused }) => renderDrawerIcon("chatbubble-ellipses-outline", focused),
+                drawerIcon: ({ focused }) => renderDrawerIcon("calendar-outline", focused),
               }}
             />
             <Drawer.Screen
@@ -273,6 +288,15 @@ export default function AppDrawer() {
               component={DoctorProfileScreen}
               options={{
                 title: "Doctor Profile",
+                drawerItemStyle: { display: "none" },
+                drawerLabel: () => null,
+              }}
+            />
+            <Drawer.Screen
+              name="Appointment Booking"
+              component={AppointmentBookingScreen}
+              options={{
+                title: "Book Appointment",
                 drawerItemStyle: { display: "none" },
                 drawerLabel: () => null,
               }}

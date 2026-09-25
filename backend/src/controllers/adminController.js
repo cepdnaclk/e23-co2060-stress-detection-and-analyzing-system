@@ -7,7 +7,7 @@ import ConsultationRequest from "../models/ConsultationRequest.js";
 import TherapyHubExercise from "../models/TherapyHubExercise.js";
 
 const SEVERITY_ORDER = ["normal", "mild", "moderate", "severe", "extremely_severe"];
-const MOOD_PALETTE   = ["Happy", "Calm", "Neutral", "Sad", "Stressed", "Anxious"];
+const MOOD_PALETTE = ["Happy", "Calm", "Neutral", "Sad", "Stressed", "Anxious"];
 
 const getStorageUsagePercentage = () => {
   try {
@@ -41,15 +41,15 @@ const getStorageUsagePercentage = () => {
   return 0;
 };
 
-const startOfDay = (d = new Date()) => { const r = new Date(d); r.setHours(0,0,0,0); return r; };
+const startOfDay = (d = new Date()) => { const r = new Date(d); r.setHours(0, 0, 0, 0); return r; };
 const startOfWeek = (d = new Date()) => { const r = startOfDay(d); const day = r.getDay(); r.setDate(r.getDate() - day + (day === 0 ? -6 : 1)); return r; };
-const startOfMonth = (d = new Date()) => { const r = new Date(d); r.setHours(0,0,0,0); r.setDate(1); return r; };
-const startOfYear = (d = new Date()) => { const r = new Date(d); r.setHours(0,0,0,0); r.setMonth(0,1); return r; };
-const addDays   = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+const startOfMonth = (d = new Date()) => { const r = new Date(d); r.setHours(0, 0, 0, 0); r.setDate(1); return r; };
+const startOfYear = (d = new Date()) => { const r = new Date(d); r.setHours(0, 0, 0, 0); r.setMonth(0, 1); return r; };
+const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
 const addMonths = (d, n) => { const r = new Date(d); r.setMonth(r.getMonth() + n); return r; };
 
-const dayKey   = (d) => new Intl.DateTimeFormat("en-CA", { year:"numeric", month:"2-digit", day:"2-digit" }).format(d);
-const monthKey = (d) => new Intl.DateTimeFormat("en-CA", { year:"numeric", month:"2-digit" }).format(d);
+const dayKey = (d) => new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+const monthKey = (d) => new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit" }).format(d);
 
 const buildSeries = (range) => {
   const now = new Date();
@@ -64,7 +64,7 @@ const buildSeries = (range) => {
   const base = addDays(startOfDay(now), -(days - 1));
   return Array.from({ length: days }, (_, i) => {
     const d = addDays(base, i);
-    return { key: dayKey(d), label: d.toLocaleDateString("en-US", days === 7 ? { weekday:"short" } : { month:"short", day:"numeric" }) };
+    return { key: dayKey(d), label: d.toLocaleDateString("en-US", days === 7 ? { weekday: "short" } : { month: "short", day: "numeric" }) };
   });
 };
 
@@ -115,11 +115,11 @@ export const getAdminOverview = async (req, res) => {
       User.countDocuments({ createdAt: { $gte: sMonth } }),
       ConsultationRequest.countDocuments({ requestedAt: { $gte: sDay } }),
       ConsultationRequest.countDocuments({ requestedAt: { $gte: sWeek } }),
-      QuestionnaireResult.find({}).sort({ recordedAt:-1, createdAt:-1 }).limit(12).populate("userId","username").select("userId stressSeverity recordedAt createdAt").lean(),
-      MoodHistory.find({}).sort({ createdAt:-1 }).limit(12).populate("user","username").select("user mood createdAt").lean(),
-      Routine.find({}).sort({ createdAt:-1 }).limit(12).populate("user","username").select("user title createdAt").lean(),
-      ConsultationRequest.find({}).sort({ requestedAt:-1, createdAt:-1 }).limit(16).populate("userId","username").select("userId status requestedAt createdAt").lean(),
-      User.find({}).sort({ createdAt:-1 }).limit(16).select("username createdAt").lean(),
+      QuestionnaireResult.find({}).sort({ recordedAt: -1, createdAt: -1 }).limit(12).populate("userId", "username").select("userId stressSeverity recordedAt createdAt").lean(),
+      MoodHistory.find({}).sort({ createdAt: -1 }).limit(12).populate("user", "username").select("user mood createdAt").lean(),
+      Routine.find({}).sort({ createdAt: -1 }).limit(12).populate("user", "username").select("user title createdAt").lean(),
+      ConsultationRequest.find({}).sort({ requestedAt: -1, createdAt: -1 }).limit(16).populate("userId", "username").select("userId status requestedAt createdAt").lean(),
+      User.find({}).sort({ createdAt: -1 }).limit(16).select("username createdAt").lean(),
       QuestionnaireResult.find({ recordedAt: { $gte: sYear } }).select("stressSeverity recordedAt createdAt").lean(),
       MoodHistory.find({ createdAt: { $gte: sYear } }).select("mood createdAt").lean(),
       Routine.find({ createdAt: { $gte: sYear } }).select("title summary createdAt").lean(),
@@ -131,7 +131,7 @@ export const getAdminOverview = async (req, res) => {
 
     const stressCounts = countByKey(stressResults, (e) => String(e.stressSeverity || "").toLowerCase());
     const stressDistribution = SEVERITY_ORDER.map((sev) => ({
-      label: sev.replace(/_/g," ").replace(/\b\w/g,(c)=>c.toUpperCase()),
+      label: sev.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
       value: stressCounts.get(sev) || 0,
     }));
 
@@ -141,7 +141,7 @@ export const getAdminOverview = async (req, res) => {
     const aKeyDay = (e) => dayKey(new Date(e.recordedAt || e.createdAt));
     const aKeyMon = (e) => monthKey(new Date(e.recordedAt || e.createdAt));
     const assessmentTrends = {
-      "7d":  mapToSeries(buildSeries("7d"),  countByKey(stressResults, aKeyDay)),
+      "7d": mapToSeries(buildSeries("7d"), countByKey(stressResults, aKeyDay)),
       "30d": mapToSeries(buildSeries("30d"), countByKey(stressResults, aKeyDay)),
       "12m": mapToSeries(buildSeries("12m"), countByKey(stressResults, aKeyMon)),
     };
@@ -150,14 +150,14 @@ export const getAdminOverview = async (req, res) => {
     const mostCommonCategory = topEntry(therapyCategoryCounts) || "No data";
 
     const userGrowthTrend = mapToSeries(buildSeries("7d"), countByKey(userResults, (e) => dayKey(new Date(e.createdAt))));
-    const requestStatusCounts  = countByKey(requestResults, (e) => String(e.status || "Pending").trim());
+    const requestStatusCounts = countByKey(requestResults, (e) => String(e.status || "Pending").trim());
 
     const recentActivity = [
-      ...userRecent.map((e) => ({ user: e.username||"Unknown", activity:"New user registered", timestamp: e.createdAt, icon:"person-add-outline" })),
-      ...questionnaireRecent.map((e) => ({ user: e.userId?.username||"Unknown", activity:`DASS-21 completed (${String(e.stressSeverity||"normal").replace(/_/g," ")})`, timestamp: e.recordedAt||e.createdAt, icon:"checkbox-outline" })),
-      ...moodRecent.map((e) => ({ user: e.user?.username||"Unknown", activity:`Mood recorded: ${e.mood}`, timestamp: e.createdAt, icon:"happy-outline" })),
-      ...routineRecent.map((e) => ({ user: e.user?.username||"Unknown", activity:`Generated routine: ${e.title||"Routine"}`, timestamp: e.createdAt, icon:"play-circle-outline" })),
-      ...requestRecent.map((e) => ({ user: e.userId?.username||"Unknown", activity:`Clinical locator request ${String(e.status||"submitted").toLowerCase()}`, timestamp: e.requestedAt||e.createdAt, icon:"location-outline" })),
+      ...userRecent.map((e) => ({ user: e.username || "Unknown", activity: "New user registered", timestamp: e.createdAt, icon: "person-add-outline" })),
+      ...questionnaireRecent.map((e) => ({ user: e.userId?.username || "Unknown", activity: `DASS-21 completed (${String(e.stressSeverity || "normal").replace(/_/g, " ")})`, timestamp: e.recordedAt || e.createdAt, icon: "checkbox-outline" })),
+      ...moodRecent.map((e) => ({ user: e.user?.username || "Unknown", activity: `Mood recorded: ${e.mood}`, timestamp: e.createdAt, icon: "happy-outline" })),
+      ...routineRecent.map((e) => ({ user: e.user?.username || "Unknown", activity: `Generated routine: ${e.title || "Routine"}`, timestamp: e.createdAt, icon: "play-circle-outline" })),
+      ...requestRecent.map((e) => ({ user: e.userId?.username || "Unknown", activity: `Clinical locator request ${String(e.status || "submitted").toLowerCase()}`, timestamp: e.requestedAt || e.createdAt, icon: "location-outline" })),
     ]
       .filter((item) => item.timestamp)
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
@@ -166,22 +166,22 @@ export const getAdminOverview = async (req, res) => {
 
     res.status(200).json({
       cards: [
-        { title:"Total Users",                 value: totalUsers,        delta: newUsersMonth },
-        { title:"Total DASS-21 Assessments",   value: totalAssessments,  delta: assessmentsToday },
-        { title:"Assessments Completed Today", value: assessmentsToday,  delta: 0 },
-        { title:"Total Mood Entries",          value: totalMoodEntries,  delta: 0 },
-        { title:"Therapy Hub Sessions",        value: totalTherapyExercises, delta: 0 },
-        { title:"Clinical Locator Usage",      value: totalLocatorUsage, delta: 0 },
+        { title: "Total Users", value: totalUsers, delta: newUsersMonth },
+        { title: "Total DASS-21 Assessments", value: totalAssessments, delta: assessmentsToday },
+        { title: "Assessments Completed Today", value: assessmentsToday, delta: 0 },
+        { title: "Total Mood Entries", value: totalMoodEntries, delta: 0 },
+        { title: "Therapy Hub Sessions", value: totalTherapyExercises, delta: 0 },
+        { title: "Clinical Locator Usage", value: totalLocatorUsage, delta: 0 },
       ],
       stressDistribution,
       assessmentTrends,
       moodDistribution,
       userGrowth: { today: newUsersToday, week: newUsersWeek, month: newUsersMonth, trend: userGrowthTrend },
       therapyHub: { totalPlayed: totalTherapyExercises, mostPlayedCategory: mostCommonCategory, mostPlayedAudio: "No data", totalListeningSessions: totalTherapyExercises },
-      clinicalLocator: { totalSearches: totalLocatorUsage, searchesToday: locatorToday, searchesThisWeek: locatorWeek, topStatus: topEntry(requestStatusCounts)||"Pending" },
+      clinicalLocator: { totalSearches: totalLocatorUsage, searchesToday: locatorToday, searchesThisWeek: locatorWeek, topStatus: topEntry(requestStatusCounts) || "Pending" },
       recentActivity,
-      systemStatus: { api:"healthy", database:"healthy", server:"healthy", storage: getStorageUsagePercentage() },
-      trends: { mostCommonMood: topEntry(moodCounts)||"No data", mostCommonStress: topEntry(stressCounts)||"No data", completedConsultations: totalCompletedConsultations, totalDoctors, totalNotifications },
+      systemStatus: { api: "healthy", database: "healthy", server: "healthy", storage: getStorageUsagePercentage() },
+      trends: { mostCommonMood: topEntry(moodCounts) || "No data", mostCommonStress: topEntry(stressCounts) || "No data", completedConsultations: totalCompletedConsultations, totalDoctors, totalNotifications },
     });
   } catch (error) {
     console.error("Error in getAdminOverview:", error);
@@ -189,6 +189,104 @@ export const getAdminOverview = async (req, res) => {
   }
 };
 
+export const getAdmins = async (req, res) => {
+  try {
+    const admins = await User.find({ role: { $in: ["admin", "super_admin"] } })
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json(admins);
+  } catch (error) {
+    console.error("Error in getAdmins:", error);
+    res.status(500).json({ message: "Internal Server error" });
+  }
+};
+
+export const createAdmin = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "Username, email, and password are required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    if (username.trim().toLowerCase() === "admin") {
+      return res.status(400).json({ message: "Username is reserved" });
+    }
+
+    const existingUsername = await User.findOne({
+      username: { $regex: `^${username}$`, $options: "i" },
+    });
+    if (existingUsername) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    const existingEmail = await User.findOne({
+      email: { $regex: `^${email}$`, $options: "i" },
+    });
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    const profileImage = `https://avatars.dicebear.com/7.x/avataaars/svg?seed=${username}`;
+
+    const adminUser = new User({
+      username,
+      email,
+      password,
+      age: 30,
+      gender: "other",
+      role: "admin",
+      status: "active",
+      createdBy: req.user._id,
+      profileImage,
+    });
+
+    await adminUser.save();
+
+    res.status(201).json({ message: "Admin created successfully" });
+  } catch (error) {
+    console.error("Error in createAdmin:", error);
+    res.status(500).json({ message: "Internal Server error" });
+  }
+};
+
+export const updateAdminStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!["active", "inactive"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const admin = await User.findById(id);
+    if (!admin) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (admin.role === "super_admin") {
+      return res.status(403).json({ message: "Cannot deactivate Super Admin" });
+    }
+
+    if (admin.role !== "admin") {
+      return res.status(400).json({ message: "Can only update status of normal admins" });
+    }
+
+    admin.status = status;
+    await admin.save();
+
+    res.status(200).json({ message: `Admin marked as ${status}` });
+  } catch (error) {
+    console.error("Error in updateAdminStatus:", error);
+    res.status(500).json({ message: "Internal Server error" });
+  }
+};
 export const getAdminUsers = async (req, res) => {
   try {
     const users = await User.find({})

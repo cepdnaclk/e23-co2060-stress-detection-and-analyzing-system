@@ -35,7 +35,10 @@ const notificationSchema = new mongoose.Schema(
         "request_completed",
         "request_cancelled",
         "note_added",
-        "stress_alert", // Added for Dynamic Stress Monitoring
+        "stress_alert",
+        "appointment_requested",
+        "appointment_accepted",
+        "appointment_rejected"
       ],
       required: true,
     },

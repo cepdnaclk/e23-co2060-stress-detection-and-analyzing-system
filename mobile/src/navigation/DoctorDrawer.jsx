@@ -11,7 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 import styles from "../../assets/styles/appdrawer.styles";
 import DoctorDashboardScreen from "../screens/DoctorDashboardScreen";
-import PendingRequestsScreen from "../screens/PendingRequestsScreen";
+
+import DoctorAppointmentsScreen from "../screens/DoctorAppointmentsScreen";
 import CurrentPatientsScreen from "../screens/CurrentPatientsScreen";
 import CompletedConsultationsScreen from "../screens/CompletedConsultationsScreen";
 import DoctorReviewsScreen from "../screens/DoctorReviewsScreen";
@@ -90,18 +91,19 @@ export default function DoctorDrawer() {
         component={DoctorDashboardScreen}
         options={{ drawerIcon: ({ focused }) => renderDrawerIcon("speedometer-outline", focused) }}
       />
-      <Drawer.Screen
-        name="Pending Requests"
-        component={PendingRequestsScreen}
-        options={{ drawerIcon: ({ focused }) => renderDrawerIcon("mail-unread-outline", focused) }}
-      />
+
       <Drawer.Screen
         name="Current Patients"
         component={CurrentPatientsScreen}
         options={{ drawerIcon: ({ focused }) => renderDrawerIcon("people-outline", focused) }}
       />
       <Drawer.Screen
-        name="Completed Consultations"
+        name="Appointments"
+        component={DoctorAppointmentsScreen}
+        options={{ drawerIcon: ({ focused }) => renderDrawerIcon("calendar-outline", focused) }}
+      />
+      <Drawer.Screen
+        name="Completed Appointments"
         component={CompletedConsultationsScreen}
         options={{ drawerIcon: ({ focused }) => renderDrawerIcon("checkmark-done-outline", focused) }}
       />

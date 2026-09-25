@@ -19,13 +19,8 @@ function resolveApiHost() {
   return "https://carewave-backend-caapeae6hecqcbbw.centralindia-01.azurewebsites.net/api";
 }
 
+// export const API_URL = "https://carewave-backend-caapeae6hecqcbbw.centralindia-01.azurewebsites.net/api";
 export const API_URL = resolveApiHost();
-
-// --- LOCAL DEVELOPMENT OVERRIDE ---
-// Points directly to the local machine. Update the IP if your network changes.
-// To restore production/dynamic URL resolution, comment out the line below
-// and uncomment the block above.
-// export const API_URL = "http://192.168.0.2:3000/api";
 
 export async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
   const controller = new AbortController();

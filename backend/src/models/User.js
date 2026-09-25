@@ -49,10 +49,14 @@ const questionnaireResultSchema = new mongoose.Schema(
         required:true,
         unique:true
     },
+    email: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
     age:{
         type:Number,
         required:true,
-        unique:true
     },
     gender:{
         type:String,
@@ -65,8 +69,18 @@ const questionnaireResultSchema = new mongoose.Schema(
     },
     role: {
         type: String,
-        enum: ["user", "admin", "volunteer_doctor"],
+        enum: ["user", "admin", "volunteer_doctor", "super_admin"],
         default: "user",
+    },
+    status: {
+        type: String,
+        enum: ["active", "inactive"],
+        default: "active",
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
     },
     profileImage:{
         type:String,

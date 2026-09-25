@@ -1,5 +1,6 @@
 import * as googleCalendarService from "../services/googleCalendarService.js";
 import User from "../models/User.js";
+import Doctor from "../models/Doctor.js";
 
 export const generateAuthUrlController = async (req, res) => {
   try {
@@ -32,7 +33,17 @@ export const callback = async (req, res) => {
         updateData.googleRefreshToken = tokens.refresh_token;
     }
 
-    await User.findByIdAndUpdate(userId, updateData);
+    const user = await User.findById(userId);
+    if (user) {
+      await User.findByIdAndUpdate(userId, updateData);
+    } else {
+      const doctor = await Doctor.findById(userId);
+      if (doctor) {
+        await Doctor.findByIdAndUpdate(userId, updateData);
+      } else {
+        return res.status(404).send("User/Doctor not found.");
+      }
+    }
 
     // Redirect to app or show success message
     res.send(`
@@ -57,9 +68,12 @@ export const callback = async (req, res) => {
 
 export const getStatus = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
+        let account = await User.findById(req.user._id);
+        if (!account) {
+            account = await Doctor.findById(req.user._id);
+        }
         res.json({
-            connected: user?.googleCalendarConnected || false
+            connected: account?.googleCalendarConnected || false
         });
     } catch (error) {
         console.error("Error checking calendar status:", error);
@@ -69,8 +83,11 @@ export const getStatus = async (req, res) => {
 
 export const createEvent = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
-        if (!user || !user.googleRefreshToken) {
+        let account = await User.findById(req.user._id);
+        if (!account) {
+            account = await Doctor.findById(req.user._id);
+        }
+        if (!account || !account.googleRefreshToken) {
             return res.status(401).json({ error: "Google Calendar not connected" });
         }
         
@@ -79,7 +96,7 @@ export const createEvent = async (req, res) => {
             return res.status(400).json({ error: "Event details are required" });
         }
 
-        const createdEvent = await googleCalendarService.createCalendarEvent(user.googleRefreshToken, eventDetails);
+        const createdEvent = await googleCalendarService.createCalendarEvent(account.googleRefreshToken, eventDetails);
         res.json({ success: true, googleEventId: createdEvent.id, event: createdEvent });
 
     } catch (error) {
@@ -90,8 +107,11 @@ export const createEvent = async (req, res) => {
 
 export const updateEvent = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
-        if (!user || !user.googleRefreshToken) {
+        let account = await User.findById(req.user._id);
+        if (!account) {
+            account = await Doctor.findById(req.user._id);
+        }
+        if (!account || !account.googleRefreshToken) {
             return res.status(401).json({ error: "Google Calendar not connected" });
         }
 
@@ -100,7 +120,7 @@ export const updateEvent = async (req, res) => {
             return res.status(400).json({ error: "Event ID and details are required" });
         }
 
-        const updatedEvent = await googleCalendarService.updateCalendarEvent(user.googleRefreshToken, eventId, eventDetails);
+        const updatedEvent = await googleCalendarService.updateCalendarEvent(account.googleRefreshToken, eventId, eventDetails);
         res.json({ success: true, event: updatedEvent });
 
     } catch (error) {
@@ -111,8 +131,11 @@ export const updateEvent = async (req, res) => {
 
 export const deleteEvent = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
-        if (!user || !user.googleRefreshToken) {
+        let account = await User.findById(req.user._id);
+        if (!account) {
+            account = await Doctor.findById(req.user._id);
+        }
+        if (!account || !account.googleRefreshToken) {
             return res.status(401).json({ error: "Google Calendar not connected" });
         }
 
@@ -121,7 +144,7 @@ export const deleteEvent = async (req, res) => {
             return res.status(400).json({ error: "Event ID is required" });
         }
 
-        await googleCalendarService.deleteCalendarEvent(user.googleRefreshToken, eventId);
+        await googleCalendarService.deleteCalendarEvent(account.googleRefreshToken, eventId);
         res.json({ success: true, message: "Event deleted from Google Calendar" });
 
     } catch (error) {

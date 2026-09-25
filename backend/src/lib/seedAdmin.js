@@ -14,12 +14,12 @@ export const seedAdminUser = async () => {
   });
 
   if (existingAdmin) {
-    if (existingAdmin.role !== "admin") {
-      existingAdmin.role = "admin";
+    if (existingAdmin.role !== "super_admin") {
+      existingAdmin.role = "super_admin";
       await existingAdmin.save();
-      console.log("Admin seed: existing user promoted to admin");
+      console.log("Admin seed: existing user promoted to super admin");
     } else {
-      console.log("Admin seed: admin already exists");
+      console.log("Admin seed: super admin already exists");
     }
 
     return;
@@ -30,7 +30,7 @@ export const seedAdminUser = async () => {
     age: 30,
     gender: "other",
     password: adminPassword,
-    role: "admin",
+    role: "super_admin",
     profileImage: `https://avatars.dicebear.com/7.x/avataaars/svg?seed=${adminUsername}`,
   });
 

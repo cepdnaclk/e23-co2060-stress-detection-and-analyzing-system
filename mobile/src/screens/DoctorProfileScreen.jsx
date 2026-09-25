@@ -55,28 +55,12 @@ export default function DoctorProfileScreen({ route, navigation }) {
     fetchProfile();
   }, [doctorId]);
 
-  const handleRequest = async () => {
-    if (!reason.trim()) {
-      Alert.alert("Missing info", "Please enter a consultation reason");
-      return;
-    }
-
+  const navigateToBooking = () => {
     if (!token) {
-      Alert.alert("Login required", "Please login to request a consultation");
+      Alert.alert("Login required", "Please login to book an appointment");
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      await doctorApi.requestConsultation(doctorId, reason.trim(), token);
-      Alert.alert("Request sent", "Your consultation request was submitted");
-      setReason("");
-      navigation.navigate("My Requests");
-    } catch (error) {
-      Alert.alert("Request failed", error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    navigation.navigate("Appointment Booking", { doctorId, doctorName: doctor.fullName });
   };
 
   if (isLoading || !doctor) {
@@ -149,22 +133,14 @@ export default function DoctorProfileScreen({ route, navigation }) {
         </View>
 
         <View style={doctorStyles.card}>
-          <Text style={doctorStyles.cardTitle}>Request Consultation</Text>
-          <TextInput
-            value={reason}
-            onChangeText={setReason}
-            placeholder="Tell the doctor why you need help"
-            placeholderTextColor="#7a8ea6"
-            multiline
-            style={[doctorStyles.input, doctorStyles.multiLineInput]}
-          />
+          <Text style={doctorStyles.cardTitle}>Book Appointment</Text>
+          <Text style={doctorStyles.cardSubtitle}>Select a date and time that works best for you.</Text>
           <Pressable
-            style={[doctorStyles.button, isSubmitting ? { opacity: 0.7 } : null]}
-            onPress={handleRequest}
-            disabled={isSubmitting}
+            style={doctorStyles.button}
+            onPress={navigateToBooking}
           >
             <Text style={doctorStyles.buttonText}>
-              {isSubmitting ? "Sending..." : "Request Consultation"}
+              View Availability & Book
             </Text>
           </Pressable>
         </View>

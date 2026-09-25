@@ -74,6 +74,16 @@ export const doctorApi = {
     request("/doctors/profile", { method: "PUT", token, body: payload }),
   updateAvailability: (token, availability) =>
     request("/doctors/availability", { method: "PATCH", token, body: { availability } }),
+  getDoctorAvailability: (doctorId) => request(`/doctors/${doctorId}/availability`),
+  getAvailableSlots: (doctorId, date) => request(`/doctors/${doctorId}/available-slots?date=${date}`),
+  createAppointment: (token, payload) => request("/doctors/appointments", { method: "POST", token, body: payload }),
+  getAppointments: (token, status = "") => request(`/doctors/appointments${status ? `?status=${status}` : ""}`, { token }),
+  getUserAppointments: (token) => request("/doctors/appointments/me", { token }),
+  acceptAppointment: (appointmentId, token) => request(`/doctors/appointments/${appointmentId}/accept`, { method: "POST", token }),
+  rejectAppointment: (appointmentId, reason, token) => request(`/doctors/appointments/${appointmentId}/reject`, { method: "POST", token, body: { reason } }),
+  createDoctorAvailability: (token, payload) => request("/doctors/availability", { method: "POST", token, body: payload }),
+  updateDoctorAvailability: (token, availabilityId, payload) => request(`/doctors/availability/${availabilityId}`, { method: "PUT", token, body: payload }),
+  deleteDoctorAvailability: (token, availabilityId) => request(`/doctors/availability/${availabilityId}`, { method: "DELETE", token }),
   getDoctorStatistics: (doctorId, token) => request(`/admin/doctors/${doctorId}/statistics`, { token }),
   getDoctorAdminReviews: (doctorId, token) => request(`/admin/doctors/${doctorId}/reviews`, { token }),
   getAdminDoctors: (token, params = {}) => {
