@@ -41,6 +41,10 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    if (entity.status === "inactive") {
+      return res.status(401).json({ message: "Account is inactive" });
+    }
+
     req.user = entity;
     req.auth = {
       userId: decoded.userId,
@@ -83,7 +87,15 @@ export const optionalAuthenticate = async (req, res, next) => {
 };
 
 export const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== "admin") {
+  if (!req.user || (req.user.role !== "admin" && req.user.role !== "super_admin")) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  next();
+};
+
+export const requireSuperAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "super_admin") {
     return res.status(403).json({ message: "Forbidden" });
   }
 

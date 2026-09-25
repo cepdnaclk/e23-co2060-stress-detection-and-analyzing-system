@@ -26,10 +26,21 @@ import {
   acceptConsultationRequest,
   rejectConsultationRequest,
 } from "../controllers/doctorModuleController.js";
+import {
+  getDoctorAvailability,
+  createDoctorAvailability,
+  updateDoctorAvailability,
+  deleteDoctorAvailability,
+  getAvailableSlots,
+} from "../controllers/availabilityController.js";
+import { createAppointment, getDoctorAppointments, acceptAppointment, rejectAppointment, getUserAppointments } from "../controllers/appointmentController.js";
 
 const router = express.Router();
 
 router.get("/dashboard", authenticate, requireVolunteerDoctor, getDoctorDashboard);
+router.get("/appointments", authenticate, requireVolunteerDoctor, getDoctorAppointments);
+router.post("/appointments/:appointmentId/accept", authenticate, requireVolunteerDoctor, acceptAppointment);
+router.post("/appointments/:appointmentId/reject", authenticate, requireVolunteerDoctor, rejectAppointment);
 router.get("/notifications", authenticate, requireVolunteerDoctor, getDoctorNotifications);
 router.get("/pending-requests", authenticate, requireVolunteerDoctor, getDoctorPendingRequests);
 router.get("/current-patients", authenticate, requireVolunteerDoctor, getDoctorCurrentPatients);
@@ -64,7 +75,16 @@ router.post(
 );
 router.post("/requests/:requestId/notes", authenticate, requireVolunteerDoctor, addConsultationNote);
 
+// Doctor availability routes
+router.get("/:doctorId/availability", getDoctorAvailability); // Public can view, or user can view
+router.get("/:doctorId/available-slots", getAvailableSlots); // Public can view, or user can view
+router.post("/availability", authenticate, requireVolunteerDoctor, createDoctorAvailability);
+router.put("/availability/:id", authenticate, requireVolunteerDoctor, updateDoctorAvailability);
+router.delete("/availability/:id", authenticate, requireVolunteerDoctor, deleteDoctorAvailability);
+
 router.get("/my-requests", authenticate, requireUser, getMyConsultationRequests);
+router.get("/appointments/me", authenticate, requireUser, getUserAppointments);
+router.post("/appointments", authenticate, requireUser, createAppointment);
 router.post("/:doctorId/requests", authenticate, requireUser, createConsultationRequest);
 router.post(
   "/assignments/:assignmentId/rating",

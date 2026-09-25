@@ -171,19 +171,7 @@ export default function CurrentPatientsScreen() {
                   </Pressable>
                 </View>
 
-                <View style={doctorStyles.card}>
-                  <Text style={doctorStyles.cardTitle}>Existing Recommendations</Text>
-                  {patientDetails.recommendations?.length ? (
-                    patientDetails.recommendations.map((recommendation) => (
-                      <View key={recommendation._id} style={doctorStyles.card}>
-                        <Text style={doctorStyles.cardSubtitle}>{recommendation.title}</Text>
-                        <Text style={doctorStyles.cardSubtitle}>{recommendation.summary || recommendation.alertText || "No summary"}</Text>
-                      </View>
-                    ))
-                  ) : (
-                    <Text style={doctorStyles.cardSubtitle}>No recommendations saved.</Text>
-                  )}
-                </View>
+
 
                 <View style={doctorStyles.card}>
                   <Text style={doctorStyles.cardTitle}>Consultation Notes</Text>

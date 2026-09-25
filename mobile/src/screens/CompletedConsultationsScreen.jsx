@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, View, TextInput } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import SafeScreen from "../../components/SafeScreen";
@@ -11,6 +11,7 @@ export default function CompletedConsultationsScreen() {
   const { token } = useAuthStore();
   const [consultations, setConsultations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchCompleted = useCallback(async () => {
     if (!token) return;
@@ -42,20 +43,33 @@ export default function CompletedConsultationsScreen() {
     );
   }
 
+  const filteredConsultations = consultations.filter((c) => {
+    const name = c.userId?.username?.toLowerCase() ?? "";
+    return name.includes(searchQuery.toLowerCase());
+  });
+
   return (
     <SafeScreen>
       <ScrollView contentContainerStyle={doctorStyles.scrollContent}>
         <View style={doctorStyles.heroCard}>
-          <Text style={doctorStyles.pageTitle}>Completed Consultations</Text>
-          <Text style={doctorStyles.pageSubtitle}>Closed patient cases and consultation history.</Text>
+          <Text style={doctorStyles.pageTitle}>Completed Appointments</Text>
+          <Text style={doctorStyles.pageSubtitle}>Closed patient cases and appointment history.</Text>
         </View>
 
-        {consultations.length === 0 ? (
+        <TextInput
+          style={doctorStyles.input}
+          placeholder="Search patient by name..."
+          placeholderTextColor="#7a8ea6"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+
+        {filteredConsultations.length === 0 ? (
           <View style={doctorStyles.card}>
-            <Text style={doctorStyles.emptyTitle}>No completed consultations</Text>
+            <Text style={doctorStyles.emptyTitle}>No completed appointments found</Text>
           </View>
         ) : (
-          consultations.map((consultation) => (
+          filteredConsultations.map((consultation) => (
             <View key={consultation._id} style={doctorStyles.card}>
               <Text style={doctorStyles.cardTitle}>{consultation.userId?.username ?? "User"}</Text>
               <Text style={doctorStyles.cardSubtitle}>Reason: {consultation.requestId?.reason}</Text>

@@ -5,28 +5,22 @@ function resolveApiHost() {
   const explicitUrl = process.env.EXPO_PUBLIC_API_URL;
   if (explicitUrl) return explicitUrl.replace(/\/$/, "");
 
-  // const hostUri = Constants.expoConfig?.hostUri;
-  // if (hostUri) {
-  //   const hostMatch = hostUri.match(/^(?:[a-z]+:\/\/)?([^:/]+)/i);
-  //   if (hostMatch?.[1]) return `http://${hostMatch[1]}:3000/api`;
-  // }
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    const hostMatch = hostUri.match(/^(?:[a-z]+:\/\/)?([^:/]+)/i);
+    if (hostMatch?.[1]) return `http://${hostMatch[1]}:3000/api`;
+  }
 
-  // Fallback to localhost during development, and Azure URL for production
-  // if (__DEV__) {
-  //   const fallback = Platform.OS === "android" ? "10.0.2.2" : "localhost";
-  //   return `http://${fallback}:3000/api`;
-  // }
+  if (__DEV__) {
+    const fallback = Platform.OS === "android" ? "10.0.2.2" : "localhost";
+    return `http://${fallback}:3000/api`;
+  }
 
   return "https://carewave-backend-caapeae6hecqcbbw.centralindia-01.azurewebsites.net/api";
 }
 
+export const API_URL = "https://carewave-backend-caapeae6hecqcbbw.centralindia-01.azurewebsites.net/api";
 // export const API_URL = resolveApiHost();
-
-// --- LOCAL DEVELOPMENT OVERRIDE ---
-// Points directly to the local machine. Update the IP if your network changes.
-// To restore production/dynamic URL resolution, comment out the line below
-// and uncomment the block above.
-export const API_URL = "http://192.168.0.2:3000/api";
 
 export async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
   const controller = new AbortController();

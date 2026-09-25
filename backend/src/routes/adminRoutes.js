@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
-import { getAdminOverview, getAdminUsers } from "../controllers/adminController.js";
-import { authenticate, requireAdmin } from "../middleware/authMiddleware.js";
+import { getAdminOverview, getAdminUsers, getAdmins, createAdmin, updateAdminStatus } from "../controllers/adminController.js";
+import { authenticate, requireAdmin, requireSuperAdmin } from "../middleware/authMiddleware.js";
 import {
   getAllAudios,
   getCategories,
@@ -25,6 +25,11 @@ const upload = multer({
     }
   },
 });
+
+// ─── Super Admin Routes ─────────────────────────────────────────────────────────
+router.get("/admins", authenticate, requireSuperAdmin, getAdmins);
+router.post("/admins", authenticate, requireSuperAdmin, createAdmin);
+router.patch("/admins/:id/status", authenticate, requireSuperAdmin, updateAdminStatus);
 
 // ─── Existing admin routes ────────────────────────────────────────────────────
 router.get("/overview", authenticate, requireAdmin, getAdminOverview);

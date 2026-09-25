@@ -10,6 +10,7 @@ import Routine from "../models/Routine.js";
 import MoodHistory from "../models/MoodHistory.js";
 import QuestionnaireResult from "../models/QuestionnaireResult.js";
 import Notification from "../models/Notification.js";
+import Appointment from "../models/Appointment.js";
 
 export {
   createDoctor,
@@ -473,7 +474,7 @@ export const getDoctorDashboard = async (req, res) => {
   try {
     const doctorId = req.user?._id;
     const [pendingRequests, activePatients, completedConsultations, reviews, notifications] = await Promise.all([
-      DoctorRequest.countDocuments({ doctorId, status: { $in: statusValues("Pending") } }),
+      Appointment.countDocuments({ doctorId, status: "Pending" }),
       DoctorAssignment.countDocuments({ doctorId, status: "active" }),
       DoctorAssignment.countDocuments({ doctorId, status: "completed" }),
       DoctorRating.countDocuments({ doctorId }),
@@ -634,13 +635,27 @@ export const getDoctorCurrentPatients = async (req, res) => {
 
     const assignments = await DoctorAssignment.find({ doctorId, status: "active" })
       .populate("userId", "username age gender profileImage")
-      .populate("requestId", "reason stressLevel requestedAt status")
       .sort({ assignedAt: -1, createdAt: -1 })
       .lean();
 
+    const requestIds = assignments.map(a => a.requestId);
+    const [doctorRequests, appointments] = await Promise.all([
+      DoctorRequest.find({ _id: { $in: requestIds } }).select("reason stressLevel requestedAt status").lean(),
+      Appointment.find({ _id: { $in: requestIds } }).select("reason status appointmentDate").lean()
+    ]);
+
+    const requestMap = new Map();
+    doctorRequests.forEach(req => requestMap.set(String(req._id), req));
+    appointments.forEach(apt => requestMap.set(String(apt._id), apt));
+
+    const enrichedAssignments = assignments.map(assignment => ({
+      ...assignment,
+      requestId: requestMap.get(String(assignment.requestId)) || null
+    }));
+
     return res.status(200).json({
-      total: assignments.length,
-      assignments,
+      total: enrichedAssignments.length,
+      assignments: enrichedAssignments,
     });
   } catch (error) {
     console.error("Error fetching current patients:", error);
@@ -657,13 +672,35 @@ export const getDoctorPatientDetails = async (req, res) => {
       return res.status(400).json({ message: "Invalid patient id" });
     }
 
-    const consultation = await DoctorRequest.findOne({
+    let consultation = await DoctorRequest.findOne({
       doctorId,
       userId: patientId,
       status: { $in: [...statusValues("Accepted"), ...statusValues("Completed")] },
     })
       .sort({ updatedAt: -1, createdAt: -1 })
       .lean();
+
+    if (!consultation) {
+      const appt = await Appointment.findOne({
+        doctorId,
+        patientId: patientId,
+        status: { $in: ["Accepted", "Completed"] }
+      }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+      
+      if (appt) {
+        consultation = {
+          _id: appt._id,
+          reason: appt.reason,
+          stressLevel: appt.dassSnapshot?.severity || "unknown",
+          status: appt.status,
+          requestedAt: appt.createdAt,
+          dassSnapshot: appt.dassSnapshot,
+          appointmentDate: appt.appointmentDate,
+          startTime: appt.startTime,
+          doctorNotes: [] // Appointments do not have doctorNotes array in schema, we'd rely on assignment notes or add to schema
+        };
+      }
+    }
 
     if (!consultation) {
       return res.status(404).json({ message: "Consultation not found" });
@@ -706,22 +743,33 @@ export const addConsultationNote = async (req, res) => {
       return res.status(400).json({ message: "Note is required" });
     }
 
-    const request = await DoctorRequest.findById(requestId);
+    let request = await DoctorRequest.findById(requestId);
+    let isAppointment = false;
 
     if (!request) {
-      return res.status(404).json({ message: "Consultation not found" });
+      request = await Appointment.findById(requestId);
+      isAppointment = !!request;
+    }
+
+    if (!request) {
+      return res.status(404).json({ message: "Consultation/Appointment not found" });
     }
 
     if (String(request.doctorId) !== String(doctorId)) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    request.doctorNotes.push({ note, createdAt: new Date() });
+    if (isAppointment) {
+      request.doctorNotes = request.doctorNotes ? request.doctorNotes + "\n" + note : note;
+    } else {
+      request.doctorNotes.push({ note, createdAt: new Date() });
+    }
+    
     await request.save();
 
     await createConsultationNotification({
       doctorId,
-      userId: request.userId,
+      userId: isAppointment ? request.patientId : request.userId,
       requestId: request._id,
       audience: "doctor",
       type: "note_added",
@@ -745,13 +793,27 @@ export const getDoctorCompletedConsultations = async (req, res) => {
 
     const consultations = await DoctorAssignment.find({ doctorId, status: "completed" })
       .populate("userId", "username age gender profileImage")
-      .populate("requestId", "reason stressLevel requestedAt completedAt")
       .sort({ completedAt: -1, createdAt: -1 })
       .lean();
 
+    const requestIds = consultations.map(c => c.requestId);
+    const [doctorRequests, appointments] = await Promise.all([
+      DoctorRequest.find({ _id: { $in: requestIds } }).select("reason stressLevel requestedAt completedAt").lean(),
+      Appointment.find({ _id: { $in: requestIds } }).select("reason status appointmentDate").lean()
+    ]);
+
+    const requestMap = new Map();
+    doctorRequests.forEach(req => requestMap.set(String(req._id), req));
+    appointments.forEach(apt => requestMap.set(String(apt._id), apt));
+
+    const enrichedConsultations = consultations.map(consultation => ({
+      ...consultation,
+      requestId: requestMap.get(String(consultation.requestId)) || null
+    }));
+
     return res.status(200).json({
-      total: consultations.length,
-      consultations,
+      total: enrichedConsultations.length,
+      consultations: enrichedConsultations,
     });
   } catch (error) {
     console.error("Error fetching completed consultations:", error);
@@ -782,15 +844,22 @@ export const finishConsultation = async (req, res) => {
     assignment.completedAt = new Date();
     await assignment.save();
 
-    const request = await DoctorRequest.findById(assignment.requestId);
+    let request = await DoctorRequest.findById(assignment.requestId);
+    let isAppointment = false;
+    
+    if (!request) {
+      request = await Appointment.findById(assignment.requestId);
+      isAppointment = !!request;
+    }
+
     if (request) {
-      request.status = CONSULTATION_STATUS.Completed;
+      request.status = isAppointment ? "Completed" : CONSULTATION_STATUS.Completed;
       request.completedAt = new Date();
       await request.save();
 
       await createConsultationNotification({
         doctorId,
-        userId: request.userId,
+        userId: isAppointment ? request.patientId : request.userId,
         requestId: request._id,
         audience: "user",
         type: "request_completed",

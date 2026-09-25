@@ -78,9 +78,9 @@ export default function DoctorDashboardScreen({ navigation }) {
           <Text style={doctorStyles.cardTitle}>Quick Actions</Text>
           <View style={doctorStyles.buttonRow}>
             {[
-              ["Pending Requests", "Pending Requests"],
+              ["Appointments", "Appointments"],
               ["Current Patients", "Current Patients"],
-              ["Completed Consultations", "Completed Consultations"],
+              ["Completed Appointments", "Completed Appointments"],
               ["Reviews", "Reviews"],
               ["Profile", "Profile"],
               ["Availability", "Availability"],

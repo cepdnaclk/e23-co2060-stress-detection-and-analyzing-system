@@ -90,6 +90,16 @@ const doctorSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+
+    // Google Calendar Integration
+    googleRefreshToken: {
+      type: String,
+      default: null,
+    },
+    googleCalendarConnected: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
