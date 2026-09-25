@@ -266,3 +266,21 @@ export const getMyNotifications = async (req, res) => {
         return res.status(500).json({ message: "Internal Server error" });
     }
 };
+
+export const markNotificationAsRead = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const notification = await Notification.findOneAndUpdate(
+            { _id: id, userId: req.user._id },
+            { isRead: true },
+            { new: true }
+        );
+        if (!notification) {
+            return res.status(404).json({ message: "Notification not found" });
+        }
+        return res.status(200).json(notification);
+    } catch (error) {
+        console.log("Error marking notification as read:", error);
+        return res.status(500).json({ message: "Internal Server error" });
+    }
+};

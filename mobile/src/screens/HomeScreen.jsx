@@ -236,6 +236,21 @@ export default function HomeScreen() {
     fetchNotifications();
   }, [user]);
 
+  const dismissSystemAlert = async () => {
+    if (!systemAlert) return;
+    const alertId = systemAlert._id;
+    setSystemAlert(null);
+    try {
+      const token = useAuthStore.getState().token;
+      await fetch(`${API_URL}/users/notifications/${alertId}/read`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error("Error marking notification as read", err);
+    }
+  };
+
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const contentLift = useRef(new Animated.Value(18)).current;
   const iconBobble = useRef(new Animated.Value(0)).current;
@@ -365,6 +380,13 @@ export default function HomeScreen() {
           </Animated.View>
         </Animated.View>
 
+        {showCheckInModal && (
+          <DailyCheckInCard
+            onClose={() => setShowCheckInModal(false)}
+            onSuccess={() => setShowCheckInModal(false)}
+          />
+        )}
+
         {systemAlert && (
           <View style={[styles.tipCard, { backgroundColor: '#fff3ef', borderColor: '#ffc1a1', borderWidth: 1, marginBottom: 20 }]}>
             <View style={[styles.tipIconWrap, { backgroundColor: '#ffc1a1' }]}>
@@ -374,7 +396,7 @@ export default function HomeScreen() {
               <Text style={[styles.cardKicker, { color: '#d97a63' }]}>{systemAlert.title}</Text>
               <Text style={styles.tipText}>{systemAlert.message}</Text>
             </View>
-            <Pressable onPress={() => setSystemAlert(null)} style={{ padding: 4 }}>
+            <Pressable onPress={dismissSystemAlert} style={{ padding: 4 }}>
               <Ionicons name="close" size={20} color="#d97a63" />
             </Pressable>
           </View>
@@ -430,11 +452,6 @@ export default function HomeScreen() {
           <Text style={styles.quoteSource}>{dailyQuote?.source}</Text>
         </Animated.View>
       </ScrollView>
-      <DailyCheckInCard
-        visible={showCheckInModal}
-        onClose={() => setShowCheckInModal(false)}
-        onSuccess={() => setShowCheckInModal(false)}
-      />
     </SafeScreen>
   );
 }
