@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+import dns from "node:dns";
+
+// Fix for querySrv ENOTFOUND on local/ISP DNS by using reliable public resolvers
+dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
 
 const redactMongoUri = (uri) => {
     if (!uri) return uri;
