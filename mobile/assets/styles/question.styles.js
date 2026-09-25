@@ -10,7 +10,11 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   questionBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
     overflow: "hidden",
   },
   backdropLayerA: {

@@ -20,6 +20,7 @@ import therapyHubRoutes from "./routes/therapyHubRoutes.js";
 import activityRoutes from "./routes/activityRoutes.js";
 import dailyCheckInRoutes from "./routes/dailyCheckInRoutes.js";
 import emergencyServicesRoutes from "./routes/emergencyServicesRoutes.js";
+import calendarRoutes from "./routes/calendarRoutes.js";
 
 import { connectDB } from "./lib/db.js";
 import { seedAdminUser } from "./lib/seedAdmin.js";
@@ -38,6 +39,11 @@ app.use(express.json()); // Middleware to parse JSON bodies
 // Static file hosting for uploaded files (e.g. audio files)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
+// Google Site Verification
+app.get("/google0fd8c98c75c65746.html", (req, res) => {
+  res.send("google-site-verification: google0fd8c98c75c65746.html");
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/routine", routineRoutes);
@@ -54,6 +60,7 @@ app.use("/api/therapy-hub", therapyHubRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/checkins", dailyCheckInRoutes);
 app.use("/api/emergency-services", emergencyServicesRoutes);
+app.use("/api/calendar", calendarRoutes);
 
 async function startServer() {
     await connectDB();
@@ -61,7 +68,7 @@ async function startServer() {
     await seedTherapyHubExercises();
     await seedEmergencyServices();
 
-    app.listen(PORT, () => {
+    app.listen(PORT, "0.0.0.0", () => {
         console.log(`Server is running on port ${PORT}`);
     });
 }

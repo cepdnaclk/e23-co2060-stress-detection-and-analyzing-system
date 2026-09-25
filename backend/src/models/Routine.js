@@ -10,6 +10,10 @@ const routineBlockSchema = new mongoose.Schema(
       enum: ["activity", "break", "meal", "free"],
       default: "activity",
     },
+    googleEventId: {
+      type: String,
+      default: null,
+    }
   },
   { _id: false }
 );
