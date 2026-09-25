@@ -39,6 +39,11 @@ app.use(express.json()); // Middleware to parse JSON bodies
 // Static file hosting for uploaded files (e.g. audio files)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
+// Google Site Verification
+app.get("/google0fd8c98c75c65746.html", (req, res) => {
+  res.send("google-site-verification: google0fd8c98c75c65746.html");
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/routine", routineRoutes);
