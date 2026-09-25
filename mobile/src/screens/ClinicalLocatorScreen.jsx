@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { View, Text, ActivityIndicator, Pressable, Linking } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { WebView } from "react-native-webview";
 import * as Location from "expo-location";
 import { API_URL } from "../../constants/api";
 import styles from "../../assets/styles/clinical_locator.styles";
@@ -21,15 +21,6 @@ export default function ClinicalLocatorScreen() {
       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinicName)}`;
 
     Linking.openURL(url);
-  };
-  const handleMarkerPress = (clinic) => {
-    setSelectedClinic(clinic);
-  };
-
-  const handleMapPress = () => {
-    if (selectedClinic) {
-      setSelectedClinic(null);
-    }
   };
 
   const getOpenStatus = (clinic) => {
@@ -76,6 +67,120 @@ export default function ClinicalLocatorScreen() {
     })();
   }, []);
 
+  const mapHtml = useMemo(() => {
+    if (!userLocation) return "";
+
+    const clinicsJson = JSON.stringify(clinics);
+    const userLat = userLocation.latitude;
+    const userLng = userLocation.longitude;
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          html, body, #map { width: 100%; height: 100%; background: #e5e3df; }
+          .user-marker {
+            width: 20px;
+            height: 20px;
+            background: #2563EB;
+            border: 3px solid #FFFFFF;
+            border-radius: 50%;
+            box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.35);
+          }
+          .clinic-pin {
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="map"></div>
+        <script>
+          const map = L.map('map', {
+            center: [${userLat}, ${userLng}],
+            zoom: 14,
+            zoomControl: false
+          });
+
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CartoDB &copy; OpenStreetMap',
+            maxZoom: 19,
+            subdomains: 'abcd'
+          }).addTo(map);
+
+          // User Location Pin
+          const userIcon = L.divIcon({
+            className: 'custom-user-icon',
+            html: '<div class="user-marker"></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          });
+          L.marker([${userLat}, ${userLng}], { icon: userIcon }).addTo(map);
+
+          // Clinic Pins (SVG Red Marker)
+          const clinicSvg = \`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="#E53935">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          \`;
+
+          const clinicIcon = L.divIcon({
+            className: 'clinic-pin',
+            html: clinicSvg,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32]
+          });
+
+          const clinics = ${clinicsJson};
+
+          clinics.forEach((clinic, idx) => {
+            if (clinic.geometry && clinic.geometry.location) {
+              const marker = L.marker([clinic.geometry.location.lat, clinic.geometry.location.lng], {
+                icon: clinicIcon
+              }).addTo(map);
+
+              marker.on('click', () => {
+                if (window.ReactNativeWebView) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'SELECT_CLINIC',
+                    clinic: clinic
+                  }));
+                }
+              });
+            }
+          });
+
+          map.on('click', () => {
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'DESELECT' }));
+            }
+          });
+        </script>
+      </body>
+      </html>
+    `;
+  }, [userLocation, clinics]);
+
+  const handleMessage = (event) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === "SELECT_CLINIC") {
+        setSelectedClinic(data.clinic);
+      } else if (data.type === "DESELECT") {
+        setSelectedClinic(null);
+      }
+    } catch (e) {
+      console.log("Error parsing WebView message:", e);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -96,36 +201,15 @@ export default function ClinicalLocatorScreen() {
   return (
     <View style={styles.container}>
       {userLocation && (
-        <MapView
+        <WebView
+          originWhitelist={["*"]}
+          source={{ html: mapHtml }}
           style={styles.map}
-          initialRegion={{
-            latitude: userLocation.latitude,
-            longitude: userLocation.longitude,
-            latitudeDelta: 0.08,
-            longitudeDelta: 0.08,
-          }}
-          showsUserLocation={true}
-          showsMyLocationButton={true}
-          showsPointsOfInterest={false}
-          moveOnMarkerPress={false}
-          onPress={handleMapPress}
-        >
-          {/* Psychiatrist markers (red) */}
-          {clinics.map((clinic, index) => (
-            <Marker
-              key={clinic.place_id || index}
-              coordinate={{
-                latitude: clinic.geometry.location.lat,
-                longitude: clinic.geometry.location.lng,
-              }}
-              pinColor="red"
-              onPress={(event) => {
-                event.stopPropagation();
-                handleMarkerPress(clinic);
-              }}
-            />
-          ))}
-        </MapView>
+          onMessage={handleMessage}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          geolocationEnabled={true}
+        />
       )}
 
       {selectedClinic && (
@@ -160,3 +244,4 @@ export default function ClinicalLocatorScreen() {
     </View>
   );
 }
+
