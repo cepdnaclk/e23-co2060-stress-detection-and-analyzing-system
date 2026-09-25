@@ -21,6 +21,18 @@ export const createCheckIn = async (req, res) => {
       physicalActivityMinutes,
     } = req.body;
 
+    // Validate required fields
+    if (
+      stressLevel === undefined ||
+      mood === undefined ||
+      sleepHours === undefined ||
+      sleepQuality === undefined ||
+      workloadHours === undefined ||
+      physicalActivityMinutes === undefined
+    ) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
     // Use current date in YYYY-MM-DD
     const today = new Date().toISOString().split("T")[0];
 

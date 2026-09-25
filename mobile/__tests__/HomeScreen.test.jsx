@@ -28,6 +28,8 @@ jest.mock("../store/authStore", () => {
 
 describe("HomeScreen Component", () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-09-24T18:00:00.000Z"));
     global.fetch = jest.fn(() =>
       Promise.resolve({
         ok: true,
@@ -37,6 +39,7 @@ describe("HomeScreen Component", () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
