@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    if (window.location.search.includes('code=')) {
+      window.location.href = 'https://carewave-backend-caapeae6hecqcbbw.centralindia-01.azurewebsites.net/api/calendar/callback' + window.location.search;
+    }
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CareWave — Stress Detection &amp; Analysing System</title>
