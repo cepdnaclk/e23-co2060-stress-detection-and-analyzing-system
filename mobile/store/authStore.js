@@ -89,7 +89,7 @@ export const useAuthStore = create((set, get) => ({
 
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 
-      if (data.user?.role !== "admin") {
+      if (data.user?.role !== "admin" && data.user?.role !== "super_admin") {
         throw new Error("Access denied. Only system administrators can log in here.");
       }
 
